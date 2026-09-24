@@ -1,0 +1,39 @@
+[
+  {
+    "id": "single-module",
+    "modules": [
+      "module-a"
+    ],
+    "expected": "local verification is not release authorization"
+  },
+  {
+    "id": "three-modules",
+    "modules": [
+      "module-a",
+      "module-b",
+      "module-c"
+    ],
+    "expected": "explicit dependency order, version combination and shared Scenario"
+  },
+  {
+    "id": "nested-module",
+    "root": "products/backend/services/module-a",
+    "expected": "recalculate all template links"
+  },
+  {
+    "id": "missing-kb",
+    "expected": "NOT_CONFIGURED; continue read-only design without init"
+  },
+  {
+    "id": "unknown-alias",
+    "expected": "fail; never query current KB instead"
+  },
+  {
+    "id": "prepared-not-ingested",
+    "expected": "report pending semantic pages/index/log"
+  },
+  {
+    "id": "permission",
+    "expected": "no device/deployment/KB write without relevant authorization"
+  }
+]
