@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import re
 
-CAPABILITIES = {'write', 'agent', 'index', 'hooks', 'clone', 'local-clone', 'openspec'}
+CAPABILITIES = {'write', 'agent', 'index', 'hooks', 'clone', 'local-clone', 'openspec', 'auth'}
 
 
 def encoded(value):
@@ -26,8 +26,8 @@ def build_plan(root, config, action):
     if root.resolve() in (Path('/'), Path.home().resolve()):
         raise ValueError('UNSAFE_TARGET')
     identity(config.get('project_id'))
-    if config.get('agent') not in ('manual', 'codex'):
-        raise ValueError('Specify --agent manual or codex')
+    if config.get('agent') not in ('manual', 'codex', 'current'):
+        raise ValueError('Specify --agent manual, codex or current')
     for flag in ('index', 'hooks', 'openspec'):
         if flag in config and not isinstance(config[flag], bool):
             raise ValueError('INVALID_CAPABILITY: ' + flag)

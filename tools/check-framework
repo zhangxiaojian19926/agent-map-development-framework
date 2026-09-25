@@ -12,7 +12,7 @@ from urllib.parse import unquote
 
 MANIFEST = "framework-manifest.json"
 SKIP = {".git", "__pycache__", ".DS_Store", ".superpowers"}
-ROOT_FILES = {"AGENTS.md", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md",
+ROOT_FILES = {"AGENTS.md", "BOOTSTRAP.md", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md",
               "CHANGELOG.md", ".gitignore", MANIFEST}
 ROOT_DIRS = {"docs", "skill", "templates", "tests", "tools", ".github", "openspec"}
 
@@ -70,6 +70,10 @@ def main():
     expected = manifest["files"]
     errors = inventory_errors(root, expected)
     for rel in expected:
+        if Path(rel).name == 'PROJECT-START.md' and rel != 'templates/PROJECT-START.md':
+            errors.append('private startup input in distribution: ' + rel)
+        if Path(rel).name in ('acquisition.json', 'request.json', 'analysis-result.json'):
+            errors.append('private launch state in distribution: ' + rel)
         parts = Path(rel).parts
         if (len(parts) == 1 and rel not in ROOT_FILES) or (len(parts) > 1 and parts[0] not in ROOT_DIRS):
             errors.append("outside distribution roots: " + rel)

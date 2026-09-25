@@ -4,11 +4,12 @@
 
 ## 开始使用
 
-1. 阅读 [Agent 入口](AGENTS.md) 和 [首次接入](docs/onboarding.md)。
-2. 阅读 [依赖与技能接入](docs/integrations.md)，确认宿主、CLI 与权限。技能文件存在不等于自动启用。
-3. 按 [一键接入](docs/bootstrap.md) 运行 `python3 tools/framework init --target /path/to/project`；全新需求用 `new`，先确认需求、设计和计划。
-4. 使用实际项目资源与已授权的能力执行任务；无 KB 时报告 NOT_CONFIGURED，不自动建库。
-5. 在本仓库根运行：
+1. 准备一份输入：已有工程填“模块名称 = 仓库 URL”，全新工程只描述项目和目标。见 [启动单模板](templates/PROJECT-START.md)。
+2. 把输入与 [BOOTSTRAP.md](BOOTSTRAP.md) 的位置给具备文件/执行能力的 Coding Agent，说：“初始化工程”。
+3. Agent 自行预览、按名称下载、基础准备、分析并校验模块地图；用户无需选择 init/new、填写 JSON/hash 或执行脚本。
+4. 基础接入不批准业务实施，下一步按 [开发流程](docs/framework/development-workflow.md) 确认设计与计划；缺凭据/权限只询问必要信息。非Codex不强制调用Codex，已实测覆盖以[验收记录](docs/acceptance.md)为准。
+
+维护者验证（不是用户接入前置操作）：
 ```bash
 python3 tools/check-framework
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v

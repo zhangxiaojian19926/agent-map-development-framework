@@ -1,8 +1,14 @@
 # 一键接入与完整开发
 
+## 默认用户路径：一句初始化工程
+
+提供[启动单](../templates/PROJECT-START.md)和[BOOTSTRAP入口](../BOOTSTRAP.md)，让当前 Coding Agent 执行。已有工程用任意数量“模块名称 = URL”；新工程只填需求，不必先建仓库或分支。Agent 下载到命名目录、保存私有启动状态、准备框架并提交模块分析结果。具体契约见[输入说明](project-intake.md)。
+
+以下为维护者/Agent 的旧 CLI 高级接口参考，不是普通用户需要完成的步骤。旧 new 保持审批语义；自然语言新工程入口改走 prepare，再确认业务设计。当前会话分析使用 analyze-request/accept-analysis，外部 Codex 仅为可选适配。
+
 Python 3.9+，macOS/Linux。命令不安装依赖、不初始化 Git、不创建远程仓库。CodeGraph 适配版本 1.6.0，Codex CLI 0.151.0，OpenSpec CLI 1.11.0；缺失或未适配版本明确报告，不自行修复全局工具。
 
-## 已有工程
+## 高级接口：已有工程
 
 从公共分发目录执行：
 
@@ -39,7 +45,7 @@ python3 tools/framework init --target /path/to/project --config config.json --ye
 
 `index` 允许 CodeGraph 索引与受管排除配置；`hooks` 另行允许非共享、项目内 Git hooks；自定义/既有 hooks 保留并报告冲突。没有守护进程的环境依靠任务入口与收尾检查，不承诺关机或 Agent 离线时即时建图。
 
-## 新需求，没有代码或 Git 仓库
+## 高级接口：旧 new 审批契约
 
 先由 Coding Agent 按顶层流程完成需求、设计、实施计划。下载文件里的 `approved:true` 无效。config 中 `artifacts` 保存这三份已确认正文，键为 requirements/design/plan；modules 可声明尚未实现的路径。当前调用提供逐份正文 UTF-8 SHA256：
 

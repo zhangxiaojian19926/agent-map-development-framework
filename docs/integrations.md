@@ -20,6 +20,10 @@ skill/project-bootstrap 提供接入、刷新与地图 schema 参考；合计 22
 
 ## 宿主发现与调用
 
+首次可在同一请求给出 [BOOTSTRAP](../BOOTSTRAP.md) 与输入单位置，无需先装厂商插件。当前会话通过 analyze-request/accept-analysis 协议建图，能力按 read/write/execute 判断；没有 shell/文件工具的聊天宿主只能给计划。外部 Codex CLI 是可选适配，不是非Codex的依赖。
+
+兼容分为：协议可用、离线边界测试通过、真实宿主验收通过。仅前两项不能称第三项；具体版本/覆盖见[验收](acceptance.md)。SSH认证仅显式 current-user agent socket；HTTPS私有helper未自动适配，不能用读取全局配置来掩盖缺口。
+
 通用可移植方式：在目标工程入口登记本包位置和明确 SKILL.md 路径，Agent 按阶段读取所选技能后执行其步骤。
 如果宿主要求专门的技能目录或插件 manifest，使用该宿主实际支持的项目级方式，经授权配置；本仓库不是可直接安装到所有宿主的插件。
 Codex / Claude Code / 其他宿主的工具、委派和权限模型各不相同，实际可用工具优先于附带参考中的旧 API 示例。未完成真实宿主接入测试不能标记已认证。

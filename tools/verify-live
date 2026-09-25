@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import shutil
 from pathlib import Path
 import sys
 sys.dont_write_bytecode = True
@@ -13,10 +14,97 @@ from framework_core.storage import atomic, safe_path
 from framework_core.modules import source_files
 
 
+def verify_intake(root, distribution, host):
+    """Give a real host only human input; independently check its artifacts."""
+    if not shutil.which(host):
+        atomic(root, 'report.json', encoded({'status': 'NOT_RUN', 'host': host, 'reason': 'DEPENDENCY_MISSING'}))
+        return 5
+    cli = distribution/'tools/framework'
+    calls = {}
+    def step(name, argv, cwd, stdin='', timeout=1200):
+        print(name, flush=True)
+        result = run([str(a) for a in argv], cwd, timeout, {}, stdin)
+        atomic(root, 'evidence/' + name + '.json', encoded(result))
+        calls[name] = {'exit_code': result['exit_code'], 'timed_out': result['timed_out']}
+        return result
+    try:
+        # Sources have the same basename, but distinct truth and a non-main HEAD.
+        for name, code in (('first', 'def send(): return "message"\n'), ('second', 'def receive(value): return value\n')):
+            source = root/'sources'/name/'same'
+            atomic(source, 'app.py', code)
+            for args in (['init', '-b', 'develop'], ['add', 'app.py'], ['commit', '-m', 'synthetic fixture']):
+                result = step('fixture-' + name + '-' + args[0], ['git', '-c', 'core.hooksPath=/dev/null',
+                    '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', *args], source, timeout=30)
+                if result['exit_code']:
+                    raise ValueError('FIXTURE_FAILED')
+        cases = {
+            'existing': '设备端=' + str(root/'sources/first/same') + '\n服务端=' + str(root/'sources/second/same') + '\n',
+            'new': '# 工程启动单\n项目：家庭任务助手\n目标：本机新增、列出、完成任务，先做基础初始化\n仓库：暂无\n'}
+        for case, text in cases.items():
+            case_root = root/case
+            atomic(case_root, 'PROJECT-START.md', text)
+            prompt = ('初始化工程。读取公共框架入口 ' + str(distribution/'BOOTSTRAP.md') + '，输入在 ' + str(case_root/'PROJECT-START.md') +
+                      '。目标是 ' + str(case_root/'project') + '，私有启动区是 ' + str(case_root/'launch') +
+                      '。本次授权在此测试目录基础初始化、按列出的合成本地来源clone、当前会话源码分析；不安装、不执行业务代码、不创建远程、不推送、不写知识库。'
+                      '用当前宿主自己完成初始化与有源码时的地图接收，不调用其他模型CLI、不委派。无需业务设计批准就只准备基础框架，不开发业务。'
+                      '用户不提供或执行机器配置、hash、模式或脚本。最后报告真实目录与分层状态。')
+            atomic(root, 'evidence/' + case + '-prompt.txt', prompt)
+            if host == 'codex':
+                argv = ['codex', 'exec', '--ignore-user-config', '--ignore-rules', '--ephemeral',
+                        '--sandbox', 'workspace-write', '--skip-git-repo-check', '--json',
+                        '--disable', 'plugins', '--disable', 'apps', '--disable', 'hooks',
+                        '-c', 'mcp_servers={}', '-c', 'web_search="disabled"', '-C', str(root), '-']
+            else:
+                argv = ['claude', '--disable-slash-commands', '--no-session-persistence', '--no-chrome',
+                        '--setting-sources', '', '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}',
+                        '--settings', '{"disableAllHooks":true,"enabledPlugins":{}}',
+                        '--permission-mode', 'dontAsk', '--tools', 'Bash,Read,Write,Edit,Glob,Grep',
+                        '--allowedTools', 'Bash,Read,Write,Edit,Glob,Grep',
+                        '--add-dir', str(distribution), '--output-format', 'json', '-p', prompt]
+            result = step(host + '-' + case, argv, root, prompt if host == 'codex' else '')
+            if result['exit_code']:
+                atomic(root, 'report.json', encoded({'status': 'NOT_RUN' if case == 'existing' else 'PARTIAL',
+                       'host': host, 'steps': calls, 'reason': 'HOST_FAILED_OR_AUTH_REQUIRED'}))
+                return 5
+            target = case_root/'project'
+            config = json.loads((target/'framework-project.json').read_text())
+            if config['agent'] != 'current' or (target/'.git').exists() or (target/'PROJECT-START.md').exists():
+                raise ValueError('UNEXPECTED_SIDE_EFFECT_OR_HOST')
+            if case == 'existing':
+                modules = {m['name']: m for m in config['modules']}
+                if set(modules) != {'设备端', '服务端'}:
+                    raise ValueError('INCORRECT_NAMES')
+                for name, src in (('设备端', 'first'), ('服务端', 'second')):
+                    path = target/'modules'/name
+                    actual = step('verify-' + src, ['git', '-C', path, 'remote', 'get-url', 'origin'], root)
+                    if modules[name]['path'] != 'modules/' + name or actual['stdout'].strip() != str(root/'sources'/src/'same'):
+                        raise ValueError('WRONG_MODULE_SOURCE')
+                agent = json.loads((target/'.framework/local-state/agent-status.json').read_text())
+                if agent.get('execution') != 'current-session':
+                    raise ValueError('HOST_ANALYSIS_NOT_ACCEPTED')
+            elif config['modules']:
+                raise ValueError('UNREQUESTED_BUSINESS_CODE')
+            doctor = step('doctor-' + case, [sys.executable, '-B', cli, 'doctor', '--target', target], root)
+            report = json.loads(doctor['stdout'])
+            if report['onboarding'] != 'PREPARED' or report['runtime'] != 'NOT_RUN':
+                raise ValueError('WRONG_READINESS')
+            if case == 'existing' and report['maps']['status'] != 'READY':
+                raise ValueError('MAP_NOT_READY')
+        atomic(root, 'report.json', encoded({'status': 'PASS', 'host': host, 'steps': calls,
+               'manifest_sha256': hashlib.sha256((distribution/'framework-manifest.json').read_bytes()).hexdigest(),
+               'cross_host_resume': 'NOT_RUN', 'runtime': 'NOT_RUN'}))
+        return 0
+    except (ValueError, OSError, KeyError) as exc:
+        atomic(root, 'report.json', encoded({'status': 'FAILED', 'host': host, 'error': str(exc), 'steps': calls}))
+        return 4
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--target', required=True)
     parser.add_argument('--allow-live', action='store_true', help='Allow synthetic source transmission, Codex development and CodeGraph indexing')
+    parser.add_argument('--scenario', choices=['legacy', 'intake'], default='legacy')
+    parser.add_argument('--host', choices=['codex', 'claude'], default='codex')
     args = parser.parse_args()
     if not args.allow_live:
         print('CONSENT_REQUIRED: --allow-live sends synthetic source to Codex and executes its generated tests')
@@ -29,6 +117,8 @@ def main():
     root.mkdir(parents=True)
     root = root.resolve()
     distribution = Path(__file__).resolve().parents[1]
+    if args.scenario == 'intake':
+        return verify_intake(root, distribution, args.host)
     cli = distribution / 'tools/framework'
     evidence = {}
 

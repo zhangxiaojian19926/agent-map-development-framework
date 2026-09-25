@@ -6,6 +6,54 @@ from test_bootstrap_config import invoke
 
 
 class GenerationTests(unittest.TestCase):
+    def test_prepare_without_approved_business_design_or_git(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)/'new'
+            result = invoke('prepare', '--target', root, '--project-id', 'demo', '--agent', 'current', '--yes', '--allow', 'write')
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(json.loads(result.stdout)['onboarding'], 'PREPARED')
+            self.assertFalse((root/'.git').exists())
+            self.assertFalse((root/'taskcli').exists())
+            self.assertIn('No approved design', (root/'docs/project/architecture.md').read_text())
+
+    def test_prepare_preserves_human_rules_and_source(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            original = b'# Human rules\r\nDo not deploy.\r\n'
+            (root/'AGENTS.md').write_bytes(original)
+            (root/'app.py').write_text('user code\n')
+            args = ('prepare', '--target', root, '--project-id', 'demo', '--agent', 'current', '--yes', '--allow', 'write')
+            result = invoke(*args)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue((root/'AGENTS.md').read_bytes().startswith(original))
+            first = (root/'AGENTS.md').read_bytes()
+            self.assertEqual(invoke(*args).returncode, 0)
+            self.assertEqual((root/'AGENTS.md').read_bytes(), first)
+            self.assertEqual((root/'app.py').read_text(), 'user code\n')
+            self.assertIn('docs/project/overview.md', first.decode())
+
+    def test_prepare_rule_conflict_has_no_overwrite(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            original = '<!-- FRAMEWORK_ENTRY_START -->\nuser edited incomplete block'
+            (root/'AGENTS.md').write_text(original)
+            result = invoke('prepare', '--target', root, '--project-id', 'demo', '--agent', 'current', '--yes', '--allow', 'write')
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertEqual((root/'AGENTS.md').read_text(), original)
+
+    def test_prepare_existing_loose_sources_are_not_treated_as_empty(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d).resolve()
+            (root/'main.py').write_text('def main(): return 1\n')
+            result = invoke('prepare', '--target', root, '--project-id', 'demo', '--agent', 'current', '--yes', '--allow', 'write')
+            self.assertEqual(result.returncode, 0, result.stdout)
+            report = json.loads(result.stdout)
+            self.assertEqual(report['maps']['status'], 'NOT_RUN')
+            catalog = json.loads((root/'module-catalog.generated.json').read_text())
+            self.assertEqual(catalog['modules']['root']['path'], '.')
+            self.assertIn('main.py', catalog['modules']['root']['sources'])
+            self.assertFalse((root/'.git').exists())
+
     def test_init_generates_owned_project_and_is_idempotent(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d) / 'demo'

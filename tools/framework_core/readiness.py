@@ -13,7 +13,8 @@ def inspect_project(root):
               'scaffold': 'READY' if config and catalog else 'BLOCKED',
               'agent': {'status': 'WAITING_AGENT'}, 'maps': {'status': 'NOT_RUN'},
               'indexes': {}, 'hooks': read_json(root, '.framework/local-state/hooks.json', {'status': 'NOT_CONFIGURED'}),
-              'runtime': 'NOT_RUN', 'next_actions': []}
+              'runtime': 'NOT_RUN', 'onboarding': 'NOT_PREPARED',
+              'understanding': 'NOT_RUN', 'development': 'NEEDS_DESIGN_APPROVAL', 'next_actions': []}
     if not config or not catalog:
         report['status'] = 'BLOCKED'
         report['next_actions'] = ['init --target <project>']
@@ -79,4 +80,12 @@ def inspect_project(root):
         report['status'] = 'BLOCKED'
         report['framework_errors'] = broken or ['Missing installed framework']
         report['next_actions'].append('Inspect installed bundle; use init from a verified distribution to repair owned files')
+    report['onboarding'] = 'PREPARED' if report['scaffold'] == 'READY' else 'BLOCKED'
+    report['understanding'] = report['maps']['status']
+    if (config.get('onboarding_mode') == 'prepare' and not current_sources
+            and report['scaffold'] == 'READY' and not report['candidates'] and not stale):
+        report['status'] = 'PREPARED'
+        report['next_actions'] = ['Review requirements and design with the current agent; business implementation is not approved']
+    elif config.get('agent') == 'current' and report['maps']['status'] != 'READY':
+        report['next_actions'].append('Current agent: analyze-request, inspect the bounded source packet, then accept-analysis')
     return report

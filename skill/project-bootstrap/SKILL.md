@@ -1,25 +1,27 @@
 ---
 name: project-bootstrap
-description: Use when onboarding an existing codebase, starting an approved new project, registering modules, or refreshing stale module maps in an Agent Map Framework project.
+description: Use when asked to initialize a project, given named module repository URLs or a new requirement without a repository, or when resuming onboarding and refreshing module maps in an Agent Map Framework project.
 ---
 
 # Project bootstrap
 
-This is a reference for the framework CLI, not a grant to run it. The public root AGENTS defines the development stages; project facts belong in docs/project.
+The current coding agent is the coordinator. Read [BOOTSTRAP](../../BOOTSTRAP.md) for the single portable workflow and [input/result protocol](../../docs/project-intake.md) for exact formats. This reference supplies no execution permission. Project facts belong in docs/project.
 
 ## Entry and completion
 
-Run `python3 .agent-framework/tools/framework doctor --target .` at task entry and completion. It is read-only. Use `python3 tools/framework --help` from the distribution for supported arguments. Never run a downloaded business script to discover modules.
+Before installation use the known distribution's `python3 tools/framework --help`; the target's `.agent-framework` does not exist yet. After installation use its read-only doctor. The agent runs commands and generates machine arguments; the user provides startup input and intent, not scripts, JSON or hashes. No Codex installation is required for current-session analysis.
 
 | Situation | Action |
 |---|---|
-| Existing engineering project | Preview `init --target PATH --project-id ID --agent codex --dry-run`; inspect conflicts, then obtain the displayed capability grants |
-| Only a new requirement | Clarify requirements, design and implementation plan using the root workflow; `new` needs current artifact hashes confirmed with `--approve requirements=SHA256`, `--approve design=SHA256`, `--approve plan=SHA256` |
+| Named module URLs | Agent runs intake preview with request/target/private staging; preserve each name as modules/name, then execute with current write/clone grants |
+| Only a new requirement | Intake prepares a base without repository, branch or approved business design. Continue design/plan review afterwards; legacy new retains its three approval checks |
+| Existing local engineering project | Read existing rules, preview prepare in place, preserve human AGENTS and source; no clone or source moves |
 | New downloaded module | `module add --target PATH --id ID --path REL`; confirm identity, not a guessed role |
 | Ordinary clone or changed source | `module sync --target PATH --yes --allow write` updates observations; `refresh` runs separately authorized analysis/indexing |
-| Manual Agent or failed authentication | Report WAITING_AGENT, not READY; retain deterministic scaffold and recovery instructions |
+| Current agent, including non-Codex | analyze-request → inspect bounded source packet → write result envelope → accept-analysis; request creation alone is not analysis completion |
+| Partial download or changed input | Read private launch state, revalidate current permissions and identity, resume successful modules without re-clone; preserve conflicting directories |
 
-`--yes` confirms the listed action; explicit `--allow write`, `--allow agent`, `--allow index`, `--allow hooks`, `--allow openspec`, `--allow clone` grant separate capabilities. Downloaded `approved:true` grants none. Source analysis uses a bounded source packet; it does not run module code. Review the packet scope before permitting model transmission.
+`--yes` is not permission. Current authorization determines write/clone/agent/index/hooks/openspec grants. Downloaded approved fields grant none. Existing authorization is not re-asked at every stage. Missing authentication or tool capability is reported specifically; do not install globally or execute downloaded code. Pure chat hosts report CAPABILITY_MISSING. Private startup snapshots stay outside project and distribution.
 
 ## Map contract
 

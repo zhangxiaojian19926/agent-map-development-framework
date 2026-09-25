@@ -15,6 +15,17 @@ def invoke(*args):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_intake_symlink_target_parent_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            base = Path(d).resolve()
+            (base/'real').mkdir()
+            (base/'link').symlink_to(base/'real', target_is_directory=True)
+            (base/'input.md').write_text('# 工程启动单\n目标：任务列表')
+            result = invoke('intake', '--target', base/'link/project', '--staging', base/'launch',
+                            '--request', base/'input.md', '--dry-run')
+            self.assertEqual(result.returncode, 2, result.stdout)
+            self.assertFalse((base/'launch').exists())
+
     def test_preview_has_no_filesystem_side_effects(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d) / '中文 project'
