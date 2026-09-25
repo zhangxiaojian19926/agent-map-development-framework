@@ -33,20 +33,20 @@
 
 **能力边界**:
 - 发现器、注册器和生成目录是否存在,由项目资源文档声明并在使用前核实。目录缺失不等于“没有模块”;工具未落地时不得伪造自动登记结果。
-- 实现发现器/注册器本身是新的行为与验收面,须按顶层 SPEC/PLAN 流程取得相应批准后实施;本节只定义未来契约,不授权现在创建工具、后台 watcher、全局 Git hook 或全局 shell 配置。
+- 当前公共包的受控入口是 `python3 tools/framework`，接入后为 `.agent-framework/tools/framework`。发现、登记、索引、Agent、hooks 分开处理；本节不授权全局 watcher、全局 Git hook 或 shell 配置。
 
 **新增模块后的动作**(先发现,后操作):
 1. 将新 clone、下载、解压或移动进工作区的代码目录视为**候选模块**;不得根据目录名、一级目录层级或预设角色判断它已经受管。
-2. 只读确认候选模块的规范化相对路径、符号链接解析结果和边界。独立 Git 工作树必须用自身 `git` 根、HEAD 与状态检查;不得以外层仓库状态代替。无 Git 的下载目录必须有通用模块描述符,否则标为 `unclassified` 并报告。
+2. 只读确认候选模块的规范化相对路径、符号链接解析结果和边界。独立 Git 工作树必须用自身 `git` 根、HEAD 与状态检查;不得以外层仓库状态代替。无 Git 下载目录用 `module add --id ID --path REL` 明确身份，或提供只含元数据的 framework-module.json。
 3. 只读取候选根的 `AGENTS.md`(如有)、VCS 信息、`.codegraph/` 是否存在和显式关联的 KB alias。发现过程不得执行模块代码、安装依赖、访问网络或设备、初始化 Git/CodeGraph、修改 KB alias、配置或模块文件。
-4. 未来自动目录只能登记可观察元数据:确定性 `<module-id>`、工作区相对 `<module-root>`、发现依据、VCS/AGENTS/CodeGraph 状态、显式声明的 `kb_aliases`、`roles:["unclassified"]` 与 `trust:"discovered"`。`kb_aliases` 未声明时为空数组,已有值只提供路由线索,不授予写入权限。角色、依赖、外部能力、运行状态、证据状态和权限不得靠自动扫描推断。
+4. 自动目录只登记可观察元数据与明确声明：稳定 module-id、相对路径、repo-id/index-id、源码指纹、presence/lifecycle 和移动历史。候选 trust=discovered，不代表已启用。声明中的 kb_aliases 只提供路由线索；模块角色和运行关系不由目录名推断，Agent 证据单独保存。
 5. 候选模块被发现不等于已启用、可运行、已验证、CodeGraph 已覆盖、子仓库干净或获准修改。后续任务必须显式列出 `<module-id>`;再读取目标模块和子模块规则,并把规格与证据范围绑定到这些 ID。
 
-**未来自动化接口**:
-- `tools/module-clone <repo-url> <relative-target>` 仅在用户授权的 `git clone` 成功后调用同步器;不得覆盖全局 `git`、写 Git template/hook 或修改 shell 配置。
-- `tools/module-sync [--path <relative-path>]` 仅扫描明确配置的**发现根**或显式传入的相对路径,不得递归扫描整个工作区、跟随逃出工作区的符号链接,也不得把 Git submodule、缓存或临时目录自动升格为受管模块。
+**自动化接口**:
+- `tools/framework module clone --target ROOT --id ID --url URL --path REL` 在 clone 成功后复用登记与授权分析；不覆盖全局 git、不执行下载代码。
+- `tools/framework module sync --target ROOT` 只更新确认的模块与发现根内的候选；不调模型，不自动启用候选。扫描有深度/文件预算，拒绝链接逃逸。
 - 同步器只原子更新其自身拥有的 `<workspace-root>/module-catalog.generated.json`;结果必须稳定排序且幂等。它不得 `git add`、commit、push、覆盖人工维护的文件或元数据,也不得授予执行权限;目录移动/消失时标记 `missing`,保留审计历史。
-- 若用户使用普通 `git clone`、下载或解压而未经过包装命令,下一次进入项目或处理该目录前必须运行同步器;工具尚未实现时,按本节 1-5 进行只读发现并报告。
+- 普通 clone/下载/解压不会触发全局拦截；任务入口 doctor 报告候选或过期，确认后 module add / refresh。未接入公共 CLI 的项目依旧按本节只读发现并报告。
 
 **拒绝条件**:
 - 工作区外路径、符号链接逃逸、重复 `<module-id>`、无效描述符或无法判别的嵌套边界,必须产生明确失败/未分类结果,不能静默遗漏后宣称目录完整。

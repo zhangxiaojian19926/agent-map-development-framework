@@ -3,6 +3,7 @@
 ## 发布能力
 
 skill/openspec 保存 6 个工作流，skill/super-powers 保存 14 个工作流，skill/llm-wiki 保存知识管理入口及本地辅助脚本。
+skill/project-bootstrap 提供接入、刷新与地图 schema 参考；合计 22 个技能入口。
 不重复创建竞争版本：一次任务确定一个技能来源，先完整读取该入口及其必需引用。
 框架文件不能替代系统/宿主权限；附带技能示例中的自动提交、全局配置或委派建议，仅在当前用户授权且宿主支持时适用。
 
@@ -12,7 +13,7 @@ skill/openspec 保存 6 个工作流，skill/super-powers 保存 14 个工作流
 - Git 工作区及集成：Git CLI。worktree 只在需要隔离且授权时使用。
 - OpenSpec 技能：另需兼容的 OpenSpec CLI。来源 https://github.com/Fission-AI/OpenSpec 。使用前检查版本及实际 help/status/instructions，不假定所有版本均支持 store。
 - Superpowers 的 JS 可视化及审查辅助：Node.js；Graphviz 渲染示例另需 dot。只有选中相关流程时才检查和使用。
-- CodeGraph：可选。仅已有索引时使用；无索引用 rg，不自动初始化。
+- CodeGraph：可选。已有索引优先；无索引默认 rg。接入 CLI 在当次 index 授权下可初始化/同步，适配及排除范围见 [bootstrap](bootstrap.md)。
 - 设备、provider、部署：目标工程提供，公共包不含凭据、服务配置或驱动。
 
 本版不自动安装依赖，不修改机器级插件/技能目录，也不承诺离线运行模型。

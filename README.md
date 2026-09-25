@@ -6,7 +6,7 @@
 
 1. 阅读 [Agent 入口](AGENTS.md) 和 [首次接入](docs/onboarding.md)。
 2. 阅读 [依赖与技能接入](docs/integrations.md)，确认宿主、CLI 与权限。技能文件存在不等于自动启用。
-3. 将项目模板实例化到目标工程的 docs/project；模块模板按真实模块目录重算链接。
+3. 按 [一键接入](docs/bootstrap.md) 运行 `python3 tools/framework init --target /path/to/project`；全新需求用 `new`，先确认需求、设计和计划。
 4. 使用实际项目资源与已授权的能力执行任务；无 KB 时报告 NOT_CONFIGURED，不自动建库。
 5. 在本仓库根运行：
 ```bash
@@ -23,16 +23,16 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 | [多模块协作](docs/framework/collaboration-policy.md) | 模块职责、接口、交接、集成与接入 |
 | [知识规则](docs/framework/knowledge-policy.md) | KB 查询、建立、路由、摄入与确认 |
 | [接入](docs/onboarding.md) | 新工程、已有工程、更新及退出 |
-| [集成](docs/integrations.md) | 21 个技能入口及外部工具边界 |
+| [集成](docs/integrations.md) | 22 个技能入口及外部工具边界 |
 | [验收](docs/acceptance.md) | 工作流覆盖和实际验证范围 |
 | [第三方说明](THIRD_PARTY_NOTICES.md) | 来源、许可证和本地适配 |
 
 ## 包含与不包含
 
-包含 6 个 OpenSpec 技能、14 个 Superpowers 技能、llm-wiki 技能及所需支持文件。版本和文件指纹见 [发布清单](framework-manifest.json)。
+包含 6 个 OpenSpec 技能、14 个 Superpowers 技能、llm-wiki 和 project-bootstrap 技能及所需支持文件。版本和文件指纹见 [发布清单](framework-manifest.json)。
 
-这是 Agent 执行的方法与工具包，不是自动化工作流引擎。OpenSpec CLI、Agent 模型/宿主、Git、业务测试环境、设备及部署工具不随包附带，也不会自动安装。
-模块自动发现器、后台 watcher、全局 Git hook 不属于本版已实现能力。
+包含确定性的工程接入 CLI、模块登记、受控索引/Agent 分析、证据地图和只读诊断。OpenSpec CLI、Agent 模型/宿主、Git、业务测试环境、设备及部署工具不随包附带，也不会自动安装。
+不提供全局 watcher 或全局 Git hook；一键初始化不等于自动完成未批准的产品需求。
 知识脚本是准备/检索/结构检查辅助：PREPARED 或 PLAN_ONLY 不代表语义知识摄入已完成。
 
 不包含任何实际业务工程、个人知识库、设备配置、凭据、历史会话或原项目提交历史。

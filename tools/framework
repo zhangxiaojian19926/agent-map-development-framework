@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+"""Project-scoped framework entry point. No imports write bytecode."""
+import sys
+sys.dont_write_bytecode = True
+from framework_core.cli import main
+
+if __name__ == '__main__':
+    raise SystemExit(main())

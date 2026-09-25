@@ -11,10 +11,10 @@ import sys
 from urllib.parse import unquote
 
 MANIFEST = "framework-manifest.json"
-SKIP = {".git", "__pycache__", ".DS_Store"}
+SKIP = {".git", "__pycache__", ".DS_Store", ".superpowers"}
 ROOT_FILES = {"AGENTS.md", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md",
               "CHANGELOG.md", ".gitignore", MANIFEST}
-ROOT_DIRS = {"docs", "skill", "templates", "tests", "tools", ".github"}
+ROOT_DIRS = {"docs", "skill", "templates", "tests", "tools", ".github", "openspec"}
 
 def inventory(root):
     result = {}
@@ -89,8 +89,8 @@ def main():
         if re.search(r"/Users/|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|-----BEGIN (?:RSA |OPENSSH )?PRIVATE KEY-----", body) and rel != "tools/check-framework":
             errors.append("private identity or credential pattern: " + rel)
     skills = sorted(p for p in expected if p.endswith("/SKILL.md"))
-    if len(skills) != 21:
-        errors.append("expected 21 skill entrypoints, got " + str(len(skills)))
+    if len(skills) != sum(manifest['skills'].values()):
+        errors.append("skill entrypoint count does not match manifest: " + str(len(skills)))
     if errors:
         for error in errors:
             print("FAIL: " + error, file=sys.stderr)

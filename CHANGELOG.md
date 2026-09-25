@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 — 2026-09-25
+
+- 新增 tools/framework：init/new/module clone/add/sync/refresh/doctor/resume，显式能力授权、无写预览、文件归属与中断恢复。
+- 模块、仓库、索引分离；CodeGraph 1.6.0 精确范围适配、hooks 共存；Codex CLI 0.151.0 静态分析、证据校验及设计/实际地图分离。
+- 新增 project-bootstrap 技能、完整使用教程和 opt-in tools/verify-live；现有知识脚本与写入授权保持兼容。
+- macOS/Linux 离线测试与真实模型集成分开；初始化 READY 不代表业务运行验证或生产就绪。
+
 ## 0.1.0 — 2026-09-25
 
 - 从项目工作区提取独立公共规则、21 个技能入口及支持资源，不携带项目历史和业务内容。

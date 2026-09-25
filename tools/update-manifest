@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+"""Maintainer-only mechanical checksum refresh; inspect diff before publication."""
+import importlib.machinery
+import importlib.util
+import json
+from pathlib import Path
+import sys
+sys.dont_write_bytecode = True
+
+root = Path(__file__).resolve().parents[1]
+loader = importlib.machinery.SourceFileLoader('checker', str(root / 'tools/check-framework'))
+spec = importlib.util.spec_from_loader(loader.name, loader)
+checker = importlib.util.module_from_spec(spec)
+loader.exec_module(checker)
+path = root / 'framework-manifest.json'
+manifest = json.loads(path.read_text())
+manifest['files'] = checker.inventory(root)
+manifest['skills']['project_bootstrap'] = int((root / 'skill/project-bootstrap/SKILL.md').exists())
+path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
+print('Updated', len(manifest['files']), 'fingerprints; inspect the diff.')

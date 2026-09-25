@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+"""Explicit opt-in live acceptance. Creates only a new, isolated synthetic root."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import sys
+sys.dont_write_bytecode = True
+
+from framework_core.config import encoded, digest
+from framework_core.process import run
+from framework_core.storage import atomic, safe_path
+from framework_core.modules import source_files
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--target', required=True)
+    parser.add_argument('--allow-live', action='store_true', help='Allow synthetic source transmission, Codex development and CodeGraph indexing')
+    args = parser.parse_args()
+    if not args.allow_live:
+        print('CONSENT_REQUIRED: --allow-live sends synthetic source to Codex and executes its generated tests')
+        return 3
+    root = Path(args.target).absolute()
+    safe_path(root, '.')
+    if root.exists() or root.resolve() in (Path('/'), Path.home().resolve()):
+        print('CONFLICT: target must not exist')
+        return 3
+    root.mkdir(parents=True)
+    root = root.resolve()
+    distribution = Path(__file__).resolve().parents[1]
+    cli = distribution / 'tools/framework'
+    evidence = {}
+
+    def step(name, argv, cwd, expected=(0,), timeout=600, stdin=''):
+        print(name, flush=True)
+        result = run([str(a) for a in argv], cwd, timeout, {}, stdin)
+        atomic(root, 'evidence/' + name + '.json', encoded(result))
+        evidence[name] = {'exit_code': result['exit_code'], 'timed_out': result['timed_out']}
+        atomic(root, 'report.json', encoded({'status': 'RUNNING', 'steps': evidence}))
+        if result['exit_code'] not in expected or result['timed_out']:
+            raise ValueError(name + ' failed; see evidence/' + name + '.json')
+        return result
+
+    def framework(name, action, target, extra=(), expected=(0,)):
+        return step(name, [sys.executable, '-B', cli, action, '--target', target, *extra], distribution, expected)
+
+    try:
+        existing = root / 'existing'
+        for path, content in {
+            'client/api.py': 'from service.tasks import create_task\n\ndef submit(title):\n    return create_task(title)\n',
+            'service/tasks.py': 'def create_task(title):\n    return {"title": title.strip(), "done": False}\n',
+            'unrelated/helpers.py': 'def create_task(title):\n    return "unrelated: " + title\n'}.items():
+            atomic(existing, path, content)
+        config = {'project_id': 'existing-demo', 'agent': 'codex', 'index': True,
+                  'modules': [{'id': k, 'path': k, 'writable': True} for k in ('client', 'service', 'unrelated')]}
+        atomic(root, 'existing-input.json', encoded(config))
+        grants = ['--yes', '--allow', 'write', '--allow', 'agent', '--allow', 'index']
+        framework('existing-bootstrap', 'init', existing, ['--config', root / 'existing-input.json', *grants])
+        relationships = json.loads((existing / 'docs/project/relationships.generated.json').read_text())['relationships']
+        if not any(e['from'] == 'client' and e['to'] == 'service' for e in relationships) or any('unrelated' in (e['from'], e['to']) for e in relationships):
+            raise ValueError('Incorrect three-module truth map')
+        before = (existing / '.framework/local-state/agent-last.json').read_bytes()
+        framework('existing-repeat', 'refresh', existing, grants)
+        if before != (existing / '.framework/local-state/agent-last.json').read_bytes():
+            raise ValueError('Unchanged refresh repeated model execution')
+        step('existing-runtime', [sys.executable, '-B', '-c', 'from client.api import submit; assert submit(" x ") == {"title":"x","done":False}'], existing)
+
+        new = root / 'new-project'
+        artifacts = {
+            'requirements': 'Python standard-library task CLI: python3 -m taskcli --db PATH add TITLE, list, done ID. JSON stdout; persistent JSON array of {id,title,done}; monotonic integer IDs; strip title, reject blank; unknown ID and malformed database fail nonzero without changing DB. Missing DB list returns []. Verify each command across processes.',
+            'design': 'Three modules: taskcli parses and imports domain; domain validates and imports storage; storage reads and atomically writes JSON. No CLI-to-storage imports. Python 3.9+, unittest, no dependencies or network. Single-user sequential writes. Synthetic requirement selected under explicit live-validation authorization.',
+            'plan': 'Create OpenSpec demo-task-cli change and valid spec/design/tasks. Write subprocess tests first and observe RED. Implement minimum behavior in taskcli/domain/storage, run full tests and separate-process command acceptance. Record raw RED/GREEN and a verification report. No Git, publication, device or KB operations. Parent handles map/index refresh.'}
+        config = {'project_id': 'new-demo', 'agent': 'manual', 'openspec': True, 'artifacts': artifacts,
+                  'modules': [{'id': k, 'path': p, 'writable': True} for k, p in [('cli', 'taskcli'), ('domain', 'domain'), ('storage', 'storage')]],
+                  'design_relationships': [{'from': 'cli', 'to': 'domain', 'kind': 'build-dependency'}, {'from': 'domain', 'to': 'storage', 'kind': 'build-dependency'}]}
+        atomic(root, 'new-input.json', encoded(config))
+        arguments = ['--config', root / 'new-input.json', '--yes', '--allow', 'write', '--allow', 'openspec']
+        framework('new-unapproved-gate', 'new', new, arguments, expected=(3,))
+        if new.exists():
+            raise ValueError('Approval gate wrote project')
+        for key, content in artifacts.items():
+            arguments += ['--approve', key + '=' + hashlib.sha256(content.encode()).hexdigest()]
+        framework('new-scaffold', 'new', new, arguments, expected=(5,))
+        prompt = ('Implement the approved synthetic requirement in framework-project.json using this project framework. '
+                  'Read AGENTS.md and relevant bundled workflow skills. Requirements/design/plan are explicitly approved '
+                  'for this isolated validation, recorded in .framework/local-state/approvals.json; do not ask again. '
+                  'Use native sequential execution, no subagents, no network, no installs, no Git writes, no KB writes. '
+                  'Use apply_patch. Create local OpenSpec demo-task-cli with CLI, verify actual root, populate and validate '
+                  'spec/design/tasks. TDD: write subprocess unittest tests, record effective RED, implement all commands, '
+                  'then run tests and independent-process acceptance. Readonly doctor before and after; do not refresh '
+                  '(parent performs map/index integration). Preserve .agent-framework. Save evidence in docs/project/verification.md. '
+                  'Finish implementation, not just a plan. Return concise final result and limitations.')
+        step('codex-development', ['codex', 'exec', '--ignore-user-config', '--ignore-rules', '--ephemeral',
+            '--sandbox', 'workspace-write', '--skip-git-repo-check', '--json', '--disable', 'plugins',
+            '--disable', 'apps', '--disable', 'hooks', '-c', 'mcp_servers={}', '-c', 'web_search="disabled"',
+            '-C', new, '-o', root / 'development-result.md', '-'], new, stdin=prompt)
+        step('independent-tests', [sys.executable, '-B', '-m', 'unittest', 'discover', '-s', 'tests', '-v'], new)
+        step('independent-contract', [sys.executable, '-B', distribution / 'tests/integration/probe_task_cli.py', new], new)
+        step('spec-validation', ['openspec', 'validate', 'demo-task-cli', '--strict'], new)
+        framework('new-navigation', 'init', new, ['--agent', 'codex', '--index', *grants, '--allow', 'openspec'])
+        framework('new-doctor', 'doctor', new)
+        runtime = {'existing': 'VERIFIED', 'new-project': 'VERIFIED'}
+        report = {'schema_version': 1, 'status': 'PASS', 'runtime': runtime, 'steps': evidence,
+                  'distribution_manifest_sha256': hashlib.sha256((distribution / 'framework-manifest.json').read_bytes()).hexdigest(),
+                  'new_source_digest': digest(source_files(new, '.')),
+                  'limits': ['Synthetic local validation, not production certification', 'No publication, device or knowledge ingestion']}
+        atomic(root, 'report.json', encoded(report))
+        print(encoded(report))
+        return 0
+    except (ValueError, OSError, KeyError) as exc:
+        atomic(root, 'report.json', encoded({'status': 'FAILED', 'steps': evidence, 'error': str(exc)}))
+        print(str(exc), file=sys.stderr)
+        return 4
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

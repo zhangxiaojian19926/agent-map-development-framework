@@ -26,6 +26,9 @@
 从分发仓库根运行 python3 tools/check-framework 和 python3 -m unittest discover -s tests -v。
 检查文件白名单/指纹、技能入口、实际本地链接、脚本语法及合成 KB 行为。
 测试覆盖注册路径、显式 alias、工作区边界、中文/空格、三库查询、写入确认、非空目录、批量部分失败、严格结构检查、只读图谱和删除计划。
+新增接入回归覆盖无写预览、审批指纹、人工文件保护、中断恢复、锁、模块移动/missing、真实本地 Git clone、hooks 共存、伪成功拒绝、地图引用、Agent 摘要完整性和只读 doctor。真实验证入口为 [bootstrap](bootstrap.md) 中的 tools/verify-live，默认测试不会调用模型或联网。
+
+源码索引、Agent 分析、业务黑盒验证分别保存，不能相互代替。真实模型输出即使声称成功，也必须通过框架外部的固定黑盒探针；Agent 自己写的测试通过不是唯一验收依据。
 
 ## 人工及 Agent 验收
 
