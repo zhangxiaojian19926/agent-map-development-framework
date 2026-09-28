@@ -112,6 +112,13 @@ def resume_run(root, run_id, consent):
     record = json.loads(path.read_text())
     if record.get('schema_version') != 1 or record.get('run_id') != run_id:
         raise ValueError('INVALID_JOURNAL')
+    if run_id.startswith('analysis-final-'):
+        # An interrupted publication is still analysis: recheck current grants
+        # and version binding, not merely permission to write old journal bytes.
+        from .analysis_batches import checked_session
+        from .handoff import require
+        require(consent)
+        checked_session(root, run_id[len('analysis-final-'):])
     for change in record['changes']:
         parts = Path(change['path']).parts
         if '.git' in parts:

@@ -14,7 +14,9 @@ def inspect_project(root):
               'agent': {'status': 'WAITING_AGENT'}, 'maps': {'status': 'NOT_RUN'},
               'indexes': {}, 'hooks': read_json(root, '.framework/local-state/hooks.json', {'status': 'NOT_CONFIGURED'}),
               'runtime': 'NOT_RUN', 'onboarding': 'NOT_PREPARED',
-              'understanding': 'NOT_RUN', 'development': 'NEEDS_DESIGN_APPROVAL', 'next_actions': []}
+              'understanding': 'NOT_RUN', 'development': 'NEEDS_DESIGN_APPROVAL', 'next_actions': [],
+              'initialization': 'PARTIAL', 'documentation': {'status': 'MISSING'},
+              'coverage': {'status': 'MISSING'}, 'handoff': {'status': 'BLOCKED'}}
     if not config or not catalog:
         report['status'] = 'BLOCKED'
         report['next_actions'] = ['init --target <project>']
@@ -88,4 +90,12 @@ def inspect_project(root):
         report['next_actions'] = ['Review requirements and design with the current agent; business implementation is not approved']
     elif config.get('agent') == 'current' and report['maps']['status'] != 'READY':
         report['next_actions'].append('Current agent: analyze-request, inspect the bounded source packet, then accept-analysis')
+    from .project_docs import completion_checks
+    report.update(completion_checks(root, config, catalog, current_sources, report))
+    if report['initialization'] != 'COMPLETE':
+        if report['documentation']['status'] != 'COMPLETE':
+            report['next_actions'].append('Current agent: complete evidence-backed project/module dossier and accept-docs')
+        if report['coverage']['status'] not in ('COMPLETE', 'NOT_APPLICABLE'):
+            report['next_actions'].append('Current agent: analyze-request --protocol v2, accept all batches, finalize-analysis')
+        report['next_actions'].append(report['handoff'].get('next_action', 'Inspect saved handoff'))
     return report

@@ -12,6 +12,68 @@ from framework_core.config import encoded, digest
 from framework_core.process import run
 from framework_core.storage import atomic, safe_path
 from framework_core.modules import source_files
+from framework_core.acquisition import git_call
+from framework_core.project_docs import validate_project_docs
+from framework_core.maps import validate_map
+
+
+def verify_checkout(source, target):
+    """Check repository identity and observed source, independently of host prose."""
+    def git(path, args):
+        result = git_call(args, path, set())
+        if result['exit_code']:
+            raise ValueError('CHECKOUT_PROBE_FAILED')
+        return result['stdout'].strip()
+    if git(target, ['remote', 'get-url', 'origin']) != str(source):
+        raise ValueError('WRONG_MODULE_SOURCE')
+    if git(source, ['rev-parse', 'HEAD']) != git(target, ['rev-parse', 'HEAD']):
+        raise ValueError('WRONG_MODULE_HEAD')
+    expected, actual = source_files(source, '.'), source_files(target, '.')
+    if expected != actual:
+        raise ValueError('WRONG_MODULE_CONTENT')
+    return {'head': git(target, ['rev-parse', 'HEAD']), 'source_digest': digest(actual)}
+
+
+def verify_fixture_relationships(target, catalog, caller, callee, unrelated):
+    result = json.loads((target/'docs/project/relationships.generated.json').read_text())
+    try:
+        if validate_map(target, catalog, result):
+            raise ValueError('WRONG_FIXTURE_RELATIONSHIP')
+        expected = [e for e in result['relationships'] if e['from'] == caller and e['to'] == callee
+                    and e['kind'] == 'runtime-call' and e['provenance'] == 'STATIC_SUPPORTED']
+        if any(unrelated in (e['from'], e['to']) for e in result['relationships']):
+            raise ValueError('WRONG_FIXTURE_RELATIONSHIP')
+        def supports(edge, mid, token):
+            return any(e['path'] in catalog['modules'][mid]['sources'] and token in e['anchor']
+                       for e in edge['evidence'])
+        if not any(supports(e, caller, 'receive("message")') and supports(e, callee, 'def receive(') for e in expected):
+            raise ValueError('WRONG_FIXTURE_RELATIONSHIP')
+    except (KeyError, TypeError) as exc:
+        raise ValueError('WRONG_FIXTURE_RELATIONSHIP') from exc
+
+
+def verify_intake_readiness(target, report, case):
+    """Schema/content probes supplement, but do not replace, semantic review."""
+    if report.get('onboarding') != 'PREPARED' or report.get('runtime') != 'NOT_RUN':
+        raise ValueError('WRONG_READINESS')
+    expected = 'COMPLETE' if case == 'existing' else 'PARTIAL'
+    if report.get('initialization') != expected:
+        raise ValueError('INCOMPLETE_OR_OVERCLAIMED_INITIALIZATION')
+    try:
+        catalog = json.loads((target/'module-catalog.generated.json').read_text())
+        docs = json.loads((target/'.framework/local-state/project-docs.json').read_text())
+        if validate_project_docs(target, catalog, docs['dossier']) or report['documentation']['status'] != 'COMPLETE':
+            raise ValueError('INCOMPLETE_DOCUMENTATION')
+        if case == 'existing':
+            if report['coverage']['status'] != 'COMPLETE' or report['maps']['status'] != 'READY':
+                raise ValueError('INCOMPLETE_ANALYSIS')
+            config = json.loads((target/'framework-project.json').read_text())
+            ids = {m['name']: m['id'] for m in config['modules']}
+            verify_fixture_relationships(target, catalog, ids['设备端'], ids['服务端'], ids['工具端'])
+        elif report['handoff']['status'] != 'NEEDS_DESIGN_APPROVAL':
+            raise ValueError('UNAPPROVED_DESIGN')
+    except (OSError, KeyError) as exc:
+        raise ValueError('INCOMPLETE_DOCUMENTATION') from exc
 
 
 def verify_intake(root, distribution, host):
@@ -29,16 +91,19 @@ def verify_intake(root, distribution, host):
         return result
     try:
         # Sources have the same basename, but distinct truth and a non-main HEAD.
-        for name, code in (('first', 'def send(): return "message"\n'), ('second', 'def receive(value): return value\n')):
+        for name, code in (('first', 'from pathlib import Path\nimport sys\nsys.path.insert(0, str(Path(__file__).resolve().parents[1] / "服务端"))\nfrom service_api import receive\ndef send(): return receive("message")\n'),
+                           ('second', 'def receive(value): return value\n'),
+                           ('third', 'def receive(value): return "unrelated"\n')):
             source = root/'sources'/name/'same'
-            atomic(source, 'app.py', code)
-            for args in (['init', '-b', 'develop'], ['add', 'app.py'], ['commit', '-m', 'synthetic fixture']):
+            filename = 'service_api.py' if name == 'second' else 'app.py'
+            atomic(source, filename, code)
+            for args in (['init', '-b', 'develop'], ['add', filename], ['commit', '-m', 'synthetic fixture']):
                 result = step('fixture-' + name + '-' + args[0], ['git', '-c', 'core.hooksPath=/dev/null',
                     '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', *args], source, timeout=30)
                 if result['exit_code']:
                     raise ValueError('FIXTURE_FAILED')
         cases = {
-            'existing': '设备端=' + str(root/'sources/first/same') + '\n服务端=' + str(root/'sources/second/same') + '\n',
+            'existing': '# 工程启动单\n项目：现有消息回传工程\n目标：梳理现有设备端调用服务端回传消息的职责、接口和开发交接，不改业务逻辑；工具端独立，不接入消息链路。\n## 模块仓库\n设备端=' + str(root/'sources/first/same') + '\n服务端=' + str(root/'sources/second/same') + '\n工具端=' + str(root/'sources/third/same') + '\n',
             'new': '# 工程启动单\n项目：家庭任务助手\n目标：本机新增、列出、完成任务，先做基础初始化\n仓库：暂无\n'}
         for case, text in cases.items():
             case_root = root/case
@@ -46,7 +111,7 @@ def verify_intake(root, distribution, host):
             prompt = ('初始化工程。读取公共框架入口 ' + str(distribution/'BOOTSTRAP.md') + '，输入在 ' + str(case_root/'PROJECT-START.md') +
                       '。目标是 ' + str(case_root/'project') + '，私有启动区是 ' + str(case_root/'launch') +
                       '。本次授权在此测试目录基础初始化、按列出的合成本地来源clone、当前会话源码分析；不安装、不执行业务代码、不创建远程、不推送、不写知识库。'
-                      '用当前宿主自己完成初始化与有源码时的地图接收，不调用其他模型CLI、不委派。无需业务设计批准就只准备基础框架，不开发业务。'
+                      '用当前宿主自己完成源码分析、项目和模块资料、可恢复交接，不调用其他模型CLI、不委派。新工程给出需求设计草案和待确认状态，不代替用户批准设计，不开发业务。'
                       '用户不提供或执行机器配置、hash、模式或脚本。最后报告真实目录与分层状态。')
             atomic(root, 'evidence/' + case + '-prompt.txt', prompt)
             if host == 'codex':
@@ -72,13 +137,14 @@ def verify_intake(root, distribution, host):
                 raise ValueError('UNEXPECTED_SIDE_EFFECT_OR_HOST')
             if case == 'existing':
                 modules = {m['name']: m for m in config['modules']}
-                if set(modules) != {'设备端', '服务端'}:
+                if set(modules) != {'设备端', '服务端', '工具端'}:
                     raise ValueError('INCORRECT_NAMES')
-                for name, src in (('设备端', 'first'), ('服务端', 'second')):
+                for name, src in (('设备端', 'first'), ('服务端', 'second'), ('工具端', 'third')):
                     path = target/'modules'/name
                     actual = step('verify-' + src, ['git', '-C', path, 'remote', 'get-url', 'origin'], root)
                     if modules[name]['path'] != 'modules/' + name or actual['stdout'].strip() != str(root/'sources'/src/'same'):
                         raise ValueError('WRONG_MODULE_SOURCE')
+                    atomic(root, 'evidence/checkout-'+src+'.json', encoded(verify_checkout(root/'sources'/src/'same', path)))
                 agent = json.loads((target/'.framework/local-state/agent-status.json').read_text())
                 if agent.get('execution') != 'current-session':
                     raise ValueError('HOST_ANALYSIS_NOT_ACCEPTED')
@@ -86,13 +152,12 @@ def verify_intake(root, distribution, host):
                 raise ValueError('UNREQUESTED_BUSINESS_CODE')
             doctor = step('doctor-' + case, [sys.executable, '-B', cli, 'doctor', '--target', target], root)
             report = json.loads(doctor['stdout'])
-            if report['onboarding'] != 'PREPARED' or report['runtime'] != 'NOT_RUN':
-                raise ValueError('WRONG_READINESS')
-            if case == 'existing' and report['maps']['status'] != 'READY':
-                raise ValueError('MAP_NOT_READY')
+            verify_intake_readiness(target, report, case)
         atomic(root, 'report.json', encoded({'status': 'PASS', 'host': host, 'steps': calls,
                'manifest_sha256': hashlib.sha256((distribution/'framework-manifest.json').read_bytes()).hexdigest(),
-               'cross_host_resume': 'NOT_RUN', 'runtime': 'NOT_RUN'}))
+               'cross_host_resume': 'NOT_RUN', 'runtime': 'NOT_RUN',
+               'semantic_review': 'NOT_RUN', 'new_design': 'NEEDS_DESIGN_APPROVAL',
+               'host_version': step('host-version', [host, '--version'], root, timeout=30)['stdout'].strip()}))
         return 0
     except (ValueError, OSError, KeyError) as exc:
         atomic(root, 'report.json', encoded({'status': 'FAILED', 'host': host, 'error': str(exc), 'steps': calls}))

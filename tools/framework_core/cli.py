@@ -16,7 +16,7 @@ from .hooks import mark_dirty
 
 def parser():
     p = argparse.ArgumentParser(description='Project-scoped development framework')
-    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'analyze-request', 'accept-analysis', 'doctor', 'resume', 'refresh', 'module', 'event'])
+    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'analyze-request', 'accept-analysis', 'analysis-batch', 'accept-batch', 'finalize-analysis', 'accept-docs', 'doctor', 'resume', 'refresh', 'module', 'event'])
     p.add_argument('operation', nargs='?', choices=['clone', 'add', 'sync'])
     p.add_argument('--target', required=True)
     p.add_argument('--config')
@@ -38,6 +38,9 @@ def parser():
     p.add_argument('--request', help='Human startup input; current agent supplies the path')
     p.add_argument('--staging', help='Private launch directory outside target and framework')
     p.add_argument('--result', help='Current-session analysis envelope JSON')
+    p.add_argument('--protocol', choices=['v1', 'v2'], default='v1')
+    p.add_argument('--session-id', help='Current v2 analysis session')
+    p.add_argument('--batch-id', help='Batch from the current session manifest')
     p.add_argument('--ssh-agent', help='Explicit current-user SSH agent socket; requires auth grant')
     return p
 
@@ -53,6 +56,16 @@ def main(argv=None):
     try:
         safe_path(root, '.')
         root = root.resolve()
+        if args.action == 'accept-docs':
+            from .project_docs import publish_project_docs
+            if args.dry_run:
+                return output({'action': args.action, 'required_capabilities': ['write', 'agent'], 'target': str(root)})
+            if not args.result or Path(args.result).is_symlink() or Path(args.result).stat().st_size > 1048576:
+                raise ValueError('INVALID_RESULT_FILE')
+            result = publish_project_docs(root, read_json(root, 'module-catalog.generated.json', {}),
+                json.loads(Path(args.result).read_text()), set(args.allow),
+                dict(item.split('=', 1) for item in args.approve))
+            return output(result, 0 if result['status'] == 'COMPLETE' else 5)
         if args.action == 'intake':
             from .intake import checked_root, execute_intake, parse_request, plan_intake, save_intake
             root = checked_root(args.target)
@@ -79,6 +92,21 @@ def main(argv=None):
             save_intake(plan, text, grants)
             report = execute_intake(plan, grants, auth={'ssh_agent': args.ssh_agent} if args.ssh_agent else None)
             return output(report, 0 if report['status'] == 'PREPARED' else 5)
+        if args.action in ('analysis-batch', 'accept-batch', 'finalize-analysis') or (args.action == 'analyze-request' and args.protocol == 'v2'):
+            from .analysis_batches import begin_analysis, read_batch, accept_batch, finalize_analysis
+            grants = set(args.allow)
+            if args.dry_run:
+                return output({'action': args.action, 'required_capabilities': ['write', 'agent'], 'target': str(root)})
+            if args.action == 'analyze-request':
+                return output(begin_analysis(root, read_json(root, 'module-catalog.generated.json', {}), grants))
+            if args.action == 'analysis-batch':
+                return output(read_batch(root, args.session_id, args.batch_id, grants))
+            if not args.result or Path(args.result).is_symlink() or Path(args.result).stat().st_size > 1024 * 1024:
+                raise ValueError('INVALID_RESULT_FILE')
+            result = json.loads(Path(args.result).read_text())
+            if args.action == 'accept-batch':
+                return output(accept_batch(root, args.session_id, args.batch_id, result, grants))
+            return output(finalize_analysis(root, args.session_id, result, grants))
         if args.action in ('analyze-request', 'accept-analysis'):
             from .handoff import make_analysis_request, accept_analysis
             if args.dry_run:

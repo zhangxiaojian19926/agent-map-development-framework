@@ -6,8 +6,8 @@
 
 1. 准备一份输入：已有工程填“模块名称 = 仓库 URL”，全新工程只描述项目和目标。见 [启动单模板](templates/PROJECT-START.md)。
 2. 把输入与 [BOOTSTRAP.md](BOOTSTRAP.md) 的位置给具备文件/执行能力的 Coding Agent，说：“初始化工程”。
-3. Agent 自行预览、按名称下载、基础准备、分析并校验模块地图；用户无需选择 init/new、填写 JSON/hash 或执行脚本。
-4. 基础接入不批准业务实施，下一步按 [开发流程](docs/framework/development-workflow.md) 确认设计与计划；缺凭据/权限只询问必要信息。非Codex不强制调用Codex，已实测覆盖以[验收记录](docs/acceptance.md)为准。
+3. Agent 自行预览、按名称下载、有界分批分析、聚合模块地图，并补全项目架构/协作和每个模块的局部入口；用户无需选择 init/new、填写 JSON/hash 或执行脚本。
+4. Agent 运行完成检查并留下开发交接。新工程尚未确认设计时交付草案和待确认项，不宣称完整初始化；基础接入不批准业务实施。下一步按 [开发流程](docs/framework/development-workflow.md) 接续设计与计划，不从头重复初始化。非Codex不强制调用Codex，已实测覆盖以[验收记录](docs/acceptance.md)为准。
 
 维护者验证（不是用户接入前置操作）：
 ```bash

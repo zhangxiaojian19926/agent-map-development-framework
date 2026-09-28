@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 from .config import encoded
-from .storage import safe_path, fingerprint
+from .storage import safe_path, fingerprint, read_json
 
 KINDS = {'contains', 'build-dependency', 'runtime-call', 'data-exchange'}
 
@@ -83,12 +83,15 @@ def map_outputs(root, catalog, result):
                'docs/project/relationships.generated.md': render_map(result)}
     summaries = {m['id']: m['summary'] for m in result['module_summaries']}
     lines = ['# Module map', '']
+    documented = read_json(root, '.framework/local-state/project-docs.json', {}).get('files', {})
     for mid, module in sorted(catalog['modules'].items()):
         rel = 'docs/project/modules/' + mid + '.md'
         outputs[rel] = ('# ' + mid + '\n\n' + summaries.get(mid, 'Not analyzed') + '\n\n'
             'Module: `' + module['path'] + '`; state: ' + module['lifecycle'] + '.\n\n'
             '[Project workflow](../../../AGENTS.md). Read any existing module AGENTS before editing.\n'
             'Runtime tests: not discovered/verified; select from the approved implementation plan.\n')
+        if rel in documented:
+            outputs.pop(rel)
         lines.append('- [' + mid + '](modules/' + mid + '.md): `' + module['path'] + '` — ' + module['presence'])
         if module.get('writable') and module['path'] != '.' and module['presence'] == 'present':
             agent_rel = module['path'] + '/AGENTS.md'

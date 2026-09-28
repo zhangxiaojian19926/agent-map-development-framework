@@ -273,7 +273,7 @@ return {'status': 'PREPARED', 'next_action': 'analyze-request'}
 
 **Files:** Modify tools/verify-live、docs/acceptance.md、CHANGELOG.md、framework-manifest.json；使用tests/integration/intake-prompts.md。
 **Interfaces:** verify-live保留现有调用，新验收显式选择宿主/场景；仅在allow-live下模型调用与合成代码执行，默认CI只运行离线测试。
-**Spec:** HN-04-LIVE/RESUME；全部27 Scenario。
+**Spec:** HN-04-LIVE/RESUME；初版27 Scenario；本轮补充的8个Scenario另见Task 9–12。
 
 - [ ] 写测试验证未授权真实验收不建目录、不调模型；非Codex适配缺失返回NOT_RUN，不回退为Codex或stub。执行测试观察失败，再加宿主选择与结果归档逻辑。
 - [ ] 真实Codex接收以下原始提示，不预先生成执行配置/模块ID/hash：
@@ -311,6 +311,98 @@ return {'status': 'PREPARED', 'next_action': 'analyze-request'}
 
 ## 计划自查记录
 
-12条Requirement、27个Scenario均已映射；三个新组件的函数名和调用边界一致。五项Review Focus分别有测试步骤，不依赖happy-path推断。所有checkbox表示待执行，不将代码片段、既往58测试或宿主名称当成本次验证结果。
+初版12条Requirement、27个Scenario均已映射；本轮另增HN-05至HN-08共8个Scenario，映射见下文。三个初版组件的函数名和调用边界一致。微步骤未逐项核对时保留未勾选，宏观完成状态以change tasks.md为准，不将代码片段、既往测试或宿主名称当成本次验证结果。
 
 现有详细文件清单仍以design D9为范围约束；本计划新增本文件与审批记录，不创建运行代码。推荐Native顺序执行，因为intake/acquisition/handoff共享同一输入与证据协议，先锁定接口可减少并行修改冲突；最后做独立审查。用户可选择Subagent-driven逐任务实现与审查。
+
+## 2026-09-26 增量：从骨架到完整初始化
+
+用户已确认四项方向；本轮补充以下实施细节供审阅，尚未执行。继续Native顺序执行，不重选宿主、不要求用户手工参数。旧94项通过只是9359ceb基线证据，不能勾选新增项。提交、推送、真实模型调用与业务执行仍按届时授权处理。
+
+**新增约束：** 200000字节是每个v2序列化包预算；PREPARED不是COMPLETE；资料必须完整但不得伪造命令成功；人工内容不覆盖；只读模块使用等价项目侧入口；无源码用设计而非实际地图；KB未配置不建库。不能简单把业务审批标志保存在文件中就视为当前授权。
+
+**增量Review Focus：** 单文件大于预算/单行过大；批间调用双方；分析中源码及框架版本变化；生成后人工修改；新增或消失模块留下旧COMPLETE。分别由Task 9、9、9、10、11覆盖。
+
+### Task 9: 可恢复的v2分批协议（宏观7.1）
+
+**Files:** Create tools/framework_core/analysis_batches.py、tests/test_analysis_batches.py；Modify handoff.py、cli.py、modules.py及tests/test_agent_handoff.py。路径均在tools/framework_core或tests下，不改全局工具。
+**Interfaces:** `split_sources(sources: list[dict], max_bytes: int = 200000) -> list[dict]`，输入项为path/sha256/content，输出包含batch_id/slices，slice含path/file_sha256/start_line/end_line/content；`begin_analysis(root, catalog, grants) -> dict`产生会话清单；`read_batch(root, session_id, batch_id, grants) -> dict`；`accept_batch(root, session_id, batch_id, result, grants) -> dict`；`finalize_analysis(root, session_id, result, grants) -> dict`。均不启动模型。会话存本地状态，源码不重复持久化。
+
+- [ ] 写首个预算/覆盖失败测试；fixture两模块分别为重复完整行，总量超过600KB，不依赖网络：
+
+```python
+sources = [dict(path='a/api.py', sha256='a'*64, content='x = 1\n'*60000),
+           dict(path='b/client.py', sha256='b'*64, content='y = 2\n'*60000)]
+batches = split_sources(sources)
+self.assertGreater(len(batches), 3)
+for batch in batches:
+    self.assertLessEqual(len(json.dumps(batch, ensure_ascii=False).encode()), 200000)
+for source in sources:
+    slices = [s for b in batches for s in b['slices'] if s['path'] == source['path']]
+    self.assertEqual(''.join(s['content'] for s in slices), source['content'])
+```
+
+- [ ] 运行 `python3 -B -m unittest discover -s tests -p test_analysis_batches.py -v`，确认缺分批能力的RED；实现稳定排序、完整行分片及实际JSON开销核算，单行过大抛FILE_SLICE_TOO_LARGE。使用真实文件hash构造后续会话fixture，上例假hash只用于无IO分片测试。
+- [ ] 分别先写失败测试再实现会话状态：清单绑定catalog/source/framework；每个包由会话派生不能扩大路径；相同重传幂等、不同结果BATCH_CONFLICT；缺批finalize报INCOMPLETE_COVERAGE；新文件、删除、改动或manifest变化拒绝旧会话。授权缺失不得写状态或读取新包。
+- [ ] 最终汇总复用validate_map两端证据检查，跨批关系指向原文件准确anchor/hash；全部批次通过后才一次调用map_outputs/受管事务。测试批次失败时旧地图字节不变，最终写入中断保留可恢复事务，不谎报成功。
+- [ ] CLI增加仅供Agent使用的v2会话/批次参数，保留v1原行为。逐场景跑HN-06-LARGE/RESUME及旧handoff测试，记录GREEN。不要在每批完成后生成不完整正式地图。
+
+### Task 10: 项目资料与完整模块入口（宏观7.2）
+
+**Files:** Create tools/framework_core/project_docs.py、tests/test_project_docs.py；Modify generation.py、maps.py、handoff.py、analysis_batches.py及对应生成测试。
+**Interfaces:** `validate_project_docs(root, catalog, dossier) -> list[str]`、`project_doc_outputs(root, catalog, dossier) -> dict[str,str]`。dossier包含project、modules；project必需goal/non_goals/architecture/interfaces/integration_order/constraints/resources，module必需id/purpose/non_responsibilities/entrypoints/inputs/outputs/dependencies/internal_roles/commands/limitations/knowledge。每项为value/provenance/evidence/status，status限KNOWN/NOT_VERIFIED/NOT_CONFIGURED/NOT_APPLICABLE，N/A须reason；引用复用path/anchor/sha256，设计引用批准规格且标DECLARED。未知阻塞项单列，不用编造内容凑字段。
+
+- [ ] 用三个真实临时模块建立失败fixture：人工AGENTS内容含CRLF、只读模块缺AGENTS、可写模块缺AGENTS。逐字段删除dossier数据、填空白/模板占位、提供过期来源，验证拒绝且旧文件不变。最小否定断言：
+
+```python
+errors = validate_project_docs(root, catalog, {'project': {}, 'modules': []})
+self.assertIn('INCOMPLETE_DOCUMENTATION', errors)
+```
+
+- [ ] 运行 `python3 -B -m unittest discover -s tests -p test_project_docs.py -v` 观察RED。实现schema及来源校验，再实现完整项目/模块正文；command记录工作目录、前提、来源、执行状态，不执行命令获取“通过”。保留原始启动输入私密性，只从明确允许公开的事实生成资料。
+- [ ] 对人工AGENTS只添加获准且无冲突的受管局部区块；写前核对当前字节hash，人工正文不变。只读模块生成完整项目侧入口及原因；语义冲突生成交接缺项，不写模块，状态PARTIAL。已有人工项目文档不全文覆盖。
+- [ ] 以真实输出校验段落内容、导航和引用，不以源码包含某字符串作为测试。将生成后人工修改再刷新、重复/损坏标记、旧生成物与新事实冲突纳入RED/GREEN。HN-05两场景及旧generation/maps测试通过后再交给Task 11。
+
+### Task 11: 完成标准、设计交接和模块变化（宏观7.3）
+
+**Files:** Create tests/test_onboarding_completion.py；Modify readiness.py、workflow.py、intake.py、cli.py、project_docs.py、tests/test_bootstrap_end_to_end.py。
+**Interfaces:** `inspect_project(root)`追加documentation/coverage/handoff/initialization，保留旧字段和旧命令退出语义；`build_handoff(config, catalog, dossier, checks) -> dict`在project_docs.py中生成目标、版本、规格/计划引用、阻塞项、next_action及needed_permissions，不执行下一动作。受管输出docs/project/handoff.md及.framework/local-state/handoff.json，不保存凭据或永久授权。
+
+- [ ] 写基础prepare的否定验收，防止骨架被误报完成：
+
+```python
+result = invoke('prepare', '--target', root, '--project-id', 'demo', '--yes', '--allow', 'write')
+self.assertEqual(result.returncode, 0)
+report = json.loads(invoke('doctor', '--target', root).stdout)
+self.assertEqual(report['onboarding'], 'PREPARED')
+self.assertEqual(report['initialization'], 'PARTIAL')
+self.assertEqual(report['handoff']['status'], 'NEEDS_DESIGN_APPROVAL')
+```
+
+- [ ] 运行 `python3 -B -m unittest discover -s tests -p test_onboarding_completion.py -v` 观察RED。实现组合检查：必要获取/文档/覆盖/交接全通过才COMPLETE；未配置的可选索引或KB不自动变成失败；明确要求的增强能力未完成则PARTIAL；业务runtime不改变。
+- [ ] 新工程fixture分两步：未批准设计时实际地图N/A、交接需设计确认；明确批准设计后记录拟建模块及DECLARED关系，仍不隐式创建Git或业务源码。继续开发读取实际OpenSpec上下文；文件中的批准字段不能替代本次执行权限，旧new门禁保持。
+- [ ] 新增第四模块fixture先发现候选再授权登记；检查旧完成状态失效、前三模块ID不变、第四模块资料/关系需补齐。移动/缺失fixture保留历史及文档且报告PARTIAL，不自动删除。每个失败先观察RED，再最小修复到GREEN。
+- [ ] 验证缺资料、缺批、来源变动、关键未知项分别给可操作next_action。执行HN-07/08四场景及旧端到端/doctor回归，跨模块局部通过不能替代集成证据。
+
+### Task 12: 入口更新与真实交接验收（宏观7.4–7.5）
+
+**Files:** Modify BOOTSTRAP.md、AGENTS.md、README.md、docs/project-intake.md、docs/framework/development-workflow.md、docs/framework/collaboration-policy.md、skill/project-bootstrap/SKILL.md、templates/module-AGENTS.md、templates/project/*.md、tests/integration/intake-prompts.md、tools/verify-live、docs/acceptance.md、CHANGELOG.md、framework-manifest.json。
+**Interfaces:** 用户输入仍只是一份启动输入及意图；内部v2参数和dossier由Agent生成。真实探针复用verify-live，报告绑定当前manifest/工作树和宿主版本，输出机器测试结果与语义人工/Agent复核分别列示。
+
+- [ ] 修改自有skill前读取writing-skills，做基线与正向消费测试：初始化结束不能只报PREPARED，必须完成文档与交接或清楚列出阻塞。公共规则/项目事实/模块局部说明三层不复制，旧高级CLI保留。
+- [ ] 为verify-live独立探针写RED：remote正确但HEAD错误、内容不同、项目只有占位文档、关系缺调用端，均不得PASS。再补实际git HEAD/源码hash和文档schema校验，不能相信宿主自述。
+- [ ] 真实宿主输入只含BOOTSTRAP、启动单、目标和当前范围授权；已有三模块及全新需求各跑一次。分开记录Codex和非Codex结果，后者PATH禁codex；缺认证保留NOT_RUN，不放开全局配置。不使用真实私有业务源码。
+- [ ] 在第二模块获取失败、已接收部分分析批次两个断点换宿主继续；固定源码时成功模块不重clone，已接收批次不重算，当前权限重新核对。所有等待用户设计决策的状态都保持可恢复而非自动跳过。
+- [ ] 运行全部离线回归、macOS/Linux验证和最终独立评审；重跑check-framework、OpenSpec严格校验和diff检查。覆盖矩阵逐项归档证据，但有未完成实测不能归档整个change为完成。未收到新的提交/推送授权时只交付本地修改。
+
+### 增量覆盖与自查
+
+| Scenario | Task | 主要断言 |
+|---|---|---|
+| HN-05-DOCS/PRESERVE | 10、11、12 | 完整内容/来源、人工保护、只读替代、冲突阻塞 |
+| HN-06-LARGE/RESUME | 9、12 | 包预算、行覆盖、跨批关系、版本绑定、可恢复 |
+| HN-07-NEW/CONTINUE | 11、12 | 新工程设计边界、明确交接、旧审批不重复 |
+| HN-08-ADD/REMOVED | 11、12 | 变化使旧完成状态失效，稳定身份和历史保留 |
+| HN-04-LIVE/RESUME | 12 | 真实双宿主和两种中断交接，不用离线stub代替 |
+
+自查：增量8个Scenario全部有任务；4个单元按“协议→资料→诊断→真实入口”交接，公共底层storage复用；原业务工程和第三方技能不在修改范围。机器完整性校验不能代替语义审查，认证/实际宿主不可用时不能宣称通用兼容已验证。

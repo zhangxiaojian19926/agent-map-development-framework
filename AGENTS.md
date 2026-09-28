@@ -4,7 +4,7 @@
 
 ## 0. 先读谁
 
-用户说“初始化工程”、提供模块名称与 URL 或全新需求时，先读 [BOOTSTRAP](BOOTSTRAP.md) 和 project-bootstrap 技能。当前 Agent 自己选择路线、生成参数并执行，不让用户运行脚本或填写 JSON/hash。基础 prepare 与业务规格/计划批准分开；非Codex可用同一入口，能力不足如实报告。
+用户说“初始化工程”、提供模块名称与 URL 或全新需求时，先读 [BOOTSTRAP](BOOTSTRAP.md) 和 project-bootstrap 技能。当前 Agent 自己选择路线、生成参数并执行，不让用户运行脚本或填写 JSON/hash。完成分批建图、项目/模块资料与doctor交接检查，不能停在prepare或简短路由页便称完整初始化。新需求设计待确认时保存可恢复草案；初始化与业务规格/计划批准分开。非Codex可用同一入口，能力不足如实报告。
 
 首次接入先读 [onboarding](docs/onboarding.md)。本分发仓库只含模板；未建立真实 docs/project 时不要把模板当事实。无 KB 时报告 NOT_CONFIGURED 后继续允许的只读研究，不自动建库。以下模板链接在接入工程时改为实例 docs/project 路径。
 
