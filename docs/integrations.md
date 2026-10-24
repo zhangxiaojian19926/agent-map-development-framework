@@ -13,14 +13,14 @@ skill/project-bootstrap 提供接入、刷新与地图 schema 参考；合计 22
 - Git 工作区及集成：Git CLI。worktree 只在需要隔离且授权时使用。
 - OpenSpec 技能：另需兼容的 OpenSpec CLI。来源 https://github.com/Fission-AI/OpenSpec 。使用前检查版本及实际 help/status/instructions，不假定所有版本均支持 store。
 - Superpowers 的 JS 可视化及审查辅助：Node.js；Graphviz 渲染示例另需 dot。只有选中相关流程时才检查和使用。
-- CodeGraph：可选。已有索引优先；无索引默认 rg。接入 CLI 在当次 index 授权下可初始化/同步，适配及排除范围见 [bootstrap](bootstrap.md)。
+- CodeGraph：可选符号索引。PATH 上主版本 1 且有 `sync` 时直接使用；否则仅在 `index-install` 授权下安装到目标项目 `.framework/tools/codegraph`。无索引时用 rg。它不发布关系地图。细节见 [bootstrap](bootstrap.md)。
 - 设备、provider、部署：目标工程提供，公共包不含凭据、服务配置或驱动。
 
 本版不自动安装依赖，不修改机器级插件/技能目录，也不承诺离线运行模型。
 
 ## 宿主发现与调用
 
-首次可在同一请求给出 [BOOTSTRAP](../BOOTSTRAP.md) 与输入单位置，无需先装厂商插件。当前会话通过 analyze-request/accept-analysis 协议建图，能力按 read/write/execute 判断；没有 shell/文件工具的聊天宿主只能给计划。外部 Codex CLI 是可选适配，不是非Codex的依赖。
+首次可在同一请求给出 [BOOTSTRAP](../BOOTSTRAP.md) 与输入单位置，无需先装厂商插件。有白名单源码时，当前会话用 `map` 建关系地图；没有 shell 或文件工具的聊天宿主只能给计划。框架不要求安装或调用某一种 Agent CLI。
 
 兼容分为：协议可用、离线边界测试通过、真实宿主验收通过。仅前两项不能称第三项；具体版本/覆盖见[验收](acceptance.md)。SSH认证仅显式 current-user agent socket；HTTPS私有helper未自动适配，不能用读取全局配置来掩盖缺口。
 
@@ -30,7 +30,7 @@ Codex / Claude Code / 其他宿主的工具、委派和权限模型各不相同�
 
 ## 知识入口
 
-所有命令在目标工程内执行；不在框架分发目录推断业务工程。非 Git 工程可使用 framework-project.json 标记根；必要时通过 FRAMEWORK_PROJECT_ROOT 显式指定包含当前目录的根。
+初始化建立空壳 `knowledge/project/` 和 alias `project`。空壳的 `ingestion` 是 EMPTY。所有命令在目标工程内执行；不在框架分发目录推断业务工程。非 Git 工程可使用 framework-project.json 标记根；必要时通过 FRAMEWORK_PROJECT_ROOT 显式指定包含当前目录的根。
 注册表是项目内 llm-wiki-aliases.json，alias 值为相对注册表根的目录，禁止 alias 逃逸。独立子仓库不自动越界寻找父工程；跨仓库编排从已确认的编排根进行，或显式指定根。
 命令中 KB 的显式路径代表用户选择的目标，仍须核对模块关联、主题和权限。
 

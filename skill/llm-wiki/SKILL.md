@@ -41,21 +41,9 @@ Write helpers (init/register/ingest/batch) require WIKI_WRITE_CONFIRM=yes for ea
 Source data may be sensitive: read only what is needed, de-identify before preparing raw. No secrets, personal identifiers or private full logs.
 No persistent acknowledgement file bypasses future consent. A successful helper exit is not a completed knowledge workflow.
 
-## What may be ingested
+## Ingestion
 
-Ask once with a manifest of source path, sha256, artifact kind, and target alias. Refusal or no reply writes nothing and does not block delivery. The same source hash is not ingested again.
-
-| Kind | Folder | When it may be listed |
-|---|---|---|
-| design | wiki/sources/designs | Approved design or architecture |
-| requirement | wiki/topics/requirements | Accepted OpenSpec requirements and scenarios |
-| plan | wiki/topics/plans | Approved development plan, not each task checkbox |
-| problem | wiki/topics/problems | Verified fix, including a labeled temporary workaround |
-| constraint | wiki/topics/constraints | Confirmed project constraints and non-goals |
-| module | wiki/entities/modules | Registered module responsibility or a changed boundary |
-| verification | wiki/sources/verifications | Passed verification: environment, version, result, evidence location |
-
-Do not ingest an unapproved draft, an active OpenSpec change, the relationship-map dump, CodeGraph output, source diffs, secrets, or one-off logs. Copy `templates/engineering-template.md` and fill it. OpenSpec stays the live change. A conflict with the relationship map is checked against current source before either side is rewritten.
+Which pages may be written, and when, is only in [knowledge policy](../../docs/framework/knowledge-policy.md) section 11.12. Copy `templates/engineering-template.md` after that confirmation. This file does not add a second rule.
 
 ## Complete ingestion (Agent responsibility)
 

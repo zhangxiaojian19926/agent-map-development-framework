@@ -6,8 +6,8 @@
 
 1. 准备一份输入：已有工程填“模块名称 = 仓库 URL”，全新工程只描述项目和目标。见 [启动单模板](templates/PROJECT-START.md)。
 2. 把输入与 [BOOTSTRAP.md](BOOTSTRAP.md) 的位置给具备文件/执行能力的 Coding Agent，说：“初始化工程”。
-3. Agent 自行预览、按名称下载、有界分批分析、聚合模块地图，并补全项目架构/协作和每个模块的局部入口；用户无需选择 init/new、填写 JSON/hash 或执行脚本。
-4. Agent 运行完成检查并留下开发交接。新工程尚未确认设计时交付草案和待确认项，不宣称完整初始化；基础接入不批准业务实施。下一步按 [开发流程](docs/framework/development-workflow.md) 接续设计与计划，不从头重复初始化。非Codex不强制调用Codex，已实测覆盖以[验收记录](docs/acceptance.md)为准。
+3. Agent 自行预览并按名称下载。有白名单源码时才建立关系地图；全新需求先留下设计草案。同时建立空知识库 `knowledge/project/`（alias `project`）。用户无需选择 init/new、填写 JSON/hash 或执行脚本。
+4. Agent 运行 `doctor` 并留下开发交接。只有 `initialization=COMPLETE` 才是完整初始化。新工程尚未确认设计时交付草案和待确认项。基础接入不批准业务实施，也不写入知识内容。下一步按 [开发流程](docs/framework/development-workflow.md) 接续。任何能读写文件并执行 Python 的 Coding Agent 都用同一入口。已实测范围见 [验收记录](docs/acceptance.md)，那是历史证据，不是现行操作步骤。
 
 维护者验证（不是用户接入前置操作）：
 ```bash
@@ -23,7 +23,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 | [技能规则](docs/framework/skill-policy.md) | 调用、权限、冲突与停止条件 |
 | [多模块协作](docs/framework/collaboration-policy.md) | 模块职责、接口、交接、集成与接入 |
 | [知识规则](docs/framework/knowledge-policy.md) | KB 查询、建立、路由、摄入与确认 |
-| [接入](docs/onboarding.md) | 新工程、已有工程、更新及退出 |
+| [初始化](BOOTSTRAP.md) | 当前 Agent 的唯一初始化步骤，含升级与退出 |
 | [集成](docs/integrations.md) | 22 个技能入口及外部工具边界 |
 | [验收](docs/acceptance.md) | 工作流覆盖和实际验证范围 |
 | [第三方说明](THIRD_PARTY_NOTICES.md) | 来源、许可证和本地适配 |
@@ -32,7 +32,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 
 包含 6 个 OpenSpec 技能、14 个 Superpowers 技能、llm-wiki 和 project-bootstrap 技能及所需支持文件。版本和文件指纹见 [发布清单](framework-manifest.json)。
 
-包含确定性的工程接入 CLI、模块登记、受控索引/Agent 分析、证据地图和只读诊断。OpenSpec CLI、Agent 模型/宿主、Git、业务测试环境、设备及部署工具不随包附带，也不会自动安装。
+包含确定性的工程接入 CLI、模块登记、可选 CodeGraph 索引、由当前 Agent 提交证据的关系地图、空知识库壳和只读诊断。OpenSpec CLI、Node、模型、Git、业务测试环境、设备及部署工具不随包附带，也不会自动安装。
 不提供全局 watcher 或全局 Git hook；一键初始化不等于自动完成未批准的产品需求。
 知识脚本是准备/检索/结构检查辅助：PREPARED 或 PLAN_ONLY 不代表语义知识摄入已完成。
 

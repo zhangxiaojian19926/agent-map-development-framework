@@ -1,5 +1,7 @@
 # 工程初始化与模块地图 Implementation Plan
 
+> 历史实现计划，不是现行操作说明。现行规则以 [BOOTSTRAP.md](../../BOOTSTRAP.md) 为准。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for native sequential execution, or superpowers:subagent-driven-development if the user selects it. Steps use checkbox syntax for tracking.
 
 **Goal:** 将现有公共包升级为可执行的工程接入工具，真实跑通已有工程接入与全新需求开发两条路径后上传 main。

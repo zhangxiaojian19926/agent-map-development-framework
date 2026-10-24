@@ -70,7 +70,7 @@ CodeGraph 是索引，不是地图。有源码且本次授权包含 index 时，
 python3 "$FRAMEWORK/tools/framework" refresh --target "$TARGET" --index --yes --allow write --allow index --allow index-install
 ```
 
-PATH 上有主版本 1 且具备 `sync` 的 `codegraph` 时直接使用。否则在有 `index-install` 时，把锁定版本装到目标项目的 `.framework/tools/codegraph`，不执行全局 npm，不调用 `codegraph install`，不修改任何 Agent 的配置目录。没有 Node 时报告 NODE_MISSING，框架不安装 Node。已有代码对每个索引根执行 `init`；已有 `.codegraph` 时执行 `sync`。新源码先更新受管 `codegraph.json` 放行列表，再 sync。索引 READY 不发布关系地图，源码变化后地图仍要按 v2 复核。
+PATH 上有主版本 1 且具备 `sync` 的 `codegraph` 时直接使用。否则在有 `index-install` 时，把锁定版本装到目标项目的 `.framework/tools/codegraph`，不执行全局 npm，不调用 `codegraph install`，不修改任何 Agent 的配置目录。没有 Node 时报告 NODE_MISSING，框架不安装 Node。已有代码对每个索引根执行 `init`；已有 `.codegraph` 时执行 `sync`。新源码先更新受管 `codegraph.json` 放行列表，再 sync。索引 READY 不发布关系地图。源码变化只使索引变脏；关系地图仍按第 4 节，只有结构变化才发布。
 
 hooks、OpenSpec 仍是独立的当次授权。hooks 只标过期，并在索引已经 READY 时后台执行 `codegraph sync -q`；不调用模型，不阻断 Git。不要运行下载的业务代码、创建远端或 push。
 
@@ -78,4 +78,12 @@ hooks、OpenSpec 仍是独立的当次授权。hooks 只标过期，并在索引
 
 最终由 Agent 调用目标已安装的 `python3 "$TARGET/.agent-framework/tools/framework" doctor --target "$TARGET"`。只有 `initialization=COMPLETE` 才报告完整初始化；同时分别报告 PREPARED、documentation、coverage、handoff、索引和 runtime。新工程尚待设计确认时交付草案与 NEEDS_DESIGN_APPROVAL，不把它说成全完成，也不要求用户从头重来。
 
-handoff 保存项目身份、目标、模块路径/源码指纹/仓库 HEAD、规划证据、下一步和所需权限。用户说“继续”时读取 handoff 和当前 OpenSpec status/instructions/contextFiles，接续已批准计划，缺决定只问缺项。模块新增、消失、移动、源码或资料变更后重新 doctor → 登记/同步 → 建图 → accept-docs；保留历史和人工内容，不能沿用旧 COMPLETE。继续开发走 [公共开发流程](docs/framework/development-workflow.md)；初始化不批准业务实现或知识写入。
+handoff 保存项目身份、目标、模块路径/源码指纹/仓库 HEAD、规划证据、下一步和所需权限。用户说“继续”时读取 handoff 和当前 OpenSpec status/instructions/contextFiles，接续已批准计划，缺决定只问缺项。模块新增、消失或移动后重新 doctor、登记，并在结构变化时建图、在事实变化时 accept-docs。只改模块内部时地图保持 CURRENT；源码指纹变化会使 documentation 变为 STALE、initialization 变为 PARTIAL，这时核对资料原句，不重建地图。保留历史和人工内容，不能沿用旧 COMPLETE。继续开发走 [公共开发流程](docs/framework/development-workflow.md)。初始化不批准业务实现或知识内容写入。
+
+## 7. 接入边界、升级与退出
+
+本仓库的 `templates/` 是空白契约。初始化写入目标工程的 `docs/project/`，未知项不能当成事实。人工 `AGENTS.md` 只合并受管入口；语义冲突报告 RULE_CONFLICT，不覆盖用户正文。已有知识库非空或 alias 冲突时不覆盖。
+
+没有 Git 也可以先做文档设计，不自动 `git init`。不自动安装 OpenSpec CLI、Node 或全局插件。缺规划根时报告，获授权后才初始化 OpenSpec。
+
+升级只替换框架拥有的文件。已填写的 `docs/project/`、模块 AGENTS 和知识页保留。退出前确认文件归属，本框架没有一键删除或全局卸载。公共更新不启动并行 Agent，也不 push。

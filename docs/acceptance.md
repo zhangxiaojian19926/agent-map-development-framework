@@ -1,5 +1,7 @@
 # 发布验收与证据边界
 
+> 历史证据，不是现行操作说明。现行规则以 [BOOTSTRAP.md](../BOOTSTRAP.md) 和 [AGENTS.md](../AGENTS.md) 为准。文中的 Codex CLI 0.151.0 与 CodeGraph 1.6.0 是当时的实测环境。
+
 ## Agent 主导初始化：当前验收状态（未发布）
 
 ### 2026-09-27 完整资料与分批交接增量

@@ -1,5 +1,7 @@
 # Agent 主导的命名模块初始化 Implementation Plan
 
+> 历史实现计划，不是现行操作说明。现行规则以 [BOOTSTRAP.md](../../BOOTSTRAP.md) 为准。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for native execution, or superpowers:subagent-driven-development if the user selects it. Steps use checkbox (`- [ ]`) syntax for tracking. 本计划需要用户审阅并选择执行方式后才进入生产代码实施。
 
 **Goal:** 用户提供“模块名称 → URL”的输入单或全新需求，由当前 Coding Agent 自行接入工程，保持名称映射、权限、安全恢复和非 Codex 兼容。

@@ -4,11 +4,11 @@
 
 ## 0. 先读谁
 
-用户说“初始化工程”、提供模块名称与 URL 或全新需求时，先读 [BOOTSTRAP](BOOTSTRAP.md) 和 project-bootstrap 技能。当前 Agent 自己选择路线、生成参数并执行，不让用户运行脚本或填写 JSON/hash。完成分批建图、项目/模块资料与doctor交接检查，不能停在prepare或简短路由页便称完整初始化。新需求设计待确认时保存可恢复草案；初始化与业务规格/计划批准分开。非Codex可用同一入口，能力不足如实报告。
+用户说“初始化工程”、提供模块名称与 URL 或全新需求时，先读 [BOOTSTRAP](BOOTSTRAP.md) 和 project-bootstrap 技能。当前 Agent 自己选择路线、生成参数并执行，不让用户运行脚本或填写 JSON/hash，也不要求安装或调用某一种 Agent CLI。有白名单源码才建关系地图；无源码时保存设计草案。不能停在 prepare 或简短路由页便称完整初始化。初始化与业务规格、计划批准、知识内容写入分开。能力不足如实报告。
 
-首次接入先读 [onboarding](docs/onboarding.md)。本分发仓库只含模板；未建立真实 docs/project 时不要把模板当事实。工程初始化建立空知识库壳 `knowledge/project/`（alias `project`），空壳不是已摄入。没有注册表时报告 NOT_CONFIGURED 后继续允许的只读研究。查询、修复或一次摄入不自动再建库，也不自动写知识内容。以下模板链接在接入工程时改为实例 docs/project 路径。
+本分发仓库的 `templates/` 是空白契约，不是工程事实。初始化会建立空知识库壳 `knowledge/project/`（alias `project`）。空壳不是已摄入。没有注册表时查询返回 NOT_CONFIGURED，只读研究和规划可以继续。查询、修复或一次摄入不自动再建库，也不自动写知识内容。
 
-工程接入使用 project-bootstrap 技能与 [一键接入](docs/bootstrap.md)。任务入口和收尾运行目标工程的只读 doctor。关系地图只在还没有地图，或模块新增、删除、移动、对外职责改变、模块间关系改变、整体拆分改变时用 `map` 发布一次。模块内部修改不更新地图，也不要为此询问用户。只读任务不写地图。CodeGraph sync 不发布地图。安装配置不是授权；不在 hooks 调用模型。
+任务入口和收尾运行目标工程的只读 doctor。关系地图只在还没有地图，或模块新增、删除、移动、对外职责改变、模块间关系改变、整体拆分改变时用 `map` 发布一次。模块内部修改不更新地图，也不要为此询问用户。源码指纹变化可能让资料变为 STALE，那是重新核对资料，不是重建地图。只读任务不写地图。CodeGraph sync 不发布地图。安装配置不是授权；不在 hooks 调用模型。维护者 CLI 见 [bootstrap](docs/bootstrap.md)。
 
 1. 读 [项目概览](templates/project/overview.md)、[资源登记](templates/project/resources.md) 和 [项目约束](templates/project/constraints.md),确定项目身份、目标模块和任务边界。
 2. 按 [公共知识规则](docs/framework/knowledge-policy.md) 和资源登记的实际命令做 KB-first。任务开始及 SPEC/APPLY/VERIFY 阶段入口查询;阶段内复用,范围、来源或假设变化时刷新。

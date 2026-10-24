@@ -41,7 +41,7 @@ python3 tools/framework init --target /path/to/project --config config.json --ye
   --allow write --allow agent --allow index --allow openspec
 ```
 
-`--yes` 不代替能力授权。`agent` 允许把登记模块的受支持源码（单文件最大 1 MiB、总上下文最大 200,000 字符）发送给当前 Codex 模型；不应对未审查的私有工程直接授权。Agent 使用临时工作目录、只读沙箱、禁用 shell/插件/应用/hooks，只接收源码包。沙箱不等于源码保密协议；认证、服务留存和费用遵守宿主服务设置。
+`--yes` 不代替能力授权。`agent` 允许当前 Coding Agent 读取登记模块的受支持源码并提交关系地图。单文件最大 1 MiB。不应对未审查的私有工程直接授权。源码是否离开本机、是否被宿主保存，遵守该宿主自己的设置。框架不调用固定的 Agent CLI。
 
 `index` 允许 CodeGraph 索引与受管排除配置；`hooks` 另行允许非共享、项目内 Git hooks；自定义/既有 hooks 保留并报告冲突。没有守护进程的环境依靠任务入口与收尾检查，不承诺关机或 Agent 离线时即时建图。
 
@@ -100,7 +100,7 @@ CodeGraph 1.x 的 init 在 watcher 禁用且 `--yes` 时可能安装 hooks。适
 
 ## 可重复真实验收
 
-下面命令会创建一个必须尚不存在的合成测试目录，调用真实 Codex 模型、执行其生成的 Python 代码并初始化 CodeGraph，可能产生模型使用费用。必须显式选择：
+下面命令是可选的旧实跑探针，不是当前建图或初始化的必经步骤。它会创建一个必须尚不存在的合成测试目录，可能调用外部模型和 CodeGraph 并产生费用。必须显式选择：
 
 ```bash
 python3 tools/verify-live --target /path/to/new-validation-directory --allow-live

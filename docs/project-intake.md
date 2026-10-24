@@ -20,9 +20,9 @@
 
 Git 使用隔离配置/环境，禁仓库 hooks、fsmonitor、自动 submodule/LFS 和任意凭据 helper。支持经当次 auth 授权的当前用户 SSH-agent socket，SSH不读自定义配置，严格校验已知主机；没有合适认证则 AUTH_REQUIRED。仅 socket 接口的离线测试不代表真实私有仓库认证通过。HTTPS 私有 helper、代理/custom SSH 配置尚不自动适配。
 
-## 当前 Agent 结果协议
+## 旧 v1 结果形状
 
-旧 v1 `analyze-request` 需要 write/agent，返回 request_id、source_digest、modules 和最多约200KB源码。旧集成仍可调用；新初始化使用下述 v2。程序只持久化绑定，分析过程由当前会话完成；没有秘密隔离沙箱的承诺，源码传给模型仍受宿主政策和用户授权约束。
+旧 v1 `analyze-request` 需要 write/agent，返回 request_id、source_digest、modules 和最多约 200KB 源码。旧集成仍可调用。新的初始化使用 `map`。程序只持久化绑定，分析过程由当前会话完成。源码是否离开本机，遵守宿主政策和当次授权。
 
 `accept-analysis --result FILE` 输入为以下形状（id/hash/anchor 必须来自实际观察包）：
 
@@ -44,7 +44,9 @@ Git 使用隔离配置/环境，禁仓库 hooks、fsmonitor、自动 submodule/L
 
 ## 分层结果和兼容
 
-PREPARED：基础入口已建立，不保证完整资料。`documentation` 校验资料及文件指纹；`coverage` 校验 v2 全批覆盖；`handoff` 标记 READY_FOR_PLANNING、NEEDS_DESIGN_APPROVAL 或 BLOCKED。`initialization=COMPLETE` 要求前三项满足、无候选/缺失模块、要求的索引/hooks就绪及实际地图有效。源码、目录、框架或资料变化使旧状态失效。runtime 仍为 NOT_RUN；COMPLETE 不是业务实现获批或运行成功。旧 new 的三份明确批准门禁和旧 CLI 步骤退出码保持不变。
+现行建图命令是 `map`。下面的 v1 和四个 v2 动作仍是它的内部协议和旧集成入口，新的初始化不要绕过 `map` 直接拼这些命令。
+
+PREPARED：基础入口已建立，不保证完整资料。`documentation` 在源码指纹、目录、配置、仓库版本或已写文件指纹变化时变为 STALE。`coverage` 在模块集合、模块路径或地图引用的原句仍成立时保持 COMPLETE，内部改动不会单独把它打成 STALE。`handoff` 标记 READY_FOR_PLANNING、NEEDS_DESIGN_APPROVAL 或 BLOCKED。`initialization=COMPLETE` 要求资料、覆盖和交接都满足，且无候选或缺失模块，已要求的索引和 hooks 就绪，有源码时地图为 READY。因此内部改动可以让 initialization 变为 PARTIAL，同时地图仍是 CURRENT。runtime 仍为 NOT_RUN。COMPLETE 不是业务实现获批或运行成功。旧 new 的三份明确批准门禁和旧 CLI 退出码保持不变。
 
 内部 CLI 退出码沿用0/2/3/4/5：0仅当前步骤成功（预览也是0），2输入错误，3授权/冲突，4外部失败，5部分完成。恢复初次接入从同一分发入口和私有启动区继续；后续工程维护从安装包入口操作。
 
@@ -59,7 +61,7 @@ PREPARED：基础入口已建立，不保证完整资料。`documentation` 校�
 3. `accept-batch --session-id ID --batch-id ID --result FILE` 的 FILE 是 `{"summary":"本批职责、符号、接口与证据位置的有效摘要","uncertainties":[],"slice_ids":["包内ID，原顺序"]}`。最多100000字节；同结果重放幂等，不同结果冲突。摘要保留后续聚合需要的接口信息，不得只写“已读”。
 4. 全部 ACCEPTED 后跨批核对双方证据，`finalize-analysis --session-id ID --result FILE`。FILE 直接是 v1 示例的 **result 对象**，不要加 request_id/source_digest 外壳。缺批、过期或无效关系拒绝；成功才发布地图及 COMPLETE coverage。
 
-会话记录在 `.framework/local-state/analysis-session.json`，不复制原始源码，批次摘要仍按本地敏感数据管理。coverage 列明被扫描范围：允许后缀、排除目录、最大深度12、每模块5000文件、每文件1MiB。完整只针对该范围，不代表未扫描语言/大文件/运行配置全部已理解。框架/源码/目录改变时先同步、重新分批；初版不跨版本缓存推断。发布中断保留事务现场，核对当前版本与权限后恢复，不能用旧journal跳过新分析。
+会话记录在 `.framework/local-state/analysis-session.json`，不复制原始源码，批次摘要仍按本地敏感数据管理。扫描后缀只有 `.py` `.js` `.ts` `.tsx` `.jsx` `.go` `.rs` `.c` `.cpp` `.h` `.java` `.swift`。排除常见依赖和构建目录。最大深度 12，每模块 5000 个文件，每文件 1 MiB。完整只针对该范围。发布过程中源码或框架指纹变化会使当前会话作废，不能把旧批次和新源码混在一次结果里。模块内部改动若没有改变模块集合和已引用原句，不要为了刷新地图重开会话。
 
 ## 结构化资料 dossier
 
