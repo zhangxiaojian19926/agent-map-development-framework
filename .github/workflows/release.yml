@@ -1,0 +1,65 @@
+name: Release framework
+on:
+  schedule:
+    # Monday 02:00 UTC, which is 10:00 in Asia/Shanghai.
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version component to increment
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+permissions:
+  contents: write
+concurrency:
+  group: framework-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - name: Validate before publishing
+        run: |
+          python3 tools/check-framework
+          PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -q
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+      - name: Prepare version, changelog, and manifest
+        id: prep
+        env:
+          BUMP: ${{ github.event_name == 'workflow_dispatch' && inputs.bump || 'patch' }}
+        run: |
+          python3 tools/prepare-release --bump "$BUMP" --notes-out "$RUNNER_TEMP/notes.md" > "$RUNNER_TEMP/release.json"
+          python3 - <<'PY'
+          import json, os
+          meta = json.load(open(os.environ["RUNNER_TEMP"] + "/release.json", encoding="utf-8"))
+          if meta["status"] not in ("READY", "SKIP"):
+              raise SystemExit(meta)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write("status=%s\n" % meta["status"])
+              fh.write("version=%s\n" % meta.get("version", ""))
+              fh.write("tag=%s\n" % meta.get("tag", ""))
+          PY
+      - name: Tag and publish the GitHub release
+        if: steps.prep.outputs.status == 'READY'
+        env:
+          TAG: ${{ steps.prep.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md framework-manifest.json
+          git commit -m "release: ${TAG}"
+          git tag "${TAG}"
+          git push origin HEAD:main
+          git push origin "${TAG}"
+          gh release create "${TAG}" --title "${TAG}" --notes-file "$RUNNER_TEMP/notes.md"

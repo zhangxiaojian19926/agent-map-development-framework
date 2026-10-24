@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""Turn Unreleased changelog notes into the next framework version.
+
+Prints one JSON object. status=SKIP when there is nothing to publish.
+Does not create a git commit or a GitHub Release.
+"""
+import argparse
+import hashlib
+import json
+import re
+from datetime import date
+from pathlib import Path
+import sys
+
+
+def parse_version(value):
+    if not re.fullmatch(r'\d+\.\d+\.\d+', value or ''):
+        raise ValueError('INVALID_VERSION')
+    return tuple(int(part) for part in value.split('.'))
+
+
+def bump_version(current, kind):
+    major, minor, patch = parse_version(current)
+    if kind == 'major':
+        return '%d.0.0' % (major + 1)
+    if kind == 'minor':
+        return '%d.%d.0' % (major, minor + 1)
+    if kind == 'patch':
+        return '%d.%d.%d' % (major, minor, patch + 1)
+    raise ValueError('INVALID_BUMP')
+
+
+def split_unreleased(text):
+    lines = text.splitlines(keepends=True)
+    start = next((i for i, line in enumerate(lines) if line.startswith('## Unreleased')), None)
+    if start is None:
+        raise ValueError('MISSING_UNRELEASED')
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith('## ')), len(lines))
+    heading = lines[start].strip()
+    title = ''
+    for mark in (' — ', ' - '):
+        if mark in heading:
+            title = heading.split(mark, 1)[1].strip()
+            break
+    body = ''.join(lines[start + 1:end]).strip('\n')
+    return title, body, start, end, lines
+
+
+def noteworthy(body):
+    return any(line.strip() and not line.strip().startswith('<!--') for line in body.splitlines())
+
+
+def render(lines, start, end, version, body, stamp):
+    released = '## %s — %s\n\n%s\n\n' % (version, stamp, body.strip())
+    fresh = '## Unreleased\n\n'
+    return ''.join(lines[:start]) + fresh + released + ''.join(lines[end:])
+
+
+def plan(root, kind, stamp):
+    manifest_path = root / 'framework-manifest.json'
+    changelog_path = root / 'CHANGELOG.md'
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+    title, body, start, end, lines = split_unreleased(changelog_path.read_text(encoding='utf-8'))
+    if not noteworthy(body):
+        return {'status': 'SKIP', 'version': manifest.get('version', '')}
+    version = bump_version(manifest['version'], kind)
+    return {'status': 'READY', 'version': version, 'tag': 'v' + version,
+            'title': title or ('v' + version), 'notes': body.strip() + '\n',
+            'changelog': render(lines, start, end, version, body, stamp),
+            'manifest': manifest, 'manifest_path': manifest_path,
+            'changelog_path': changelog_path}
+
+
+def apply_plan(item):
+    changelog = item['changelog_path']
+    changelog.write_text(item['changelog'], encoding='utf-8')
+    manifest = item['manifest']
+    manifest['version'] = item['version']
+    digest = hashlib.sha256(changelog.read_bytes()).hexdigest()
+    manifest.setdefault('files', {})['CHANGELOG.md'] = digest
+    item['manifest_path'].write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description='Prepare the next framework release')
+    parser.add_argument('--root', default=str(Path(__file__).resolve().parents[1]))
+    parser.add_argument('--bump', choices=('patch', 'minor', 'major'), default='patch')
+    parser.add_argument('--date', default=date.today().isoformat())
+    parser.add_argument('--notes-out')
+    parser.add_argument('--dry-run', action='store_true')
+    args = parser.parse_args(argv)
+    if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', args.date):
+        raise ValueError('INVALID_DATE')
+    root = Path(args.root).resolve()
+    item = plan(root, args.bump, args.date)
+    public = {key: item[key] for key in ('status', 'version', 'tag', 'title') if key in item}
+    if item['status'] == 'READY' and not args.dry_run:
+        apply_plan(item)
+        if args.notes_out:
+            Path(args.notes_out).write_text(item['notes'], encoding='utf-8')
+    elif item['status'] == 'READY' and args.notes_out:
+        Path(args.notes_out).write_text(item['notes'], encoding='utf-8')
+    json.dump(public, sys.stdout, ensure_ascii=False)
+    sys.stdout.write('\n')
+    return 0
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (ValueError, OSError, KeyError, json.JSONDecodeError) as exc:
+        json.dump({'status': 'INVALID', 'error': str(exc)}, sys.stdout, ensure_ascii=False)
+        sys.stdout.write('\n')
+        sys.exit(2)

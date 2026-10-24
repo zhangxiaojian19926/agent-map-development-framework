@@ -24,13 +24,14 @@
   ],
   "provenance": "Upstream references establish license/source provenance, not exact-version equivalence of locally imported skill files. See THIRD_PARTY_NOTICES.md.",
   "files": {
-    ".github/workflows/validate.yml": "a8e983522e3a65627e068da23d9e3f468a2325e1b02425558ebc79bdd6f4b72a",
+    ".github/workflows/release.yml": "53d1fd892100d46c07752f4245db2a3830d8aeb4ac788dd2cda410991796dd78",
+    ".github/workflows/validate.yml": "0b2e3397f94fe0429d620812635e1ba6f07abcabc05fcfb68e983fa0527f598c",
     ".gitignore": "d18a22f3227ce3c761686301a28dec0a24b6a905db20688cacc89f34437a79d9",
     "AGENTS.md": "3ab1d1370163f86b3abec6f8c0bfd45dda76460cc447245a51ec053e50a652de",
     "BOOTSTRAP.md": "5cacbeac41157125ca754187e440437ec3b2e8c528e2cf88208b2b62bff392ff",
-    "CHANGELOG.md": "3edd4c30faae93f3b761f843195356487dadc660548856fe954338d72a8f816f",
+    "CHANGELOG.md": "f6e1aa1b4de1eeb74208985a7e236d1b43247b678cc941c29af74b88c192e872",
     "LICENSE": "7a80c75b97010400a48b27d0a9e81a42196f999696aee38cadf3bd14475c2ed7",
-    "README.md": "a7e8a314bfdc1b1dba673f64ce60128d08ad18753a8fa5dfb15e5c75099b1062",
+    "README.md": "2c183c018d61d0045ebf973944a8291a984a7f88655385eee974e92b6995bbb6",
     "THIRD_PARTY_NOTICES.md": "c826fbaa6a661c30413dafe7977cb259475cdb28dfc00af0b25c2432a16755fc",
     "docs/acceptance.md": "4780fa8c542640ece37c89a80faa95f938cab9c04451ac9405f3bd8e479315db",
     "docs/bootstrap.md": "2edc4382fb6fcafb726635ea2dbbbfc00864307a0ffda3dc64a24575a5856d5e",
@@ -183,6 +184,7 @@
     "tests/test_onboarding_completion.py": "e62f4b059a0c25aa1936fc42fdfef2ae608dcce772f4322363dbfef57caa8cd0",
     "tests/test_project_docs.py": "636be5ffa0fa151d80d0f5d7bb735bdb58155fde404d3e4f9d11a1d74ae3afc0",
     "tests/test_project_intake.py": "2a19854a07468acd0aa66e2dd16c6495a2b91a6e54e1004ca0060465319c3dbc",
+    "tests/test_release.py": "7fba734cac5e47ccaa867f70042910ef333e64001eaa3e214faa3f00c0058b35",
     "tools/check-framework": "f526225d64dfa6d8c7c34781b53f73d43268555b9ab6b25cb75a5ce4edf59981",
     "tools/framework": "6b89e66b6e5a5000744faea51c7c68a2b2c6e106ac7c5e85074a33b9d509629e",
     "tools/framework_core/__init__.py": "5e36854a87d1b82c0a573657a8079a22b75bfe70a99c3fee8a8dbc58ccc3cefc",
@@ -203,6 +205,7 @@
     "tools/framework_core/readiness.py": "f8f6376b1c71cd7dbf88a48e3f24e37e24edc951beb48d582fc1a40baf2bea50",
     "tools/framework_core/storage.py": "9455b5b3e17c69a16105459d82095298633a53c4d04a32e518dc28e58c6582bd",
     "tools/framework_core/workflow.py": "24c6e655e47b68c072a04c1ae8ba7b84523e6a3e4a82322eaaab0241b8534dcb",
+    "tools/prepare-release": "1c988c036a72606de4bbfc865ed7393d8c768c4ff8a4fa06c3054ef89b8cef30",
     "tools/update-manifest": "a5150b81512ccc89afc904f120875fbf1a4e88456d3a1a4eadf00f93a28ac9e5",
     "tools/verify-live": "d365c60aec9c65049429ee919d331d8f6e3e37554c3b61cafc803307a202a12e"
   }

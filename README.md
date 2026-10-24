@@ -43,3 +43,5 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 
 原有 AGENTS.md 不得直接覆盖；先合并入口与冲突，再按项目选择的技能版本使用。
 公共更新不覆盖已填写项目资料、模块规则或知识数据。主工作流状态归 OpenSpec，知识库不替代活跃规格。
+
+推送和拉取请求由 `.github/workflows/validate.yml` 在 Ubuntu 与 macOS 上运行清单检查和单元测试。每周一 02:00 UTC（北京时间 10:00）由 `.github/workflows/release.yml` 发布：`CHANGELOG.md` 的 Unreleased 有内容时，补丁版本号加一，写回清单指纹，推送 `vX.Y.Z` tag 和 GitHub Release。没有未发布说明则跳过。手动运行可选 patch、minor 或 major。发布前先跑同一套校验。
