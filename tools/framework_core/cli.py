@@ -16,7 +16,7 @@ from .hooks import mark_dirty
 
 def parser():
     p = argparse.ArgumentParser(description='Project-scoped development framework')
-    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'map', 'analyze-request', 'accept-analysis', 'analysis-batch', 'accept-batch', 'finalize-analysis', 'accept-docs', 'doctor', 'resume', 'refresh', 'module', 'event'])
+    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'map', 'analyze-request', 'accept-analysis', 'analysis-batch', 'accept-batch', 'finalize-analysis', 'accept-docs', 'doctor', 'resume', 'refresh', 'module', 'event', 'reverse', 'package'])
     p.add_argument('operation', nargs='?', choices=['clone', 'add', 'sync'])
     p.add_argument('--target', required=True)
     p.add_argument('--config')
@@ -35,6 +35,7 @@ def parser():
     p.add_argument('--approve', action='append', default=[], metavar='ARTIFACT=SHA256')
     p.add_argument('--run-id')
     p.add_argument('--reason', default='git-event')
+    p.add_argument('--scope', help='Reverse scope JSON: id, target, sha256, question, action')
     p.add_argument('--request', help='Human startup input; current agent supplies the path')
     p.add_argument('--staging', help='Private launch directory outside target and framework')
     p.add_argument('--result', help='Current-session analysis envelope JSON')
@@ -92,6 +93,22 @@ def main(argv=None):
             save_intake(plan, text, grants)
             report = execute_intake(plan, grants, auth={'ssh_agent': args.ssh_agent} if args.ssh_agent else None)
             return output(report, 0 if report['status'] == 'PREPARED' else 5)
+        if args.action == 'reverse':
+            from .reverse import prepare_reverse
+            if args.dry_run:
+                return output({'action': 'reverse', 'required_capabilities': ['write', 'reverse'], 'target': str(root)})
+            scope = None
+            if args.scope:
+                if Path(args.scope).is_symlink() or Path(args.scope).stat().st_size > 1024 * 1024:
+                    raise ValueError('INVALID_SCOPE')
+                scope = json.loads(Path(args.scope).read_text())
+            report = prepare_reverse(root, scope, set(args.allow))
+            return output(report, 0 if report['status'] == 'READY' else 5)
+        if args.action == 'package':
+            from .package import package_project
+            if args.dry_run:
+                return output({'action': 'package', 'required_capabilities': ['write', 'package'], 'target': str(root)})
+            return output(package_project(root, set(args.allow)))
         if args.action == 'map':
             from .analysis_batches import advance_map
             if args.dry_run:

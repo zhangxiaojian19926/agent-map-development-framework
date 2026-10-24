@@ -8,6 +8,8 @@
 
 本分发仓库的 `templates/` 是空白契约，不是工程事实。初始化会建立空知识库壳 `knowledge/project/`（alias `project`）。空壳不是已摄入。没有注册表时查询返回 NOT_CONFIGURED，只读研究和规划可以继续。查询、修复或一次摄入不自动再建库，也不自动写知识内容。
 
+逆向不是初始化的一部分。只有用户明确要求时才使用 reverse-engineer 技能和 [工具版本](docs/framework/reverse-tools.md)；平时不安装这些工具。
+
 任务入口和收尾运行目标工程的只读 doctor。关系地图只在还没有地图，或模块新增、删除、移动、对外职责改变、模块间关系改变、整体拆分改变时用 `map` 发布一次。模块内部修改不更新地图，也不要为此询问用户。源码指纹变化可能让资料变为 STALE，那是重新核对资料，不是重建地图。只读任务不写地图。CodeGraph sync 不发布地图。安装配置不是授权；不在 hooks 调用模型。维护者 CLI 见 [bootstrap](docs/bootstrap.md)。
 
 1. 读 [项目概览](templates/project/overview.md)、[资源登记](templates/project/resources.md) 和 [项目约束](templates/project/constraints.md),确定项目身份、目标模块和任务边界。

@@ -78,7 +78,7 @@ hooks、OpenSpec 仍是独立的当次授权。hooks 只标过期，并在索引
 
 最终由 Agent 调用目标已安装的 `python3 "$TARGET/.agent-framework/tools/framework" doctor --target "$TARGET"`。只有 `initialization=COMPLETE` 才报告完整初始化；同时分别报告 PREPARED、documentation、coverage、handoff、索引和 runtime。新工程尚待设计确认时交付草案与 NEEDS_DESIGN_APPROVAL，不把它说成全完成，也不要求用户从头重来。
 
-handoff 保存项目身份、目标、模块路径/源码指纹/仓库 HEAD、规划证据、下一步和所需权限。用户说“继续”时读取 handoff 和当前 OpenSpec status/instructions/contextFiles，接续已批准计划，缺决定只问缺项。模块新增、消失或移动后重新 doctor、登记，并在结构变化时建图、在事实变化时 accept-docs。只改模块内部时地图保持 CURRENT；源码指纹变化会使 documentation 变为 STALE、initialization 变为 PARTIAL，这时核对资料原句，不重建地图。保留历史和人工内容，不能沿用旧 COMPLETE。继续开发走 [公共开发流程](docs/framework/development-workflow.md)。初始化不批准业务实现或知识内容写入。
+handoff 保存项目身份、目标、模块路径/源码指纹/仓库 HEAD、规划证据、下一步和所需权限。用户说“继续”时读取 handoff 和当前 OpenSpec status/instructions/contextFiles，接续已批准计划，缺决定只问缺项。模块新增、消失或移动后重新 doctor、登记，并在结构变化时建图、在事实变化时 accept-docs。只改模块内部时地图保持 CURRENT；源码指纹变化会使 documentation 变为 STALE、initialization 变为 PARTIAL，这时核对资料原句，不重建地图。保留历史和人工内容，不能沿用旧 COMPLETE。继续开发走 [公共开发流程](docs/framework/development-workflow.md)。初始化不批准业务实现、逆向或知识内容写入。逆向工具只在单独的 `reverse` 授权后按 [版本清单](docs/framework/reverse-tools.md) 集中安装。
 
 ## 7. 接入边界、升级与退出
 

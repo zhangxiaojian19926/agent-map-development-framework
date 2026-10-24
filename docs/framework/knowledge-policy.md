@@ -154,4 +154,4 @@ OpenSpec archive
 | module | `wiki/entities/modules/` | 模块已登记，或对外职责、边界变了 |
 | verification | `wiki/sources/verifications/` | 验证已通过。只写环境、版本、结论和证据位置 |
 
-不摄入未批准草案、整份关系地图、CodeGraph 输出、源码 diff、密钥和一次性日志。命令卡片见 [llm-wiki 技能](../../skill/llm-wiki/SKILL.md)。
+不摄入未批准草案、整份关系地图、CodeGraph 输出、REA 原始输出、反编译文本、目标软件、源码 diff、密钥和一次性日志。命令卡片见 [llm-wiki 技能](../../skill/llm-wiki/SKILL.md)。

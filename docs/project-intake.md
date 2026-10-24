@@ -44,7 +44,7 @@ Git 使用隔离配置/环境，禁仓库 hooks、fsmonitor、自动 submodule/L
 
 ## 分层结果和兼容
 
-现行建图命令是 `map`。下面的 v1 和四个 v2 动作仍是它的内部协议和旧集成入口，新的初始化不要绕过 `map` 直接拼这些命令。
+逆向不是本协议的一部分。它使用单独的 `reverse` 动作，版本见 [逆向工具](framework/reverse-tools.md)。现行建图命令是 `map`。下面的 v1 和四个 v2 动作仍是它的内部协议和旧集成入口，新的初始化不要绕过 `map` 直接拼这些命令。
 
 PREPARED：基础入口已建立，不保证完整资料。`documentation` 在源码指纹、目录、配置、仓库版本或已写文件指纹变化时变为 STALE。`coverage` 在模块集合、模块路径或地图引用的原句仍成立时保持 COMPLETE，内部改动不会单独把它打成 STALE。`handoff` 标记 READY_FOR_PLANNING、NEEDS_DESIGN_APPROVAL 或 BLOCKED。`initialization=COMPLETE` 要求资料、覆盖和交接都满足，且无候选或缺失模块，已要求的索引和 hooks 就绪，有源码时地图为 READY。因此内部改动可以让 initialization 变为 PARTIAL，同时地图仍是 CURRENT。runtime 仍为 NOT_RUN。COMPLETE 不是业务实现获批或运行成功。旧 new 的三份明确批准门禁和旧 CLI 退出码保持不变。
 

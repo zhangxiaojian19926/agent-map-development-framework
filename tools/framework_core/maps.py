@@ -41,6 +41,9 @@ def validate_map(root, catalog, result):
         for item in evidence:
             try:
                 rel = item['path']
+                if rel.startswith('docs/project/reverse/') or rel.startswith('.framework/'):
+                    errors.append('REVERSE_NOT_SOURCE')
+                    continue
                 p = safe_path(root, rel)
                 if rel not in sources or fingerprint(p) != item['sha256'] or sources[rel] != item['sha256']:
                     errors.append('STALE_EVIDENCE')

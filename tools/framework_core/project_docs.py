@@ -28,6 +28,8 @@ def evidence_valid(root, items, allowed):
     for item in items:
         try:
             rel, anchor = item['path'], item['anchor']
+            if rel.startswith('docs/project/reverse/') or rel.startswith('.framework/'):
+                return False
             if rel not in allowed or not meaningful(anchor):
                 return False
             path = safe_path(root, rel)

@@ -107,6 +107,8 @@ def inspect_project(root):
                 'Internal edits do not require a new map. CodeGraph sync does not publish the relationship map.')
         report['next_actions'].append(report['handoff'].get('next_action', 'Inspect saved handoff'))
     report['knowledge'] = knowledge_status(root)
+    from .reverse import reverse_report
+    report['reverse'] = reverse_report(root)
     return report
 
 

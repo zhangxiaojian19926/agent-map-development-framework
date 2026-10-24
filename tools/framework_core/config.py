@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import re
 
-CAPABILITIES = {'write', 'agent', 'index', 'index-install', 'hooks', 'clone', 'local-clone', 'openspec', 'auth'}
+CAPABILITIES = {'write', 'agent', 'index', 'index-install', 'hooks', 'clone', 'local-clone', 'openspec', 'auth', 'reverse', 'reverse-install', 'package'}
 
 
 def encoded(value):

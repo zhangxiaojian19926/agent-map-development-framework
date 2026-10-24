@@ -1,0 +1,29 @@
+{
+  "rea-agents": {
+    "package": "rea-agents",
+    "version": "6.7.0",
+    "integrity": "sha512-yhIx2ioJYYT1C/tONfYeitC6LhnKmCh+ZwRUOgYuhSc733lGhkkt73zhug9WmLgxoMdKuqIYGCoBfD4fXkOhFw=="
+  },
+  "tools": {
+    "ghidra": {
+      "version": "12.1.4",
+      "sha256": "ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387d2d4db",
+      "url": "https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.4_build/ghidra_12.1.4_PUBLIC_20260921.zip"
+    },
+    "temurin-jdk": {"version": "21.0.13+9", "sha256": ""},
+    "jadx": {"version": "1.5.6", "sha256": ""},
+    "apktool": {"version": "3.0.3", "sha256": ""},
+    "rizin": {"version": "0.9.1", "sha256": ""},
+    "wabt": {"version": "1.0.42", "sha256": ""},
+    "platform-tools": {"version": "pinned-at-release", "sha256": ""},
+    "pwntools": {"version": "linux-only", "sha256": ""},
+    "unblob": {"version": "linux-only", "sha256": ""},
+    "tshark": {"version": "4", "sha256": ""},
+    "sigrok-cli": {"version": "0.7.2", "sha256": ""}
+  },
+  "bundles": {
+    "darwin": ["rea-agents", "ghidra", "temurin-jdk", "jadx", "apktool", "rizin", "wabt", "platform-tools"],
+    "linux": ["rea-agents", "ghidra", "temurin-jdk", "jadx", "apktool", "rizin", "wabt", "platform-tools", "pwntools", "unblob", "tshark", "sigrok-cli"]
+  },
+  "linux_only": ["pwntools", "unblob", "tshark", "sigrok-cli"]
+}

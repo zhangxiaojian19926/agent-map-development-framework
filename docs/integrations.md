@@ -13,6 +13,7 @@ skill/project-bootstrap 提供接入、刷新与地图 schema 参考；合计 22
 - Git 工作区及集成：Git CLI。worktree 只在需要隔离且授权时使用。
 - OpenSpec 技能：另需兼容的 OpenSpec CLI。来源 https://github.com/Fission-AI/OpenSpec 。使用前检查版本及实际 help/status/instructions，不假定所有版本均支持 store。
 - Superpowers 的 JS 可视化及审查辅助：Node.js；Graphviz 渲染示例另需 dot。只有选中相关流程时才检查和使用。
+- REA：可选。只在 `reverse` 授权后使用锁定版本的开源工具，见 [reverse-tools](framework/reverse-tools.md)。不随初始化安装。
 - CodeGraph：可选符号索引。PATH 上主版本 1 且有 `sync` 时直接使用；否则仅在 `index-install` 授权下安装到目标项目 `.framework/tools/codegraph`。无索引时用 rg。它不发布关系地图。细节见 [bootstrap](bootstrap.md)。
 - 设备、provider、部署：目标工程提供，公共包不含凭据、服务配置或驱动。
 
