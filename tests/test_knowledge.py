@@ -204,5 +204,39 @@ class KnowledgeTests(unittest.TestCase):
         self.assertIn("INFERRED",r.stdout)
         self.assertFalse(list((b/"wiki").rglob("*.md")))
 
+    def test_init_creates_engineering_shell_without_pages(self):
+        r = self.run_script("init", "new", "demo", "zh", confirm=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        kb = self.root / "new"
+        for folder in ("wiki/sources/designs", "wiki/sources/verifications", "wiki/entities/modules",
+                       "wiki/topics/requirements", "wiki/topics/plans", "wiki/topics/problems",
+                       "wiki/topics/constraints", "wiki/synthesis/decisions"):
+            self.assertTrue((kb / folder / ".gitkeep").is_file(), folder)
+        self.assertIn("ingestion", r.stdout)
+        self.assertFalse(list((kb / "wiki").rglob("*.md")))
+        status = json.loads(self.run_script("status", kb).stdout)
+        self.assertEqual(status["shell"], "READY")
+        self.assertEqual(status["ingestion"], "EMPTY")
+
+    def test_chinese_fragment_matches_without_the_whole_phrase(self):
+        b = self.kb("b")
+        (b / "wiki/topics").mkdir(parents=True)
+        (b / "wiki/topics/link.md").write_text("# 连接\n只写了连接。\n")
+        (b / "wiki/topics/other.md").write_text("# 其他\n没有目标词。\n")
+        r = self.run_script("query", b, "中文连接")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("link.md", r.stdout)
+        self.assertNotIn("other.md", r.stdout)
+
+    def test_lint_reports_raw_that_has_no_page(self):
+        b = self.kb("b")
+        (b / "raw/notes/orphan.md").write_text("source")
+        r = self.run_script("lint", b)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("raw without knowledge page", r.stdout)
+        (b / "wiki/sources/note.md").write_text("see orphan.md\n")
+        r = self.run_script("lint", b)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
 if __name__ == "__main__":
     unittest.main()

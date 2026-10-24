@@ -1,5 +1,7 @@
 """Instantiate human documents once; update only owned machine outputs."""
 import hashlib
+import importlib.util
+import json
 from pathlib import Path
 
 from .config import encoded
@@ -65,9 +67,36 @@ def generation_changes(root, config, distribution, prepare=False):
         'architecture': ('# Design — awaiting approval\n\n' if prepare else '# Approved design\n\n') + config.get('artifacts', {}).get('design', 'No approved design supplied; do not infer it from the code map.') + '\n',
         'collaboration': '# Collaboration\n\nSelect module IDs from the catalog; state caller/callee contracts and integration tests.\n',
         'constraints': '# Constraints\n\nNo implicit dependency installation, publication, device access or knowledge ingestion.\n',
-        'resources': '# Resources\n\nIdentity: `../../framework-project.json`; observed catalog: `../../module-catalog.generated.json`.\nKnowledge: NOT_CONFIGURED until explicitly registered.\n'}
+        'resources': '# Resources\n\nIdentity: `../../framework-project.json`; observed catalog: `../../module-catalog.generated.json`.\nKnowledge alias `project` at `knowledge/project/`. The empty shell is not ingested content.\n'}
+    add_knowledge_shell(root, distribution, config, outputs)
     for name, content in defaults.items():
         rel = 'docs/project/' + name + '.md'
         if not safe_path(root, rel).exists():
             outputs[rel] = content
     return entry_changes + owned_changes(root, outputs)
+
+
+def wiki_helpers(distribution):
+    path = Path(distribution) / 'skill/llm-wiki/scripts/wiki.py'
+    spec = importlib.util.spec_from_file_location('framework_llm_wiki', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def add_knowledge_shell(root, distribution, config, outputs):
+    """Create the empty project KB once. Never overwrite an existing shell or registry."""
+    base = 'knowledge/project'
+    schema = safe_path(root, base + '/.wiki-schema.md')
+    dest = safe_path(root, base)
+    foreign = dest.exists() and not schema.exists() and any(path.name != '.gitkeep' for path in dest.rglob('*') if path.is_file() or path.is_dir())
+    creating = not schema.exists() and not foreign and not dest.is_symlink()
+    if creating:
+        files = wiki_helpers(distribution).shell_files(config['project_id'], 'zh')
+        for rel, text in files.items():
+            target = base + '/' + rel
+            if not safe_path(root, target).exists():
+                outputs[target] = text
+    registry = safe_path(root, 'llm-wiki-aliases.json')
+    if creating and not registry.exists():
+        outputs['llm-wiki-aliases.json'] = json.dumps({'project': 'knowledge/project'}, ensure_ascii=False, indent=2) + '\n'

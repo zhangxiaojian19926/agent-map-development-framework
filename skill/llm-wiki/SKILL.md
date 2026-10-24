@@ -15,8 +15,8 @@ Read [knowledge policy](../../docs/framework/knowledge-policy.md) before writes.
 2. Use project-local llm-wiki-aliases.json; aliases are paths relative to its project root. Never use a global registry or infer association from the current directory.
 3. Explicit alias is authoritative: unknown alias fails, never falls back to current KB. Explicit paths must be verified against the authorized target; '.' means deliberately select current KB.
 4. Git boundaries stop automatic upward discovery. For non-Git projects use framework-project.json, or explicitly set FRAMEWORK_PROJECT_ROOT to a confirmed root containing the current directory.
-5. No KB/registry: query --all returns NOT_CONFIGURED. Continue allowed research/planning, disclose missing history; do not initialize or register automatically.
-6. KB-first at task entry and SPEC/APPLY/VERIFY; reuse within the stage unless scope/evidence changes.
+5. Project initialization creates one empty shell at `knowledge/project/` and alias `project`. That shell is not ingested content. query --all still returns NOT_CONFIGURED when the registry is absent. Do not create another KB for a query, a repair, or one ingestion.
+6. KB-first at task entry and SPEC/APPLY/VERIFY; reuse within the stage unless scope/evidence changes. Read index.md before opening pages.
 
 ## Commands
 
@@ -24,15 +24,15 @@ Run through Bash; script paths below are relative to this skill's directory. Pyt
 
 | Workflow | Command | Actual behavior |
 |---|---|---|
-| init | bash scripts/init.sh PATH TOPIC zh-or-en | Creates empty KB only; requires confirmation, refuses nonempty targets; does not register |
+| init | bash scripts/init.sh PATH TOPIC zh-or-en | Creates the empty engineering shell and subdirectories; requires confirmation, refuses nonempty targets; does not register |
 | register | bash scripts/common.sh add-alias NAME PATH | Separately authorized project registration; rejects conflicting alias |
-| query | bash scripts/query.sh KB TOPIC | Read-only literal keyword search |
+| query | bash scripts/query.sh KB TOPIC | Read-only. Matches index, titles, and short Chinese fragments; returns at most 10 page paths |
 | query all | bash scripts/query.sh --all TOPIC | All project aliases; invalid mappings reported, partial failure nonzero |
 | ingest | bash scripts/ingest.sh KB SOURCE_FILE | Prepares immutable raw copy, returns PREPARED and pending work; never claims ingestion complete |
 | batch | bash scripts/batch-ingest.sh KB SOURCE_DIR | Snapshots Markdown input list; reports each preparation failure; nonzero on partial failure |
 | digest | bash scripts/digest.sh KB TOPIC | PLAN_ONLY, relevant pages for Agent synthesis |
-| status | bash scripts/status.sh KB | Read-only metadata and page count |
-| lint | bash scripts/lint.sh KB --strict | Structural metadata and unique wikilink checks, including registered cross-KB links; not semantic proof |
+| status | bash scripts/status.sh KB | Read-only shell, ingestion EMPTY or PRESENT, page count, and raw count |
+| lint | bash scripts/lint.sh KB --strict | Structural metadata, unique wikilinks, and raw files with no knowledge page; not semantic proof |
 | graph | bash scripts/graph.sh KB | Read-only JSON nodes/edges on stdout; no generated file |
 | delete | bash scripts/delete.sh KB RAW_RELATIVE_PATH | PLAN_ONLY, exact target and references; never deletes or guesses a summary |
 | crystallize | bash scripts/crystallize.sh KB FILE-or-stdin-dash TOPIC | PLAN_ONLY with INFERRED classification; Agent reads source and performs authorized synthesis |
@@ -40,6 +40,22 @@ Run through Bash; script paths below are relative to this skill's directory. Pyt
 Write helpers (init/register/ingest/batch) require WIKI_WRITE_CONFIRM=yes for each command, only AFTER current user authorization. This is accident prevention, not authentication. Never set it globally.
 Source data may be sensitive: read only what is needed, de-identify before preparing raw. No secrets, personal identifiers or private full logs.
 No persistent acknowledgement file bypasses future consent. A successful helper exit is not a completed knowledge workflow.
+
+## What may be ingested
+
+Ask once with a manifest of source path, sha256, artifact kind, and target alias. Refusal or no reply writes nothing and does not block delivery. The same source hash is not ingested again.
+
+| Kind | Folder | When it may be listed |
+|---|---|---|
+| design | wiki/sources/designs | Approved design or architecture |
+| requirement | wiki/topics/requirements | Accepted OpenSpec requirements and scenarios |
+| plan | wiki/topics/plans | Approved development plan, not each task checkbox |
+| problem | wiki/topics/problems | Verified fix, including a labeled temporary workaround |
+| constraint | wiki/topics/constraints | Confirmed project constraints and non-goals |
+| module | wiki/entities/modules | Registered module responsibility or a changed boundary |
+| verification | wiki/sources/verifications | Passed verification: environment, version, result, evidence location |
+
+Do not ingest an unapproved draft, an active OpenSpec change, the relationship-map dump, CodeGraph output, source diffs, secrets, or one-off logs. Copy `templates/engineering-template.md` and fill it. OpenSpec stays the live change. A conflict with the relationship map is checked against current source before either side is rewritten.
 
 ## Complete ingestion (Agent responsibility)
 

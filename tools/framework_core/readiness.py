@@ -106,4 +106,23 @@ def inspect_project(root):
                 'repeat map --batch-id --result for every batch, then map --result to publish. '
                 'Internal edits do not require a new map. CodeGraph sync does not publish the relationship map.')
         report['next_actions'].append(report['handoff'].get('next_action', 'Inspect saved handoff'))
+    report['knowledge'] = knowledge_status(root)
     return report
+
+
+def knowledge_status(root):
+    """Shell presence only. Empty content is not ingested knowledge."""
+    try:
+        registry = safe_path(root, 'llm-wiki-aliases.json')
+        if not registry.is_file():
+            return {'status': 'NOT_CONFIGURED', 'ingestion': 'NOT_APPLICABLE'}
+        data = read_json(root, 'llm-wiki-aliases.json', {})
+        if not isinstance(data, dict) or data.get('project') != 'knowledge/project':
+            return {'status': 'NOT_CONFIGURED', 'ingestion': 'NOT_APPLICABLE'}
+        if not safe_path(root, 'knowledge/project/.wiki-schema.md').is_file():
+            return {'status': 'CONFLICT', 'ingestion': 'NOT_APPLICABLE'}
+        wiki = safe_path(root, 'knowledge/project/wiki')
+        pages = [path for path in wiki.rglob('*.md') if path.is_file() and not path.is_symlink()] if wiki.is_dir() else []
+        return {'status': 'SCAFFOLDED', 'ingestion': 'EMPTY' if not pages else 'PRESENT', 'alias': 'project'}
+    except (OSError, ValueError):
+        return {'status': 'CONFLICT', 'ingestion': 'NOT_APPLICABLE'}

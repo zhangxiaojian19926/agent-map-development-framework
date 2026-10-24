@@ -12,6 +12,13 @@ import sys
 SCHEMA = ".wiki-schema.md"
 REGISTRY = "llm-wiki-aliases.json"
 TEMPLATES = Path(__file__).resolve().parents[1] / "templates"
+SHELL_DIRS = (
+    "raw/articles", "raw/notes", "raw/pdfs", "raw/assets",
+    "wiki/entities/modules",
+    "wiki/topics/requirements", "wiki/topics/plans", "wiki/topics/problems", "wiki/topics/constraints",
+    "wiki/sources/designs", "wiki/sources/verifications",
+    "wiki/comparisons", "wiki/synthesis/decisions", "wiki/queries",
+)
 
 def emit(value):
     print(json.dumps(value, ensure_ascii=False, indent=2))
@@ -112,15 +119,39 @@ def metadata(root):
         return m.group(1).strip() if m else default
     return {"topic":value("Topic|主题","untitled"),"language":value("Language|语言","zh")}
 
+def search_terms(topic):
+    terms = []
+    for part in re.findall(r"\w+", topic.casefold()):
+        terms.append(part)
+        for chunk in re.findall(r"[\u4e00-\u9fff]+", part):
+            if len(chunk) > 2:
+                terms.extend(chunk[i:i + 2] for i in range(len(chunk) - 1))
+    return list(dict.fromkeys(terms))
+
+
 def find_matches(root, topic):
-    terms = re.findall(r"\w+", topic.casefold())
-    results = []
-    for f in pages(root):
-        body = read_text(f).casefold()
-        hits = sum(body.count(t) for t in terms)
-        if hits:
-            results.append({"page":f.relative_to(root).as_posix(),"matches":hits})
-    return sorted(results,key=lambda r:(-r["matches"],r["page"]))[:10]
+    """Index and titles first. A long Chinese query can match a shorter fragment."""
+    terms = search_terms(topic)
+    if not terms:
+        return []
+    index_path = root / "index.md"
+    index_text = read_text(index_path).casefold() if index_path.is_file() and not index_path.is_symlink() else ""
+    scored = []
+    for page in pages(root):
+        body = read_text(page)
+        folded = body.casefold()
+        title = page.stem.casefold()
+        heading = ""
+        for line in body.splitlines():
+            if line.startswith("#"):
+                heading = line.lstrip("#").strip().casefold()
+                break
+        hits = sum(folded.count(term) for term in terms)
+        title_hits = sum(title.count(term) + heading.count(term) for term in terms)
+        if hits or title_hits:
+            bonus = 3 if title and title in index_text else 0
+            scored.append({"page": page.relative_to(root).as_posix(), "matches": hits + title_hits * 5 + bonus})
+    return sorted(scored, key=lambda item: (-item["matches"], item["page"]))[:10]
 
 def register(alias, target):
     require_write()
@@ -143,31 +174,41 @@ def register(alias, target):
     os.replace(temp,output)
     emit({"status":"REGISTERED","alias":alias,"path":relative})
 
+def shell_files(topic, language, today=None):
+    """Empty project KB. Registration and page compilation stay separate."""
+    if language not in ("zh", "en"):
+        raise ValueError("Language must be zh or en")
+    today = today or dt.date.today().isoformat()
+    suffix = "-en" if language == "en" else ""
+    values = {"TOPIC": topic, "DATE": today, "WIKI_ROOT": ".", "LANG": language}
+    rendered = {}
+    for name, output in [("schema", SCHEMA), ("purpose", "purpose.md"), ("index", "index.md"), ("log", "log.md"), ("overview", "overview.md")]:
+        text = read_text(TEMPLATES / (name + suffix + "-template.md"))
+        for key, value in values.items():
+            text = text.replace("{{" + key + "}}", value)
+        rendered[output] = text
+    for folder in SHELL_DIRS:
+        rendered[folder + "/.gitkeep"] = ""
+    return rendered
+
+
 def initialize(target, topic, language):
     require_write()
-    if language not in ("zh","en"):
-        raise ValueError("Language must be zh or en")
     dest = Path(target).expanduser().absolute()
     if dest.is_symlink() or (dest.exists() and (not dest.is_dir() or any(dest.iterdir()))):
         raise ValueError("Target exists and is not an empty ordinary directory")
     for parent in dest.parents:
         if parent.is_symlink():
             raise ValueError("Symlink parent rejected")
-    suffix = "-en" if language=="en" else ""
-    rendered = {}
-    values={"TOPIC":topic,"DATE":dt.date.today().isoformat(),"WIKI_ROOT":".","LANG":language}
-    for name,output in [("schema",SCHEMA),("purpose","purpose.md"),("index","index.md"),("log","log.md"),("overview","overview.md")]:
-        text = read_text(TEMPLATES / (name + suffix + "-template.md"))
-        for key,value in values.items():
-            text = text.replace("{{"+key+"}}",value)
-        rendered[output]=text
-    dest.mkdir(parents=True,exist_ok=True)
-    for d in ["raw/articles","raw/notes","raw/pdfs","raw/assets",*["wiki/"+x for x in ["entities","topics","sources","comparisons","synthesis","queries"]]]:
-        (dest / d).mkdir(parents=True,exist_ok=True)
-    for name,text in rendered.items():
-        with (dest/name).open("x",encoding="utf-8") as f:
-            f.write(text)
-    emit({"status":"INITIALIZED","root":str(dest.resolve()),"registered":False,"pending":["purpose review","separate alias registration","content ingestion"]})
+    rendered = shell_files(topic, language)
+    dest.mkdir(parents=True, exist_ok=True)
+    for name, text in rendered.items():
+        path = dest / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("x", encoding="utf-8") as handle:
+            handle.write(text)
+    emit({"status": "INITIALIZED", "root": str(dest.resolve()), "registered": False, "ingestion": "EMPTY",
+          "pending": ["purpose review", "separate alias registration", "content ingestion"]})
 
 def prepare(root, source):
     require_write()
@@ -182,9 +223,28 @@ def prepare(root, source):
         f.write(content)
     return {"status":"PREPARED","raw":target.relative_to(root).as_posix(),"pending":["agent reads schema and source","source/entity/topic pages","index and log","source/link verification"]}
 
+def raw_sources(root):
+    found = []
+    for folder in ("raw/notes", "raw/articles", "raw/pdfs"):
+        base = root / folder
+        if not base.is_dir() or base.is_symlink():
+            continue
+        for path in sorted(base.rglob("*")):
+            if path.is_symlink() or not path.is_file() or path.name == ".gitkeep":
+                continue
+            safe_file(root, path.relative_to(root))
+            found.append(path)
+    return found
+
+
 def lint(root, strict):
     all_pages=pages(root)
     errors=[]
+    cited = "\n".join(read_text(page) for page in all_pages)
+    for raw in raw_sources(root):
+        relative = raw.relative_to(root).as_posix()
+        if relative not in cited and raw.name not in cited:
+            errors.append({"page": relative, "error": "raw without knowledge page"})
     for f in all_pages:
         body=read_text(f)
         fm=re.match(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|$)",body,re.S)
@@ -240,7 +300,10 @@ def main():
     elif cmd=="query":
         need(2);emit({"root":str(root),"results":find_matches(root,args[1])})
     elif cmd=="status":
-        emit({"root":str(root),**metadata(root),"pages":len(pages(root))})
+        page_list = pages(root)
+        emit({"root": str(root), **metadata(root), "shell": "READY",
+              "ingestion": "EMPTY" if not page_list else "PRESENT",
+              "pages": len(page_list), "raw": len(raw_sources(root))})
     elif cmd=="lint":
         return lint(root,"--strict" in args)
     elif cmd=="ingest":

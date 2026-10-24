@@ -15,6 +15,16 @@ class GenerationTests(unittest.TestCase):
             self.assertFalse((root/'.git').exists())
             self.assertFalse((root/'taskcli').exists())
             self.assertIn('No approved design', (root/'docs/project/architecture.md').read_text())
+            self.assertTrue((root/'knowledge/project/.wiki-schema.md').is_file())
+            self.assertTrue((root/'knowledge/project/wiki/topics/problems/.gitkeep').is_file())
+            self.assertEqual(json.loads((root/'llm-wiki-aliases.json').read_text())['project'], 'knowledge/project')
+            report = json.loads(result.stdout)
+            self.assertEqual(report['knowledge']['status'], 'SCAFFOLDED')
+            self.assertEqual(report['knowledge']['ingestion'], 'EMPTY')
+            (root/'knowledge/project/purpose.md').write_text('KEEP\n')
+            again = invoke('prepare', '--target', root, '--project-id', 'demo', '--agent', 'current', '--yes', '--allow', 'write')
+            self.assertEqual(again.returncode, 0, again.stdout + again.stderr)
+            self.assertEqual((root/'knowledge/project/purpose.md').read_text(), 'KEEP\n')
 
     def test_prepare_preserves_human_rules_and_source(self):
         with tempfile.TemporaryDirectory() as d:

@@ -2,6 +2,7 @@
 
 ## Unreleased — Agent 主导工程初始化
 
+- 工程初始化建立空知识库壳 `knowledge/project/` 和 alias `project`。工程页面按设计、规格、计划、问题、模块、验证和约束分类。内容仍需确认后摄入；lint 会标出没有知识页的 raw。
 - 关系地图只在缺少地图或模块结构、模块间关系变化时更新。模块内部修改保持 CURRENT，不要求重新发布。
 - 增加每周 GitHub Release：校验通过且 Unreleased 有内容时递增版本、打 tag 并发布源码说明。
 - 关系地图不再调用或探测特定 Coding Agent CLI。任意能读写文件并执行 Python 的当前会话按 v2 协议建图。
