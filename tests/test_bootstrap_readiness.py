@@ -39,6 +39,10 @@ class ReadinessTests(unittest.TestCase):
             (root / '.framework/local-state/indexes.json').write_text(json.dumps({'i': {'status': 'READY', 'verified': True, 'source_digest': digest(sources)}}))
             report = json.loads(invoke('doctor', '--target', root).stdout)
             self.assertNotEqual(report['indexes']['i'], 'READY')
+            actions = '\n'.join(report['next_actions'])
+            self.assertIn('No relationship map yet: current agent must run map --target <project> --yes --allow write --allow agent', actions)
+            self.assertNotIn('Source changed', actions)
+            self.assertNotIn('accept-analysis', actions)
 
     def test_missing_installed_framework_blocks_scaffold(self):
         with tempfile.TemporaryDirectory() as d:

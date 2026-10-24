@@ -5,7 +5,7 @@ import uuid
 
 from .config import digest, encoded
 from .handoff import REQUEST, current_sources, require
-from .maps import map_outputs, validate_map
+from .maps import map_outputs, validate_map, map_needs_update
 from .modules import EXCLUDED, EXTENSIONS
 from .storage import apply_files, fingerprint, owned_changes, project_lock, read_json, resume_run, safe_path
 
@@ -165,6 +165,51 @@ def accept_batch(root, session_id, batch_id, result, grants):
             checked_session(root, session_id)
             save_state(root, state)
         return {'status': 'ACCEPTED', 'session_id': session_id, 'batch_id': batch_id}
+
+
+def advance_map(root, catalog, grants, session_id=None, batch_id=None, result=None):
+    """One map step: current, next batch, accept-and-continue, or publish."""
+    sources = current_sources(root, catalog)
+    if not sources:
+        return {'status': 'NOT_APPLICABLE', 'coverage': 'NOT_APPLICABLE', 'runtime': 'NOT_RUN'}
+    if result is None and not batch_id:
+        observed = read_json(root, 'docs/project/relationships.generated.json')
+        need = map_needs_update(root, catalog, observed)
+        if need == 'CURRENT':
+            return {'status': 'CURRENT', 'source_digest': digest(sources), 'runtime': 'NOT_RUN',
+                    'source_drift': observed.get('source_digest') != digest(sources)}
+        if not {'write', 'agent'} <= set(grants or ()):
+            return {'status': 'MAP_STRUCTURAL' if need == 'STRUCTURAL' else 'MAP_STALE',
+                    'required': ['agent', 'write'],
+                    'next_actions': ['map --target <project> --yes --allow write --allow agent']}
+        session = begin_analysis(root, catalog, grants)
+        return next_map_batch(root, session['session_id'], grants)
+    require(grants)
+    if not session_id:
+        raise ValueError('STALE_REQUEST')
+    if batch_id:
+        if not isinstance(result, dict):
+            raise ValueError('INVALID_RESULT')
+        accept_batch(root, session_id, batch_id, result, grants)
+        return next_map_batch(root, session_id, grants)
+    if not isinstance(result, dict):
+        raise ValueError('INVALID_RESULT')
+    published = finalize_analysis(root, session_id, result, grants)
+    published['status'] = 'PUBLISHED'
+    return published
+
+
+def next_map_batch(root, session_id, grants):
+    state, _catalog = checked_session(root, session_id)
+    pending = [batch for batch in state['batches'] if batch['status'] != 'ACCEPTED']
+    if not pending:
+        return {'status': 'READY_TO_PUBLISH', 'session_id': session_id,
+                'accepted_batches': len(state['batches']),
+                'next_actions': ['map --target <project> --session-id ' + session_id + ' --result <aggregate.json> --yes --allow write --allow agent']}
+    batch_id = pending[0]['batch_id']
+    return {'status': 'NEEDS_BATCH', 'session_id': session_id, 'remaining': len(pending),
+            'batch': read_batch(root, session_id, batch_id, grants),
+            'next_actions': ['map --target <project> --session-id ' + session_id + ' --batch-id ' + batch_id + ' --result <batch.json> --yes --allow write --allow agent']}
 
 
 def finalize_analysis(root, session_id, result, grants):

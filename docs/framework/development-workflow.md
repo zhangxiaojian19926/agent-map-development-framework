@@ -31,7 +31,7 @@
 **技能**:已有规格上下文用 `openspec-explore`;新设计用 `superpowers:brainstorming`;排障先用 `superpowers:systematic-debugging`。
 **步骤**:
 1. 完成入口路由、KB 查询,检查目标模块的 Git 根、HEAD 和已有修改。
-2. 已存在 CodeGraph 时先查图定位再核对源码;没有索引默认 rg。仅当本次明确授权 index 时由适配器 init 或 sync。CLI 不在 PATH 上时，另有 index-install 才把锁定版本装进项目内 `.framework/tools/codegraph`；不全局安装，不调用 `codegraph install`。新文件先更新受管放行列表再 sync。索引新鲜不等于关系地图已更新。下载配置不能自行授权。
+2. 已存在 CodeGraph 时先查图定位再核对源码;没有索引默认 rg。仅当本次明确授权 index 时由适配器 init 或 sync。CLI 不在 PATH 上时，另有 index-install 才把锁定版本装进项目内 `.framework/tools/codegraph`；不全局安装，不调用 `codegraph install`。新文件先更新受管放行列表再 sync。索引新鲜不等于关系地图已更新。模块内部修改不发布地图。doctor 显示还没有地图或模块结构已失效，且本次可以改代码时，用 `map` 发布一轮。本次改动了模块职责或模块间关系时同样发布一次，不要等用户再次要求。下载配置不能自行授权。
 3. 明确可观察目标、范围与非目标、兼容性、受影响模块、验证环境、未确认问题。
 4. 给出设计与取舍,确认相关授权;只读探索不得变成生产实现。
 **退出**:设计方向和任务边界明确。需求歧义只阻塞依赖该决定的工作。
@@ -116,6 +116,7 @@ openspec instructions apply --change <change-id> --json
 2. 按批准场景执行 Host、Cross-build、Target 或 Integration 中适用的验证;不适用项注明原因。
 3. 跨模块单测通过不代表集成通过,核实项目协作文档要求的版本组合和端到端结果。
 4. 每个 Req/Scenario 能追踪到 task、模块、Test、环境、结果与证据;缺项如实报告。
+5. 本任务若新增、删除、移动模块，或改变了模块对外职责、模块间关系、整体拆分，交付前用 `map` 发布一次并再跑 doctor。只改模块内部时不发布。地图结构已失效却未发布时，交付写 MAP_STRUCTURAL。
 **退出**:适用场景通过、重要评审问题解决。证据矩阵见下文;设备、部署等门禁见项目约束。
 
 ## 12. INTEGRATE / ARCHIVE / KNOWLEDGE — 交付与收尾

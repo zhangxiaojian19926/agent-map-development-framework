@@ -62,6 +62,38 @@ def validate_map(root, catalog, result):
     return errors
 
 
+def map_needs_update(root, catalog, observed):
+    """CURRENT while module boundaries and cited relationships still hold.
+
+    A source hash change inside a module is not a reason to republish.
+    """
+    if not isinstance(observed, dict) or not observed.get('module_summaries'):
+        return 'MISSING'
+    try:
+        errors = [item for item in validate_map(root, catalog, observed) if item != 'STALE_EVIDENCE']
+    except (TypeError, KeyError, AttributeError, ValueError):
+        return 'STRUCTURAL'
+    modules = catalog.get('modules', {})
+    summary_ids = [item.get('id') for item in observed.get('module_summaries', []) if isinstance(item, dict)]
+    if errors or set(summary_ids) != set(modules):
+        return 'STRUCTURAL'
+    for module in modules.values():
+        if not safe_path(root, module.get('path', '')).exists():
+            return 'STRUCTURAL'
+    for edge in observed.get('relationships', []):
+        evidence = edge.get('evidence') if isinstance(edge, dict) else None
+        if not isinstance(evidence, list) or not evidence:
+            return 'STRUCTURAL'
+        for item in evidence:
+            try:
+                text = safe_path(root, item['path']).read_text()
+            except (OSError, ValueError, TypeError, KeyError):
+                return 'STRUCTURAL'
+            if not isinstance(item.get('anchor'), str) or item['anchor'] not in text:
+                return 'STRUCTURAL'
+    return 'CURRENT'
+
+
 def design_mismatches(config, result):
     actual = {(e['from'], e['to'], e['kind']) for e in result['relationships'] if e['provenance'] == 'STATIC_SUPPORTED'}
     return [e for e in config.get('design_relationships', []) if (e['from'], e['to'], e['kind']) not in actual]

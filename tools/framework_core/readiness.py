@@ -2,7 +2,7 @@
 from .config import digest
 from .storage import read_json, safe_path, fingerprint
 from .modules import source_files, find_candidates
-from .maps import validate_map, design_mismatches
+from .maps import validate_map, design_mismatches, map_needs_update
 
 
 def inspect_project(root):
@@ -22,23 +22,23 @@ def inspect_project(root):
         report['next_actions'] = ['init --target <project>']
         return report
     current_sources = {}
-    stale = False
+    source_drift = False
     for mid, module in catalog.get('modules', {}).items():
         current = source_files(root, module['path'])
         current_sources.update(current)
         if current != module.get('sources', {}) or not safe_path(root, module['path']).exists():
-            stale = True
+            source_drift = True
+    map_shape = map_needs_update(root, catalog, observed) if observed or current_sources else 'NOT_APPLICABLE'
     if observed:
         errors = validate_map(root, catalog, observed)
-        if observed.get('source_digest') != digest(current_sources):
-            stale = True
         mismatch = design_mismatches(config, observed)
         agent_record = read_json(root, '.framework/local-state/agent-status.json', {})
-        executed = agent_record.get('status') == 'ANALYZED' and agent_record.get('source_digest') == digest(current_sources)
+        executed = agent_record.get('status') == 'ANALYZED' and map_shape == 'CURRENT'
         report['agent']['status'] = 'ANALYZED' if executed else 'WAITING_AGENT'
-        report['maps'] = {'status': 'STALE' if stale or errors else ('SPEC_MISMATCH' if mismatch else 'READY'),
-                          'errors': errors, 'design_mismatches': mismatch}
-        report['status'] = 'PARTIAL' if stale or errors or mismatch else 'READY'
+        report['maps'] = {'status': 'STALE' if map_shape == 'STRUCTURAL' else ('SPEC_MISMATCH' if mismatch else 'READY'),
+                          'errors': [item for item in errors if item != 'STALE_EVIDENCE'],
+                          'design_mismatches': mismatch, 'source_drift': source_drift}
+        report['status'] = 'PARTIAL' if map_shape == 'STRUCTURAL' or mismatch else 'READY'
         if not executed:
             report['status'] = 'WAITING_AGENT'
     elif not current_sources:
@@ -49,7 +49,7 @@ def inspect_project(root):
         status = previous.get('status', 'NOT_RUN') if index['sources'] else 'NOT_APPLICABLE'
         if previous.get('source_digest') != digest(index['sources']) and index['sources']:
             status = 'STALE' if previous else 'NOT_RUN'
-        if stale and index['sources']:
+        if source_drift and index['sources']:
             status = 'STALE'
         if status == 'READY' and not safe_path(root, index['root'] + '/.codegraph/codegraph.db').is_file():
             status = 'MISSING_INDEX'
@@ -88,7 +88,7 @@ def inspect_project(root):
     report['onboarding'] = 'PREPARED' if report['scaffold'] == 'READY' else 'BLOCKED'
     report['understanding'] = report['maps']['status']
     if (config.get('onboarding_mode') == 'prepare' and not current_sources
-            and report['scaffold'] == 'READY' and not report['candidates'] and not stale):
+            and report['scaffold'] == 'READY' and not report['candidates'] and not source_drift):
         report['status'] = 'PREPARED'
         report['next_actions'] = ['Review requirements and design with the current agent; business implementation is not approved']
     from .project_docs import completion_checks
@@ -96,7 +96,14 @@ def inspect_project(root):
     if report['initialization'] != 'COMPLETE':
         if report['documentation']['status'] != 'COMPLETE':
             report['next_actions'].append('Current agent: complete evidence-backed project/module dossier and accept-docs')
-        if report['coverage']['status'] not in ('COMPLETE', 'NOT_APPLICABLE'):
-            report['next_actions'].append('Current agent: analyze-request --protocol v2, accept all batches, finalize-analysis')
+        if report['coverage']['status'] == 'MISSING':
+            report['next_actions'].append(
+                'No relationship map yet: current agent must run map --target <project> --yes --allow write --allow agent, '
+                'repeat map --batch-id --result for every batch, then map --result to publish.')
+        elif report['maps']['status'] == 'STALE' or report['coverage']['status'] == 'STALE':
+            report['next_actions'].append(
+                'Module structure changed: current agent must run map --target <project> --yes --allow write --allow agent, '
+                'repeat map --batch-id --result for every batch, then map --result to publish. '
+                'Internal edits do not require a new map. CodeGraph sync does not publish the relationship map.')
         report['next_actions'].append(report['handoff'].get('next_action', 'Inspect saved handoff'))
     return report

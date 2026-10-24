@@ -16,7 +16,7 @@ from .hooks import mark_dirty
 
 def parser():
     p = argparse.ArgumentParser(description='Project-scoped development framework')
-    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'analyze-request', 'accept-analysis', 'analysis-batch', 'accept-batch', 'finalize-analysis', 'accept-docs', 'doctor', 'resume', 'refresh', 'module', 'event'])
+    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'map', 'analyze-request', 'accept-analysis', 'analysis-batch', 'accept-batch', 'finalize-analysis', 'accept-docs', 'doctor', 'resume', 'refresh', 'module', 'event'])
     p.add_argument('operation', nargs='?', choices=['clone', 'add', 'sync'])
     p.add_argument('--target', required=True)
     p.add_argument('--config')
@@ -92,6 +92,18 @@ def main(argv=None):
             save_intake(plan, text, grants)
             report = execute_intake(plan, grants, auth={'ssh_agent': args.ssh_agent} if args.ssh_agent else None)
             return output(report, 0 if report['status'] == 'PREPARED' else 5)
+        if args.action == 'map':
+            from .analysis_batches import advance_map
+            if args.dry_run:
+                return output({'action': 'map', 'required_capabilities': ['write', 'agent'], 'target': str(root)})
+            result = None
+            if args.result:
+                if Path(args.result).is_symlink() or Path(args.result).stat().st_size > 1024 * 1024:
+                    raise ValueError('INVALID_RESULT_FILE')
+                result = json.loads(Path(args.result).read_text())
+            report = advance_map(root, read_json(root, 'module-catalog.generated.json', {}), set(args.allow),
+                                  args.session_id, args.batch_id, result)
+            return output(report, 5 if report['status'] in ('MAP_STALE', 'MAP_STRUCTURAL') else 0)
         if args.action in ('analysis-batch', 'accept-batch', 'finalize-analysis') or (args.action == 'analyze-request' and args.protocol == 'v2'):
             from .analysis_batches import begin_analysis, read_batch, accept_batch, finalize_analysis
             grants = set(args.allow)

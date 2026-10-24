@@ -166,3 +166,35 @@ class BatchTests(unittest.TestCase):
         resumed = read_json(self.root, '.framework/local-state/runs/analysis-final-'+sid+'.json')
         self.assertEqual(resumed['status'], 'COMPLETE')
         self.assertTrue((self.root/'docs/project/relationships.generated.json').exists())
+
+    def test_map_command_walks_batches_then_stays_current(self):
+        root = self.root / 'small'
+        root.mkdir()
+        (root / 'api').mkdir()
+        (root / 'api' / 'code.py').write_text('def api(): return 1\n')
+        catalog = catalog_update({}, [{'id': 'api', 'path': 'api'}], discover(root, ['api']))
+        atomic(root, 'module-catalog.generated.json', encoded(catalog))
+        self.assertEqual(self.api.advance_map(root, catalog, set())['status'], 'MAP_STALE')
+        self.assertFalse((root / 'docs/project/relationships.generated.json').exists())
+        step = self.api.advance_map(root, catalog, self.grants)
+        sid = step['session_id']
+        while step['status'] == 'NEEDS_BATCH':
+            step = self.api.advance_map(root, catalog, self.grants, sid, step['batch']['batch_id'], self.batch_result(step['batch']))
+        self.assertEqual(step['status'], 'READY_TO_PUBLISH')
+        evidence = [{'path': 'api/code.py', 'sha256': catalog['modules']['api']['sources']['api/code.py'], 'anchor': 'def api()'}]
+        published = self.api.advance_map(root, catalog, self.grants, sid, None, {
+            'module_summaries': [{'id': 'api', 'summary': 'Exports api'}],
+            'relationships': [{'id': 'api-boundary', 'from': 'api', 'to': 'api', 'kind': 'contains',
+                               'interface': 'api entry', 'provenance': 'STATIC_SUPPORTED',
+                               'runtime_validation': 'NOT_RUN', 'evidence': evidence}],
+            'uncertainties': []})
+        self.assertEqual(published['status'], 'PUBLISHED')
+        self.assertEqual(self.api.advance_map(root, catalog, set())['status'], 'CURRENT')
+        (root / 'api' / 'code.py').write_text('def api(): return 2\n')
+        drifted = catalog_update(catalog, [{'id': 'api', 'path': 'api'}], discover(root, ['api']))
+        atomic(root, 'module-catalog.generated.json', encoded(drifted))
+        self.assertEqual(self.api.advance_map(root, drifted, set())['status'], 'CURRENT')
+        (root / 'api' / 'code.py').write_text('value = 2\n')
+        broken = catalog_update(drifted, [{'id': 'api', 'path': 'api'}], discover(root, ['api']))
+        atomic(root, 'module-catalog.generated.json', encoded(broken))
+        self.assertEqual(self.api.advance_map(root, broken, set())['status'], 'MAP_STRUCTURAL')

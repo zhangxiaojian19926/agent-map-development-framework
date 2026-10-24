@@ -258,7 +258,6 @@ def publish_project_docs(root, catalog, dossier, grants, approvals=None):
 
 def completion_checks(root, config, catalog, sources, report):
     """Additive read-only gates; never infer permission from persisted decisions."""
-    from .analysis_batches import framework_digest
     record = read_json(root, STATE, {})
     dossier = record.get('dossier', {})
     documentation = {'status': 'MISSING', 'errors': ['INCOMPLETE_DOCUMENTATION']}
@@ -269,12 +268,19 @@ def completion_checks(root, config, catalog, sources, report):
                    or record.get('versions') != repository_versions(root, catalog)
                    or any(fingerprint(safe_path(root, p)) != sha for p, sha in record.get('files', {}).items()))
         documentation = {'status': 'STALE' if changed or errors else record['status'], 'errors': errors}
+    from .maps import map_needs_update
     coverage = read_json(root, '.framework/local-state/analysis-coverage.json', {'status': 'MISSING'})
+    observed = read_json(root, 'docs/project/relationships.generated.json')
     if not sources:
         coverage = {'status': 'NOT_APPLICABLE'}
-    elif (coverage.get('source_digest') != digest(sources) or coverage.get('catalog_digest') != digest(catalog)
-          or coverage.get('framework_digest') != framework_digest(root)):
-        coverage = dict(coverage, status='STALE' if coverage.get('session_id') else 'MISSING')
+    else:
+        need = map_needs_update(root, catalog, observed)
+        if need == 'CURRENT' and coverage.get('status') == 'COMPLETE':
+            coverage = dict(coverage, status='COMPLETE', source_drift=coverage.get('source_digest') != digest(sources))
+        elif need == 'STRUCTURAL':
+            coverage = dict(coverage, status='STALE' if coverage.get('session_id') else 'MISSING')
+        elif need == 'MISSING':
+            coverage = {'status': 'MISSING'}
     handoff = read_json(root, '.framework/local-state/handoff.json')
     if not handoff:
         handoff = build_handoff(config, catalog, dossier, {})

@@ -8,7 +8,7 @@
 
 首次接入先读 [onboarding](docs/onboarding.md)。本分发仓库只含模板；未建立真实 docs/project 时不要把模板当事实。无 KB 时报告 NOT_CONFIGURED 后继续允许的只读研究，不自动建库。以下模板链接在接入工程时改为实例 docs/project 路径。
 
-工程接入使用 project-bootstrap 技能与 [一键接入](docs/bootstrap.md)。任务入口/收尾运行目标工程的只读 doctor；发现过期后，仅在当次明确授权范围内 refresh。安装配置不是授权；不在 hooks 调用模型。
+工程接入使用 project-bootstrap 技能与 [一键接入](docs/bootstrap.md)。任务入口和收尾运行目标工程的只读 doctor。关系地图只在还没有地图，或模块新增、删除、移动、对外职责改变、模块间关系改变、整体拆分改变时用 `map` 发布一次。模块内部修改不更新地图，也不要为此询问用户。只读任务不写地图。CodeGraph sync 不发布地图。安装配置不是授权；不在 hooks 调用模型。
 
 1. 读 [项目概览](templates/project/overview.md)、[资源登记](templates/project/resources.md) 和 [项目约束](templates/project/constraints.md),确定项目身份、目标模块和任务边界。
 2. 按 [公共知识规则](docs/framework/knowledge-policy.md) 和资源登记的实际命令做 KB-first。任务开始及 SPEC/APPLY/VERIFY 阶段入口查询;阶段内复用,范围、来源或假设变化时刷新。

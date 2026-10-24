@@ -219,7 +219,7 @@ def execute_intake(plan, grants, runner=None, auth=None):
         report = inspect_project(root)
         report['status'] = 'PREPARED' if report['onboarding'] == 'PREPARED' else report['status']
         has_sources = any(m.get('sources') for m in read_json(root, 'module-catalog.generated.json')['modules'].values())
-        report['next_action'] = ('refresh --index with write, index, and index-install; then analyze-request --protocol v2'
+        report['next_action'] = ('refresh --index with write, index, and index-install; then map until published'
                                  if has_sources else 'requirements-design-review')
         if acquired:
             report['acquisition'] = {mid: {k: s.get(k) for k in ('name', 'path', 'state', 'resolved_commit')} for mid, s in acquired['modules'].items()}

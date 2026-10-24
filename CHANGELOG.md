@@ -2,6 +2,7 @@
 
 ## Unreleased — Agent 主导工程初始化
 
+- 关系地图只在缺少地图或模块结构、模块间关系变化时更新。模块内部修改保持 CURRENT，不要求重新发布。
 - 增加每周 GitHub Release：校验通过且 Unreleased 有内容时递增版本、打 tag 并发布源码说明。
 - 关系地图不再调用或探测特定 Coding Agent CLI。任意能读写文件并执行 Python 的当前会话按 v2 协议建图。
 - CodeGraph 接受主版本 1。CLI 缺失且当次授予 `index-install` 时，把锁定版本装进目标项目 `.framework/tools/codegraph`；不全局安装，不修改 Agent 配置。已有代码 `init`，已有索引用 `sync`；受管放行列表随源码变化更新。索引 READY 不代替关系地图。
