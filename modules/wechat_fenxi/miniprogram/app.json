@@ -1,0 +1,17 @@
+{
+  "pages": [
+    "pages/onboard/onboard",
+    "pages/import/import",
+    "pages/privacy/privacy",
+    "pages/job/job",
+    "pages/result/result"
+  ],
+  "window": {
+    "navigationBarTitleText": "聊天要点摘要",
+    "navigationBarBackgroundColor": "#1c1915",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f6f4ef"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

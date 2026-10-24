@@ -12,6 +12,12 @@ from urllib.parse import unquote
 
 MANIFEST = "framework-manifest.json"
 SKIP = {".git", "__pycache__", ".DS_Store", ".superpowers"}
+# A checkout of this distribution may also host a project. Those paths follow
+# the project layout (modules/, docs/project/, framework-project.json) and are
+# not release files. Inventory skips them so product edits do not rewrite the
+# distribution fingerprint.
+PROJECT_SKIP_DIRS = {"modules", ".agent-framework", ".framework", "node_modules"}
+PROJECT_ROOT_FILES = {"framework-project.json", "module-catalog.generated.json"}
 ROOT_FILES = {"AGENTS.md", "BOOTSTRAP.md", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md",
               "CHANGELOG.md", ".gitignore", MANIFEST}
 ROOT_DIRS = {"docs", "skill", "templates", "tests", "tools", ".github", "openspec"}
@@ -21,7 +27,7 @@ def inventory(root):
     for directory, dirs, names in os.walk(root, followlinks=False):
         for name in list(dirs):
             path = Path(directory) / name
-            if name in SKIP:
+            if name in SKIP or name in PROJECT_SKIP_DIRS:
                 dirs.remove(name)
             elif path.is_symlink():
                 raise ValueError("Symlink directory: " + str(path.relative_to(root)))
@@ -29,6 +35,8 @@ def inventory(root):
             path = Path(directory) / name
             rel = path.relative_to(root).as_posix()
             if name in SKIP or name.endswith(".pyc") or rel == MANIFEST:
+                continue
+            if rel in PROJECT_ROOT_FILES or rel.startswith("docs/project/"):
                 continue
             if path.is_symlink():
                 raise ValueError("Symlink file: " + rel)

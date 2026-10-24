@@ -36,6 +36,20 @@ class DistributionTests(unittest.TestCase):
             self.assertTrue(any('fingerprint' in e for e in errors))
             self.assertTrue(any('unexpected' in e for e in errors))
 
+    def test_project_instance_is_outside_distribution_inventory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'README.md').write_text('hello')
+            module = root / 'modules' / 'app'
+            module.mkdir(parents=True)
+            (module / 'main.js').write_text('console.log(1)\n')
+            project = root / 'docs' / 'project'
+            project.mkdir(parents=True)
+            (project / 'overview.md').write_text('# x\n')
+            (root / 'framework-project.json').write_text('{}\n')
+            (root / 'module-catalog.generated.json').write_text('{}\n')
+            self.assertEqual(list(self.checker.inventory(root)), ['README.md'])
+
     def test_symlinks_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

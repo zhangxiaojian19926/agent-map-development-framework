@@ -1,0 +1,26 @@
+<view class="wrap">
+  <view class="h1">隐私说明</view>
+  <view class="muted">版本 {{version}}。提交前必须勾选同意。</view>
+
+  <view class="card">
+    <view class="h2">我们收到的是什么</view>
+    <view>只处理你主动粘贴，或从会话里选出的 txt / json / md。我们不会读取微信聊天，也不会自动同步会话。</view>
+  </view>
+
+  <view class="card">
+    <view class="h2">用来做什么</view>
+    <view>上传到我们的服务器，整理成消息后生成四块摘要：要点、待办、决策、开放问题。生成前会先做内容安全检查。</view>
+  </view>
+
+  <view class="card">
+    <view class="h2">保存多久</view>
+    <view>原文和摘要默认保留 24 小时，到期删除。你可以在结果页删除这一次分析，或删除我的全部数据。</view>
+  </view>
+
+  <view class="card">
+    <view class="h2">我们不做的事</view>
+    <view>不解密微信数据库，不提供电脑端解密工具，不把合并转发气泡拆成结构化消息，不用订阅消息当作唯一的完成通知。</view>
+  </view>
+
+  <button class="btn" bindtap="back">返回</button>
+</view>

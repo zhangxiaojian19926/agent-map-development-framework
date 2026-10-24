@@ -1,0 +1,40 @@
+<view class="wrap">
+  <view class="h1">把已经整理好的聊天文本，做成要点摘要</view>
+  <view class="muted">这个小程序不会读取微信里的聊天，也不会自动同步任何会话。需要你自己把文字交过来。</view>
+
+  <view class="card">
+    <view class="h2">方式一 · 复制后粘贴</view>
+    <view class="steps">
+      <view class="item">1. 打开原来的会话，长按并复制你要整理的文字。</view>
+      <view class="item">2. 回到导入页，贴进输入框。普通提交不超过 64KB。</view>
+      <view class="item">3. 更长的文字会改走存储直传，不会塞进一条普通提交请求。</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">方式二 · 先发到文件传输助手，再选文件</view>
+    <view class="steps">
+      <view class="item">1. 把 txt、json 或 md 发到「文件传输助手」，或任意一个聊天。</view>
+      <view class="item">2. 在导入页点「选文件」。只能选会话里已经出现的文件，不能打开手机系统文件夹。</view>
+      <view class="item">3. 单个文件不超过 10MB。支持 UTF-8 和 GBK。</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2 warn">合并转发不能点选解析</view>
+    <view>合并转发的聊天气泡不是文件。这里不能把它拆成一条条结构化消息。请点进气泡后自己复制文字，或先另存成 txt / json / md。</view>
+  </view>
+
+  <view class="card">
+    <view class="h2">关于别的导出软件</view>
+    <view class="muted">本小程序不提供、不下载任何电脑端微信解密或导出程序。如果你自己整理出了 txt、json 或 md，可以按方式二放进文件传输助手再选择。使用其他软件的风险由你自己承担。</view>
+  </view>
+
+  <view class="card">
+    <view class="muted">群聊和他人发言：提交前请确认你有权把这些内容交给我们做摘要。文本默认在服务器保留 24 小时，你可以随时删除。完成情况在任务页自动刷新，不依赖订阅消息。</view>
+  </view>
+
+  <button class="btn" bindtap="goImport">我知道了，去导入</button>
+  <view style="height: 16rpx"></view>
+  <button class="btn-ghost" bindtap="goPrivacy">阅读隐私说明</button>
+</view>

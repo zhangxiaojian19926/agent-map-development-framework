@@ -1,0 +1,21 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "wechat-fenxi-scheme-a",
+  "description": "导入已经整理好的聊天文本并生成要点摘要。不会读取微信会话，也不会自动同步。",
+  "appid": "touristappid",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": false,
+    "newFeature": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.5.5",
+  "condition": {},
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  }
+}

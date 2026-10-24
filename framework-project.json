@@ -1,0 +1,16 @@
+{
+  "project_id": "wechat-fenxi",
+  "agent": "current",
+  "index": false,
+  "hooks": false,
+  "openspec": false,
+  "onboarding_mode": "prepare",
+  "discovery_roots": ["modules"],
+  "modules": [
+    {
+      "id": "wechat_fenxi",
+      "path": "modules/wechat_fenxi",
+      "writable": true
+    }
+  ]
+}

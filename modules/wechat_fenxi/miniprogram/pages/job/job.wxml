@@ -1,0 +1,9 @@
+<view class="wrap">
+  <view class="h1">{{statusText}}</view>
+  <view class="muted">页面每隔一会儿自动刷新。这是完成通知的方式，不使用订阅消息。</view>
+  <view class="card">
+    <view class="list-item" wx:for="{{statusLog}}" wx:key="*this">{{item}}</view>
+    <view wx:if="{{error}}" class="warn">{{error.message}}</view>
+  </view>
+  <button wx:if="{{status == 'failed'}}" class="btn" bindtap="back">返回修改</button>
+</view>

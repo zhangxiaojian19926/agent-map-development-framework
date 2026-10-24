@@ -2,6 +2,9 @@
 
 ## Unreleased — Agent 主导工程初始化
 
+- 分发校验忽略项目实例路径 `modules/`、`docs/project/`、`framework-project.json` 和 `module-catalog.generated.json`，以便同一仓库按框架布局继续开发产品，而不把产品文件写入发布指纹。
+- 接入 `modules/wechat_fenxi`：微信小程序与 Node 后端。继续开发从 `docs/project/handoff.md` 进入公共开发流程。分发根不能作为 `init --target`。
+
 - 增加v2有界分片、逐批可恢复接收和全批聚合；覆盖绑定源码/目录/框架，保留旧v1入口。
 - 增加证据化项目/模块dossier、人工正文与受管区块保护、只读模块完整替代入口及开发handoff；doctor新增documentation/coverage/initialization分层状态，新设计待批准和模块变化不会冒充完成。
 - 完整初始化入口由Agent补齐资料再交接；增强真实验收探针，分别核对remote、HEAD、源码hash及资料结构，不相信宿主自述。

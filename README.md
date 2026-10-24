@@ -36,8 +36,9 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 不提供全局 watcher 或全局 Git hook；一键初始化不等于自动完成未批准的产品需求。
 知识脚本是准备/检索/结构检查辅助：PREPARED 或 PLAN_ONLY 不代表语义知识摄入已完成。
 
-不包含任何实际业务工程、个人知识库、设备配置、凭据、历史会话或原项目提交历史。
-本版本验证的是发布结构、脚本行为和受控场景；不声称所有宿主、真实设备或生产环境已通过验收。
+公共分发清单不包含业务工程、个人知识库、设备配置、凭据、历史会话或原项目提交历史。
+本仓库另外放了一个产品模块，位置是框架规定的 `modules/<名称>`，项目事实在 `docs/project/`。这两处以及 `framework-project.json` 不计入分发指纹。见 [项目概览](docs/project/overview.md)、[模块入口](modules/wechat_fenxi/AGENTS.md) 和 [开发交接](docs/project/handoff.md)。
+本版本验证的是发布结构、脚本行为和受控场景；不声称所有宿主、真实设备或生产环境已通过验收。产品模块的 `npm test` 同样不能代替微信开发者工具、真机或提审。
 
 ## 使用与维护
 

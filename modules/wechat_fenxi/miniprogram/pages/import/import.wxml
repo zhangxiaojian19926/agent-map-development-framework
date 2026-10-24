@@ -1,0 +1,41 @@
+<view class="wrap">
+  <view class="muted">{{limitLabel}}</view>
+  <view class="tabs">
+    <view class="tab {{tab == 'paste' ? 'on' : ''}}" data-tab="paste" bindtap="onTab">粘贴</view>
+    <view class="tab {{tab == 'file' ? 'on' : ''}}" data-tab="file" bindtap="onTab">选文件</view>
+  </view>
+
+  <view class="card" wx:if="{{tab == 'paste'}}">
+    <view class="h2">粘贴已复制的文字</view>
+    <textarea class="box" maxlength="{{-1}}" placeholder="在这里粘贴你已经复制好的聊天文字" value="{{text}}" bindinput="onText" />
+    <view class="muted">约 {{byteSize}} 字节</view>
+    <view class="warn" wx:if="{{oversize}}">已超过普通提交上限。提交时会先直传到存储，再创建任务，不会把全文放进普通提交请求。</view>
+  </view>
+
+  <view class="card" wx:else>
+    <view class="h2">从会话中选择文件</view>
+    <view class="muted">请先把 txt、json 或 md 发到「文件传输助手」。这里用会话文件选择，不能当系统文件管理器。</view>
+    <view style="height: 16rpx"></view>
+    <button class="btn-ghost" bindtap="onChooseFile">选择会话里的文件</button>
+    <view wx:if="{{file}}" class="list-item">已选 {{file.name}} · {{file.size}} 字节</view>
+    <view wx:if="{{fileError}}" class="warn">{{fileError}}</view>
+  </view>
+
+  <view class="card">
+    <checkbox-group bindchange="onConsent">
+      <label class="check">
+        <checkbox value="privacy" checked="{{consent}}" />
+        我已阅读并同意隐私说明：文本会上传到服务器，只用于生成摘要，默认保存 24 小时，可随时删除。
+      </label>
+    </checkbox-group>
+    <checkbox-group bindchange="onThird">
+      <label class="check">
+        <checkbox value="third" checked="{{thirdPartyConsent}}" />
+        若包含他人发言，我确认有权提交这些内容。
+      </label>
+    </checkbox-group>
+    <view style="height: 20rpx"></view>
+    <button class="btn" disabled="{{!canSubmit || submitting}}" bindtap="onSubmit">{{submitting ? '提交中' : '开始摘要'}}</button>
+    <view class="muted" wx:if="{{!canSubmit}}">勾选两项同意，并准备好文字或文件之后才能提交。</view>
+  </view>
+</view>

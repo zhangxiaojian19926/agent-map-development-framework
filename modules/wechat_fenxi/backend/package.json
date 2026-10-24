@@ -1,0 +1,13 @@
+{
+  "name": "wechat-fenxi-scheme-a",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Scheme A backend: pasted or uploaded chat text to a polled summary job.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js"
+  }
+}

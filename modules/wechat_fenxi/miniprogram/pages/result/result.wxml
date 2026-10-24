@@ -1,0 +1,37 @@
+<view class="wrap">
+  <view class="h1">{{title}}</view>
+  <view class="muted" wx:if="{{participants}}">参与者：{{participants}}</view>
+
+  <view class="card">
+    <view class="h2">要点</view>
+    <view wx:if="{{keyPoints.length == 0}}" class="muted">没有要点</view>
+    <view class="list-item" wx:for="{{keyPoints}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="card">
+    <view class="h2">待办</view>
+    <view wx:if="{{actionItems.length == 0}}" class="muted">没有待办</view>
+    <view class="list-item" wx:for="{{actionItems}}" wx:key="what">
+      <view>{{item.who}}：{{item.what}}</view>
+      <view class="pill" wx:if="{{item.due}}">{{item.due}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">决策</view>
+    <view wx:if="{{decisions.length == 0}}" class="muted">没有决策</view>
+    <view class="list-item" wx:for="{{decisions}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="card">
+    <view class="h2">开放问题</view>
+    <view wx:if="{{openQuestions.length == 0}}" class="muted">没有开放问题</view>
+    <view class="list-item" wx:for="{{openQuestions}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <button class="btn" bindtap="copySummary">复制摘要</button>
+  <view style="height: 16rpx"></view>
+  <button class="btn-ghost" bindtap="removeThis">删除这一次分析</button>
+  <view style="height: 16rpx"></view>
+  <button class="btn-danger" bindtap="removeAll">删除我的数据</button>
+</view>
