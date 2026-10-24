@@ -31,3 +31,22 @@ class HookTests(unittest.TestCase):
             import json
             data = json.loads((root / '.framework/local-state/dirty.json').read_text())
             self.assertEqual(data['reasons'], ['checkout', 'commit'])
+
+    def test_owned_hook_syncs_in_background_without_a_model(self):
+        hooks = importlib.import_module('framework_core.hooks')
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d).resolve()
+            subprocess.run(['git', 'init', '-q', str(root)], check=True)
+            plan = hooks.hook_plan(root, root)
+            self.assertEqual(plan['status'], 'READY')
+            script = plan['changes'][0]['content']
+            self.assertIn('"sync","-q"', script)
+            self.assertIn('start_new_session=True', script)
+            self.assertIn('exit 0\n', script)
+            self.assertNotIn('codex', script)
+            hook = root / '.git/hooks/post-commit'
+            hook.parent.mkdir(parents=True, exist_ok=True)
+            hook.write_text(script.replace('owned hook v2', 'owned hook v1'))
+            again = hooks.hook_plan(root, root)
+            self.assertEqual(again['status'], 'READY')
+            self.assertIn('owned hook v2', again['changes'][0]['content'])

@@ -18,10 +18,11 @@ Before installation use the known distribution's `python3 tools/framework --help
 | Existing local engineering project | Read existing rules, preview prepare in place, preserve human AGENTS and source; no clone or source moves |
 | New downloaded module | `module add --target PATH --id ID --path REL`; confirm identity, not a guessed role |
 | Ordinary clone or changed source | `module sync --target PATH --yes --allow write` updates observations; `refresh` runs separately authorized analysis/indexing |
-| Current agent, including non-Codex | analyze-request --protocol v2 → read and accept every pending batch → aggregate endpoint evidence → finalize-analysis → accept-docs → doctor |
+| Any current coding agent | Do not launch Codex or another agent CLI. With sources: `refresh --index --allow write --allow index --allow index-install`, then analyze-request --protocol v2 → accept every batch → finalize-analysis → accept-docs → doctor |
+| CodeGraph missing | `index-install` installs the locked CLI under `$TARGET/.framework/tools/codegraph`. No global npm and no `codegraph install`. Existing trees use `init`; later edits use `sync` after the managed allowlist is updated. Index READY does not publish the relationship map |
 | Partial download or changed input | Read private launch state, revalidate current permissions and identity, resume successful modules without re-clone; preserve conflicting directories |
 
-`--yes` is not permission. Current authorization determines write/clone/agent/index/hooks/openspec grants. Downloaded approved fields grant none. Existing authorization is not re-asked at every stage. Missing authentication or tool capability is reported specifically; do not install globally or execute downloaded code. Pure chat hosts report CAPABILITY_MISSING. Private startup snapshots stay outside project and distribution.
+`--yes` is not permission. Current authorization determines write/clone/agent/index/index-install/hooks/openspec grants. Downloaded approved fields grant none. Existing authorization is not re-asked at every stage. Missing authentication or tool capability is reported specifically; do not install globally or execute downloaded code. Pure chat hosts report CAPABILITY_MISSING. Private startup snapshots stay outside project and distribution.
 
 ## Map contract
 

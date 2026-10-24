@@ -2,8 +2,7 @@
 from .config import encoded, digest
 from .storage import apply_files, owned_changes, read_json, safe_path
 from .modules import discover, catalog_update, find_candidates
-from .adapters import ensure_index, analyze
-from .maps import validate_map, map_outputs
+from .adapters import ensure_index
 from .hooks import hook_plan
 from .readiness import inspect_project
 
@@ -31,7 +30,7 @@ def refresh(root, config, grants):
     if config.get('index'):
         for iid, index in catalog['indexes'].items():
             cached = previous.get(iid, {})
-            if cached.get('adapter_revision') == 'scope-v3' and cached.get('verified') and cached.get('source_digest') == digest(index['sources']) and safe_path(root, index['root'] + '/.codegraph/codegraph.db').exists():
+            if cached.get('adapter_revision') == 'scope-v4' and cached.get('verified') and cached.get('source_digest') == digest(index['sources']) and safe_path(root, index['root'] + '/.codegraph/codegraph.db').exists():
                 continue
             previous[iid] = ensure_index(root, index, grants)
         save(root, {'.framework/local-state/indexes.json': encoded(previous)}, 'indexes')
@@ -48,19 +47,4 @@ def refresh(root, config, grants):
                     hook_paths.append(change['path'])
         state = 'HOOK_CONFLICT' if 'HOOK_CONFLICT' in states else ('READY' if states else 'NOT_APPLICABLE')
         save(root, {'.framework/local-state/hooks.json': encoded({'status': state, 'repos': states, 'paths': hook_paths})}, 'hook-report')
-    if config['agent'] == 'codex':
-        sources = {p: sha for m in catalog['modules'].values() for p, sha in m['sources'].items()}
-        existing = read_json(root, 'docs/project/relationships.generated.json')
-        agent_record = read_json(root, '.framework/local-state/agent-status.json', {})
-        if not existing or existing.get('source_digest') != digest(sources) or validate_map(root, catalog, existing) or agent_record.get('source_digest') != digest(sources) or agent_record.get('analysis_revision') != 'map-v2':
-            response = analyze(root, catalog, grants)
-            if response['status'] == 'ANALYZED':
-                errors = validate_map(root, catalog, response['result'])
-                if errors:
-                    save(root, {'.framework/local-state/agent-status.json': encoded({'status': 'INVALID_EVIDENCE', 'errors': errors})}, 'agent-status')
-                else:
-                    save(root, map_outputs(root, catalog, response['result']), 'maps')
-                    save(root, {'.framework/local-state/agent-status.json': encoded({'status': 'ANALYZED', 'version': response['version'], 'source_digest': digest(sources), 'analysis_revision': response['analysis_revision']})}, 'agent-status')
-            else:
-                save(root, {'.framework/local-state/agent-status.json': encoded(response)}, 'agent-status')
     return inspect_project(root)

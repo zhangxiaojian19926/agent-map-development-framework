@@ -62,5 +62,8 @@ class BoundaryTests(unittest.TestCase):
             config = root / 'download.json'
             config.write_text(json.dumps({'project_id': 'demo', 'agent': 'codex', 'authorized': True}))
             result = invoke('init', '--target', root / 'target', '--config', config, '--yes', '--allow', 'write')
-            self.assertEqual(result.returncode, 3)
-            self.assertFalse((root / 'target').exists())
+            self.assertEqual(result.returncode, 5, result.stdout)
+            report = json.loads(result.stdout)
+            self.assertNotEqual(report['agent']['status'], 'ANALYZED')
+            self.assertNotIn('codex', result.stdout)
+            self.assertTrue(all(status != 'READY' for status in report['indexes'].values()))

@@ -67,7 +67,10 @@ def inspect_project(root):
         if report['status'] == 'READY':
             report['status'] = 'PARTIAL'
     if report['status'] != 'READY':
-        report['next_actions'] = ['refresh --target <project> --yes --allow write [--allow agent] [--allow index] [--allow hooks]']
+        report['next_actions'] = []
+        if any(status not in ('READY', 'NOT_APPLICABLE') for status in report['indexes'].values()):
+            report['next_actions'].append(
+                'refresh --target <project> --index --yes --allow write --allow index --allow index-install')
     registered = {m['path'] for m in config.get('modules', [])}
     registered.update(r['root'] for r in catalog.get('repos', {}).values())
     report['candidates'] = [c for c in find_candidates(root, config.get('discovery_roots', [])) if c['path'] not in registered]
@@ -88,8 +91,6 @@ def inspect_project(root):
             and report['scaffold'] == 'READY' and not report['candidates'] and not stale):
         report['status'] = 'PREPARED'
         report['next_actions'] = ['Review requirements and design with the current agent; business implementation is not approved']
-    elif config.get('agent') == 'current' and report['maps']['status'] != 'READY':
-        report['next_actions'].append('Current agent: analyze-request, inspect the bounded source packet, then accept-analysis')
     from .project_docs import completion_checks
     report.update(completion_checks(root, config, catalog, current_sources, report))
     if report['initialization'] != 'COMPLETE':

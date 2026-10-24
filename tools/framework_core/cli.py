@@ -21,7 +21,7 @@ def parser():
     p.add_argument('--target', required=True)
     p.add_argument('--config')
     p.add_argument('--project-id')
-    p.add_argument('--agent', choices=['manual', 'codex', 'current'])
+    p.add_argument('--agent', help='Host label recorded in project config; not a CLI selector')
     p.add_argument('--allow', action='append', choices=sorted(CAPABILITIES), default=[])
     p.add_argument('--yes', action='store_true')
     p.add_argument('--dry-run', action='store_true')
@@ -149,7 +149,7 @@ def main(argv=None):
                 config['modules'] = [{'id': 'root', 'path': '.'}]
         if args.action in ('init', 'new') and not args.yes and not args.dry_run and sys.stdin.isatty():
             config.setdefault('project_id', input('Project id: ').strip())
-            config.setdefault('agent', input('Agent [manual/codex]: ').strip())
+            config.setdefault('agent', input('Host label [current]: ').strip() or 'current')
         plan = build_plan(root, config, args.action)
         if args.action == 'module':
             if args.operation not in ('add', 'clone', 'sync'):

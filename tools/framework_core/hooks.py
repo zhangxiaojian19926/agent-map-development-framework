@@ -28,14 +28,30 @@ def hook_plan(repo, project, runner=run):
     for event in ('post-commit', 'post-merge', 'post-checkout'):
         # Native Git CWD is the current repository. Never embed an arbitrary module command.
         target = shlex.quote(str(project))
-        script = ('#!/bin/sh\n# agent-map-framework owned hook v1\n'
+        state = shlex.quote(str(project / '.framework/local-state/indexes.json'))
+        local_bin = shlex.quote(str(project / '.framework/tools/codegraph/node_modules/.bin/codegraph'))
+        launch = shlex.quote(
+            'import os,subprocess,sys\n'
+            'subprocess.Popen([sys.argv[1],"sync","-q",sys.argv[2]],start_new_session=True,'
+            'stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,'
+            'env=dict(os.environ,CODEGRAPH_NO_DOWNLOAD="1",CODEGRAPH_TELEMETRY="0",DO_NOT_TRACK="1"))\n')
+        script = ('#!/bin/sh\n# agent-map-framework owned hook v2\n'
                   'python3 ' + shlex.quote(str(project / '.agent-framework/tools/framework')) +
                   ' event --target ' + target + ' --reason ' + event +
-                  ' >/dev/null 2>&1 || printf "%s\\n" "Framework dirty marker failed; run doctor" >&2\nexit 0\n')
+                  ' >/dev/null 2>&1 || printf "%s\\n" "Framework dirty marker failed; run doctor" >&2\n'
+                  'if [ -f ' + state + ' ] && grep -q \'"status": "READY"\' ' + state + '; then\n'
+                  '  BIN=' + local_bin + '\n'
+                  '  [ -x "$BIN" ] || BIN=$(command -v codegraph || true)\n'
+                  '  if [ -n "$BIN" ]; then\n'
+                  '    python3 -c ' + launch + ' "$BIN" ' + target + '\n'
+                  '  fi\n'
+                  'fi\nexit 0\n')
         path = hooks / event
         safe_path(project, path.relative_to(project))
         if path.exists() and path.read_text() != script:
-            return {'status': 'HOOK_CONFLICT', 'reason': event, 'changes': []}
+            current = path.read_text()
+            if not current.startswith('#!/bin/sh\n# agent-map-framework owned hook'):
+                return {'status': 'HOOK_CONFLICT', 'reason': event, 'changes': []}
         changes.append({'path': path.relative_to(project).as_posix(), 'content': script})
     return {'status': 'READY', 'changes': changes}
 

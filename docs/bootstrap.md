@@ -4,9 +4,9 @@
 
 提供[启动单](../templates/PROJECT-START.md)和[BOOTSTRAP入口](../BOOTSTRAP.md)，让当前 Coding Agent 执行。已有工程用任意数量“模块名称 = URL”；新工程只填需求，不必先建仓库或分支。Agent 下载到命名目录、保存私有启动状态、准备框架并提交模块分析结果。具体契约见[输入说明](project-intake.md)。
 
-以下为维护者/Agent 的旧 CLI 高级接口参考，不是普通用户需要完成的步骤。旧 new 保持审批语义；自然语言新工程入口改走 prepare，再确认业务设计。当前会话分析使用 analyze-request/accept-analysis，外部 Codex 仅为可选适配。
+以下为维护者/Agent 的旧 CLI 高级接口参考，不是普通用户需要完成的步骤。旧 new 保持审批语义；自然语言新工程入口改走 prepare，再确认业务设计。关系地图由当前会话的 v2 分析协议完成，不绑定某一种 Coding Agent CLI。
 
-Python 3.9+，macOS/Linux。命令不安装依赖、不初始化 Git、不创建远程仓库。CodeGraph 适配版本 1.6.0，Codex CLI 0.151.0，OpenSpec CLI 1.11.0；缺失或未适配版本明确报告，不自行修复全局工具。
+Python 3.9+，macOS/Linux。命令不初始化 Git、不创建远程仓库。CodeGraph 接受主版本 1；缺失时仅在 `index-install` 授权下把锁定版本装进目标项目的 `.framework/tools/codegraph`。不执行全局 npm，不调用 `codegraph install`。OpenSpec CLI 仍是独立授权。没有 Node 时报告 NODE_MISSING。
 
 ## 高级接口：已有工程
 
@@ -16,14 +16,14 @@ Python 3.9+，macOS/Linux。命令不安装依赖、不初始化 Git、不创建
 python3 tools/framework init --target /path/to/project
 ```
 
-交互填写稳定项目 ID 和 Agent（codex/manual），一次查看并确认动作范围。Git 边界在默认发现根 `.`、深度 4 内成为候选，确认后登记；无 Git 的 ZIP 目录用下面的 module add，或配置显式声明。已有人工 AGENTS 报冲突，不覆盖，需先人工合并入口。
+交互填写稳定项目 ID 和宿主标签（只记录名称，不选择 CLI），一次查看并确认动作范围。Git 边界在默认发现根 `.`、深度 4 内成为候选，确认后登记；无 Git 的 ZIP 目录用下面的 module add，或配置显式声明。已有人工 AGENTS 报冲突，不覆盖，需先人工合并入口。
 
 可复现非交互接入建议先准备 config.json：
 
 ```json
 {
   "project_id": "my-project",
-  "agent": "codex",
+  "agent": "current",
   "index": true,
   "hooks": false,
   "openspec": true,
@@ -94,9 +94,9 @@ resume 重验已写文件，人工改动则停；外部步骤用带当次权限�
 
 ## 工具适配审计
 
-CodeGraph 1.6.0 的 init 在 watcher 禁用且 `--yes` 时可能安装 hooks。适配器使用经源码确认的 CODEGRAPH_FORCE_WATCH=1、CODEGRAPH_NO_WATCH=0，省略 --yes；初始化索引不启动持久 watcher。禁用 telemetry 和隐式下载。status 必须完整，query 必须返回批准源码的真实符号节点才记 READY。codegraph.json 使用默认拒绝及精确源码例外，未来新增未批准目录仍被排除；人工配置不一致时报冲突而非覆盖。
+CodeGraph 1.x 的 init 在 watcher 禁用且 `--yes` 时可能安装 hooks。适配器使用 CODEGRAPH_FORCE_WATCH=1、CODEGRAPH_NO_WATCH=0，省略 --yes。已有 `.codegraph` 时走 `sync`，否则 `init`。`init`/`sync` 保持 CODEGRAPH_NO_DOWNLOAD=1。status 必须完整，query 必须返回批准源码的真实符号节点才记 READY。codegraph.json 使用默认拒绝及精确源码例外；源码变化时先重写受管例外再 sync。人工配置不一致时报冲突而非覆盖。Git hook 只在索引已经 READY 时后台 `sync -q`，立即返回，不调用模型。
 
-Codex 分析关闭工具，开发任务则由用户明确启动 workspace-write 沙箱，二者权限不同。工具版本升级后需重新验收，不默认视为兼容。
+关系地图不由某个厂商 CLI 生成。当前 Coding Agent 读取 v2 批次并提交证据。主版本不是 1 时记 UNSUPPORTED_VERSION，不把全局安装升级当作框架步骤。
 
 ## 可重复真实验收
 

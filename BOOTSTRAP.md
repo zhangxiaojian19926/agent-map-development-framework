@@ -68,7 +68,17 @@ python3 "$FRAMEWORK/tools/framework" accept-docs --target "$TARGET" --result "$L
 
 ## 6. 增强、恢复、交付
 
-CodeGraph、hooks、OpenSpec 是独立的当前授权能力；缺失不假报通过。需要且获准时由 Agent 使用 `refresh --index --allow index` 等旧接口；当前会话建图不需要安装 Codex。hooks 只标过期，不自动调模型。不要运行下载的业务代码、安装依赖、创建远端或 push。
+关系地图由当前 Coding Agent 按第 4 节的 v2 协议写回。框架不探测、不安装、不启动 Codex 或其他特定 Agent CLI。
+
+CodeGraph 是索引，不是地图。有源码且本次授权包含 index 时，Agent 执行：
+
+```bash
+python3 "$FRAMEWORK/tools/framework" refresh --target "$TARGET" --index --yes --allow write --allow index --allow index-install
+```
+
+PATH 上有主版本 1 且具备 `sync` 的 `codegraph` 时直接使用。否则在有 `index-install` 时，把锁定版本装到目标项目的 `.framework/tools/codegraph`，不执行全局 npm，不调用 `codegraph install`，不修改任何 Agent 的配置目录。没有 Node 时报告 NODE_MISSING，框架不安装 Node。已有代码对每个索引根执行 `init`；已有 `.codegraph` 时执行 `sync`。新源码先更新受管 `codegraph.json` 放行列表，再 sync。索引 READY 不发布关系地图，源码变化后地图仍要按 v2 复核。
+
+hooks、OpenSpec 仍是独立的当次授权。hooks 只标过期，并在索引已经 READY 时后台执行 `codegraph sync -q`；不调用模型，不阻断 Git。不要运行下载的业务代码、创建远端或 push。
 
 恢复时读取私有启动区快照与记录并重验权限。目标的 `.framework/local-state/intake.json` 保存私有启动区与原分发位置，便于后续 Agent 找回需求；它不是权限。对同一框架版本使用原分发入口重新调用 intake，可省略 request 和已绑定的 staging，不用用户记 run-id。输入或来源变更会冲突，先核对差异和迁移范围；不得换个启动区强行覆盖已有目录。已完成接入后日常维护用目标工程的 doctor/refresh，不用旧输入覆盖后来事实。
 

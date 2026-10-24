@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import re
 
-CAPABILITIES = {'write', 'agent', 'index', 'hooks', 'clone', 'local-clone', 'openspec', 'auth'}
+CAPABILITIES = {'write', 'agent', 'index', 'index-install', 'hooks', 'clone', 'local-clone', 'openspec', 'auth'}
 
 
 def encoded(value):
@@ -26,8 +26,9 @@ def build_plan(root, config, action):
     if root.resolve() in (Path('/'), Path.home().resolve()):
         raise ValueError('UNSAFE_TARGET')
     identity(config.get('project_id'))
-    if config.get('agent') not in ('manual', 'codex', 'current'):
-        raise ValueError('Specify --agent manual, codex or current')
+    # Host label only. Any coding agent coordinates; this field never selects a CLI.
+    if not isinstance(config.get('agent'), str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,31}', config['agent']):
+        raise ValueError('INVALID_AGENT_LABEL')
     for flag in ('index', 'hooks', 'openspec'):
         if flag in config and not isinstance(config[flag], bool):
             raise ValueError('INVALID_CAPABILITY: ' + flag)
@@ -37,8 +38,6 @@ def build_plan(root, config, action):
         if not isinstance(rel, str) or Path(rel).is_absolute() or '..' in Path(rel).parts:
             raise ValueError('INVALID_DISCOVERY_ROOT')
     capabilities = ['write']
-    if config['agent'] == 'codex':
-        capabilities.append('agent')
     for name in ('index', 'hooks', 'openspec'):
         if config.get(name):
             capabilities.append(name)

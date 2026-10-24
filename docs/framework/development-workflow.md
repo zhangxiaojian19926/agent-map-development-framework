@@ -31,7 +31,7 @@
 **技能**:已有规格上下文用 `openspec-explore`;新设计用 `superpowers:brainstorming`;排障先用 `superpowers:systematic-debugging`。
 **步骤**:
 1. 完成入口路由、KB 查询,检查目标模块的 Git 根、HEAD 和已有修改。
-2. 已存在 CodeGraph 时先查图定位再核对源码;没有索引默认 rg。仅当本次工程接入明确授权 index 时，由受控适配器初始化/同步，不能由下载配置自行授权。
+2. 已存在 CodeGraph 时先查图定位再核对源码;没有索引默认 rg。仅当本次明确授权 index 时由适配器 init 或 sync。CLI 不在 PATH 上时，另有 index-install 才把锁定版本装进项目内 `.framework/tools/codegraph`；不全局安装，不调用 `codegraph install`。新文件先更新受管放行列表再 sync。索引新鲜不等于关系地图已更新。下载配置不能自行授权。
 3. 明确可观察目标、范围与非目标、兼容性、受影响模块、验证环境、未确认问题。
 4. 给出设计与取舍,确认相关授权;只读探索不得变成生产实现。
 **退出**:设计方向和任务边界明确。需求歧义只阻塞依赖该决定的工作。

@@ -71,3 +71,90 @@ class AdapterTests(unittest.TestCase):
             (root / 'future-unapproved').mkdir()
             (root / 'future-unapproved/secret.py').write_text('def private(): pass')
             self.assertEqual(json.loads((root / 'codegraph.json').read_text())['exclude'], ['**', '!/app/', '!/app/a.py'])
+
+    def test_major_version_one_is_accepted_and_two_is_not(self):
+        adapter = importlib.import_module('framework_core.adapters')
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d).resolve()
+            (root / 'a.py').write_text('def alpha(): pass')
+            def runner(argv, *args):
+                text = '1.6.2' if '--version' in argv else '{}'
+                return {'exit_code': 0, 'stdout': text, 'stderr': '', 'timed_out': False}
+            result = adapter.ensure_index(root, {'id': 'i', 'root': '.', 'sources': {'a.py': 'sha'}}, {'index'}, runner)
+            self.assertEqual(result['version'], '1.6.2')
+            self.assertTrue((root / 'codegraph.json').is_file())
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d).resolve()
+            (root / 'a.py').write_text('def alpha(): pass')
+            calls = []
+            def runner(argv, *args):
+                calls.append(argv)
+                return {'exit_code': 0, 'stdout': '2.0.0', 'stderr': '', 'timed_out': False}
+            result = adapter.ensure_index(root, {'id': 'i', 'root': '.', 'sources': {'a.py': 'sha'}}, {'index'}, runner)
+            self.assertEqual(result['status'], 'UNSUPPORTED_VERSION')
+            self.assertFalse(result['verified'])
+            self.assertFalse((root / 'codegraph.json').exists())
+            self.assertFalse(any(argv[0] == 'npm' for argv in calls))
+
+    def test_missing_cli_installs_only_into_the_project(self):
+        adapter = importlib.import_module('framework_core.adapters')
+        spec = adapter.codegraph_lock()
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d).resolve()
+            calls = []
+            def runner(argv, *args):
+                calls.append(list(argv))
+                if argv[0] in ('node', 'npm') and '--version' in argv:
+                    return {'exit_code': 0, 'stdout': '1', 'stderr': '', 'timed_out': False}
+                if argv[0] == 'npm' and 'install' in argv:
+                    self.assertNotIn('-g', argv)
+                    self.assertNotIn('--global', argv)
+                    self.assertIn(spec['package'] + '@' + spec['version'], argv)
+                    prefix = Path(argv[argv.index('--prefix') + 1])
+                    self.assertEqual(prefix, root / '.framework/tools/codegraph')
+                    package = prefix / 'node_modules' / spec['package']
+                    package.mkdir(parents=True)
+                    binary = prefix / 'node_modules/.bin'
+                    binary.mkdir(parents=True)
+                    (binary / 'codegraph').write_text('#!/bin/sh\n')
+                    lock = {'packages': {'node_modules/' + spec['package']: {
+                        'version': spec['version'], 'integrity': spec['integrity']}}}
+                    (prefix / 'package-lock.json').write_text(__import__('json').dumps(lock))
+                    return {'exit_code': 0, 'stdout': '', 'stderr': '', 'timed_out': False}
+                if str(argv[0]).endswith('/codegraph') and '--version' in argv:
+                    return {'exit_code': 0, 'stdout': spec['version'], 'stderr': '', 'timed_out': False}
+                return {'exit_code': 127, 'stdout': '', 'stderr': 'missing', 'timed_out': False}
+            refused = adapter.resolve_codegraph(root, {'index'}, runner)
+            self.assertEqual(refused['status'], 'DEPENDENCY_MISSING')
+            self.assertFalse(any(argv[0] == 'npm' for argv in calls))
+            installed = adapter.resolve_codegraph(root, {'index', 'index-install'}, runner)
+            self.assertEqual(installed['status'], 'READY')
+            self.assertTrue(installed['installed'])
+            self.assertTrue(str(installed['bin']).startswith(str(root)))
+
+    def test_bad_integrity_and_missing_node_do_not_count_as_ready(self):
+        adapter = importlib.import_module('framework_core.adapters')
+        spec = adapter.codegraph_lock()
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d).resolve()
+            def runner(argv, *args):
+                if argv[:2] == ['node', '--version']:
+                    return {'exit_code': 127, 'stdout': '', 'stderr': 'missing', 'timed_out': False}
+                return {'exit_code': 0, 'stdout': '', 'stderr': '', 'timed_out': False}
+            self.assertEqual(adapter.resolve_codegraph(root, {'index-install'}, runner)['status'], 'NODE_MISSING')
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d).resolve()
+            def runner(argv, *args):
+                if argv[0] in ('node', 'npm') and '--version' in argv:
+                    return {'exit_code': 0, 'stdout': '1', 'stderr': '', 'timed_out': False}
+                if argv[0] == 'npm':
+                    prefix = Path(argv[argv.index('--prefix') + 1])
+                    prefix.mkdir(parents=True, exist_ok=True)
+                    (prefix / 'package-lock.json').write_text(__import__('json').dumps(
+                        {'packages': {'node_modules/' + spec['package']: {
+                            'version': spec['version'], 'integrity': 'sha512-nope'}}}))
+                    return {'exit_code': 0, 'stdout': '', 'stderr': '', 'timed_out': False}
+                return {'exit_code': 127, 'stdout': '', 'stderr': '', 'timed_out': False}
+            result = adapter.resolve_codegraph(root, {'index-install'}, runner)
+            self.assertEqual(result['status'], 'INTEGRITY_MISMATCH')
+            self.assertFalse(result.get('installed'))
