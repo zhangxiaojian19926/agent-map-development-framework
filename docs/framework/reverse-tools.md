@@ -1,6 +1,8 @@
 # 逆向工具版本
 
-普通工程初始化不安装、不调用这些工具。只有 `reverse` 授权后的集中安装才读取本页和 `tools/framework_core/rea-tools.lock.json`。没有校验值的条目不会下载。
+普通工程初始化不安装、不调用这些工具。只有明确的逆向请求才读取本页和 `tools/framework_core/rea-tools.lock.json`。
+
+有校验值的必备工具是 `rea-agents` 6.7.0 和 Ghidra 12.1.4。它们缺失且本次授予 `reverse-install` 时才会下载，已安装且校验相符则跳过。其余条目版本已固定，但 lock 里没有校验值，因此不下载，也不把观察状态卡成失败。`doctor` 的 `reverse` 不改变 `initialization=COMPLETE`。
 
 | 工具 | 固定版本 | 系统 |
 |---|---|---|

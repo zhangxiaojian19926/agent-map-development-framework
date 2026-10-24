@@ -15,9 +15,9 @@ description: 在工程壳中按锁定的开源工具清单做一次逆向观察�
 python3 .agent-framework/tools/framework reverse --target "$TARGET" --scope "$SCOPE" --yes --allow write --allow reverse --allow reverse-install
 ```
 
-`--scope` 是 JSON，字段只有 `id`、`target`、`sha256`、`question`、`action`。`action` 只能是 `static`、`run` 或 `network`。没有 `reverse-install` 时，缺失工具只报告，不下载。
+`--scope` 是 JSON，字段只有 `id`、`target`、`sha256`、`question`、`action`。`action` 为 `static` 时调用本地 `rea analyze`。`run` 和 `network` 只被记录为未执行，壳不运行目标，也不打开网络。没有 `reverse-install` 时，缺失的必备工具只报告，不下载。已经装好且校验值相符的工具不会重装。没有校验值的工具记入 skipped，不阻止静态观察。
 
-版本和系统差异见 [逆向工具版本](../../docs/framework/reverse-tools.md)。
+版本见 [逆向工具版本](../../docs/framework/reverse-tools.md)。观察结束后回到 [BOOTSTRAP](../../BOOTSTRAP.md) 第 5 节和 [开发流程](../../docs/framework/development-workflow.md)，不另开一套交付流程。
 
 ## 结果
 

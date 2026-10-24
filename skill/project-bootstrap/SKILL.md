@@ -32,7 +32,7 @@ The generator checks source/catalog/framework bindings before publishing observa
 
 ## Complete documentation, not routing stubs
 
-Generate the dossier yourself using the linked protocol. Project docs describe goal, architecture, interface owners and integration order; module docs contain all local roles, boundaries, inputs/outputs, dependencies, command prerequisites and evidence. A map summary is not a complete module AGENTS. Commands remain NOT_RUN; unknown KBs/resources are explicit NOT_CONFIGURED with a reason. Preserve human text; report managed-block edits and semantic conflicts instead of overwriting. Read-only modules receive complete project-side documentation. Public skills/policy remain public, not copied into each module.
+Generate the dossier yourself using the linked protocol. Project docs describe goal, architecture, interface owners and integration order; module docs contain all local roles, boundaries, inputs/outputs, dependencies, command prerequisites and evidence. A map summary is not a complete module AGENTS. Commands remain NOT_RUN. After initialization the project KB shell is SCAFFOLDED and its ingestion is EMPTY; write NOT_CONFIGURED only when the alias registry is absent. Do not initialize `knowledge/project/` again. Preserve human text; report managed-block edits and semantic conflicts instead of overwriting. Read-only modules receive complete project-side documentation. Public skills/policy remain public, not copied into each module.
 
 ## Handoff
 

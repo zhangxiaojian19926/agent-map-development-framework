@@ -60,9 +60,15 @@ class ReverseTests(unittest.TestCase):
             root = Path(tmp)
             report = self.reverse.prepare_reverse(root, None, {'write', 'reverse', 'reverse-install'}, runner=runner, platform='darwin', present=present)
         self.assertEqual(report['install'], ['rea-agents'])
-        self.assertEqual(report['status'], 'PROVIDER_MISSING')
+        self.assertEqual(report['status'], 'READY')
         self.assertIn('temurin-jdk', report['skipped'])
+        self.assertNotIn('temurin-jdk', report['missing'])
         self.assertTrue(any(argv[0] == 'npm' for argv in calls))
+        calls.clear()
+        again = self.reverse.prepare_reverse(root, None, {'write', 'reverse'}, runner=runner, platform='darwin')
+        self.assertEqual(again['status'], 'DEPENDENCY_MISSING')
+        self.assertIn('ghidra', again['missing'])
+        self.assertEqual(calls, [])
 
     def test_scope_records_summary_without_decompiler_text(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -71,13 +77,29 @@ class ReverseTests(unittest.TestCase):
             target.write_bytes(b'not a program')
             digest = hashlib.sha256(target.read_bytes()).hexdigest()
             present = set(self.reverse.bundle_for('darwin'))
+            calls = []
+            def runner(argv, cwd):
+                calls.append(list(argv))
+                return {'exit_code': 0, 'stdout': 'decompiler dump not a program'}
             scope = {'id': 'sample', 'target': str(target), 'sha256': digest, 'question': 'what does it print', 'action': 'static'}
-            report = self.reverse.prepare_reverse(root, scope, {'write', 'reverse'}, runner=lambda *a: {'exit_code': 0}, platform='darwin', present=present)
+            report = self.reverse.prepare_reverse(root, scope, {'write', 'reverse'}, runner=runner, platform='darwin', present=present)
             self.assertEqual(report['status'], 'READY')
+            self.assertEqual(report['observation']['status'], 'RECORDED')
+            self.assertTrue(any('analyze' in argv for argv in calls))
             text = (root / 'docs/project/reverse/sample.md').read_text()
             self.assertIn(digest, text)
             self.assertNotIn('not a program', text)
+            self.assertNotIn('decompiler dump', text)
+            stored = json.loads((root / '.framework/local-state/rea/sample.json').read_text())
+            self.assertIn('raw_sha256', stored)
+            self.assertNotIn('decompiler dump', json.dumps({k: v for k, v in stored.items() if k != 'raw_sha256'}))
             self.assertEqual(self.reverse.reverse_report(root)['status'], 'READY')
+            calls.clear()
+            scope['action'] = 'run'
+            scope['id'] = 'sample-run'
+            held = self.reverse.prepare_reverse(root, scope, {'write', 'reverse'}, runner=runner, platform='darwin', present=present)
+            self.assertEqual(held['observation']['status'], 'NOT_EXECUTED')
+            self.assertEqual(calls, [])
             target.write_bytes(b'changed')
             self.assertEqual(self.reverse.reverse_report(root)['status'], 'STALE')
 

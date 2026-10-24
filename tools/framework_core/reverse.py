@@ -38,46 +38,73 @@ def default_runner(argv, cwd):
     return run(argv, cwd, 180, {'npm_config_ignore_scripts': 'true'})
 
 
+def is_required(name, lock):
+    if name == 'rea-agents':
+        return str(lock['rea-agents'].get('integrity', '')).startswith('sha512-')
+    return pinned_download(lock['tools'].get(name, {}))
+
+
+def detect_installed(root, names, lock):
+    found = set()
+    lock_path = safe_path(root, '.framework/tools/rea/package-lock.json')
+    if lock_path.is_file():
+        packages = json.loads(lock_path.read_text(encoding='utf-8')).get('packages', {})
+        spec = lock['rea-agents']
+        matches = [value for key, value in packages.items() if key.endswith('node_modules/' + spec['package'])]
+        if (len(matches) == 1 and matches[0].get('version') == spec['version']
+                and matches[0].get('integrity') == spec['integrity']):
+            found.add('rea-agents')
+    for name in names:
+        if name == 'rea-agents':
+            continue
+        spec = lock['tools'].get(name, {})
+        archive = safe_path(root, '.framework/tools/' + name + '/download')
+        if archive.is_file() and spec.get('sha256') and hashlib.sha256(archive.read_bytes()).hexdigest() == spec['sha256']:
+            found.add(name)
+    return found
+
+
 def prepare_reverse(root, scope, grants, runner=None, platform=None, present=None):
-    """Plan or install the host bundle. Downloads only entries with a checksum."""
+    """Install required tools once, then record a static observation.
+
+    Tools without a checksum are reported and do not block the observation.
+    run and network actions are not executed.
+    """
     runner = runner or default_runner
     grants = set(grants or ())
     if 'reverse' not in grants:
         return {'status': 'NOT_CONFIGURED', 'reverse': 'NOT_CONFIGURED', 'install': []}
     if 'write' not in grants:
         raise ValueError('CONSENT_REQUIRED')
-    names = bundle_for(platform)
-    known = set(present or ())
-    missing = [name for name in names if name not in known]
-    report = {'status': 'READY' if not missing else 'DEPENDENCY_MISSING', 'bundle': names,
-              'missing': missing, 'install': [], 'skipped': []}
-    if missing and 'reverse-install' not in grants:
-        return report
     lock = load_lock()
-    for name in missing:
+    names = bundle_for(platform)
+    known = set(present) if present is not None else detect_installed(root, names, lock)
+    required = [name for name in names if is_required(name, lock)]
+    optional = [name for name in names if name not in required]
+    missing_required = [name for name in required if name not in known]
+    report = {'status': 'READY', 'bundle': names, 'missing': missing_required, 'install': [],
+              'skipped': [name for name in optional if name not in known]}
+    if missing_required and 'reverse-install' not in grants:
+        report['status'] = 'DEPENDENCY_MISSING'
+        return report
+    for name in missing_required:
         if name == 'rea-agents':
             installed = install_rea(root, lock['rea-agents'], runner)
         else:
             installed = install_named(root, name, lock['tools'][name], runner)
-        if installed['status'] == 'INTEGRITY_UNPINNED':
-            report['skipped'].append(name)
-            continue
         if installed['status'] != 'INSTALLED':
             report['status'] = installed['status']
             report['failed'] = name
             break
         report['install'].append(name)
-    if report.get('failed'):
-        pass
-    elif report['skipped']:
-        report['status'] = 'PROVIDER_MISSING'
-        report['missing'] = list(report['skipped'])
-    else:
-        report['missing'] = []
-        report['status'] = 'READY'
+        known.add(name)
+    if not report.get('failed'):
+        report['missing'] = [name for name in required if name not in known]
+        report['status'] = 'READY' if not report['missing'] else 'PROVIDER_MISSING'
     if report['status'] == 'READY' and scope is not None:
-        report['observation'] = record_scope(root, scope)
-    marker = {'status': report['status'], 'install': report['install'], 'bundle': names}
+        report['observation'] = record_scope(root, scope, runner)
+    marker = {'status': report['status'], 'install': report['install'], 'bundle': names,
+              'skipped': report['skipped']}
     atomic(root, '.framework/local-state/reverse-bundle.json', json.dumps(marker, indent=2) + '\n')
     return report
 
@@ -121,7 +148,7 @@ def install_named(root, name, spec, runner):
     return {'status': 'INSTALLED', 'version': spec['version']}
 
 
-def record_scope(root, scope):
+def record_scope(root, scope, runner):
     required = {'id', 'target', 'sha256', 'question', 'action'}
     if not isinstance(scope, dict) or set(scope) != required:
         raise ValueError('INVALID_SCOPE')
@@ -134,12 +161,33 @@ def record_scope(root, scope):
         raise ValueError('INVALID_SCOPE')
     if hashlib.sha256(target.read_bytes()).hexdigest() != scope['sha256']:
         raise ValueError('STALE_TARGET')
-    payload = dict(scope, limitations=['REA observation is not source evidence and runtime_validation is NOT_RUN'])
+    if scope['action'] == 'static':
+        rea = safe_path(root, '.framework/tools/rea/node_modules/.bin/rea')
+        command = [str(rea) if rea.is_file() else 'rea', 'analyze', str(target), '--json']
+        result = runner(command, root)
+        observed = 'RECORDED'
+    else:
+        result = {'exit_code': 0, 'stdout': ''}
+        command = []
+        observed = 'NOT_EXECUTED'
+    payload = {'id': scope['id'], 'target': scope['target'], 'sha256': scope['sha256'],
+               'question': scope['question'], 'action': scope['action'], 'analysis': observed,
+               'exit_code': result.get('exit_code', 1),
+               'limitations': ['REA observation is not source evidence and runtime_validation is NOT_RUN',
+                               'run and network actions are not executed by the shell']}
+    if result.get('stdout'):
+        payload['raw_sha256'] = hashlib.sha256(result['stdout'].encode()).hexdigest()
     atomic(root, '.framework/local-state/rea/' + scope['id'] + '.json', json.dumps(payload, indent=2) + '\n')
-    summary = '# Reverse observation %s\n\nQuestion: %s\n\nAction: %s\n\nTarget sha256: `%s`\n\nThis summary does not include decompiler output.\n' % (
-        scope['id'], scope['question'], scope['action'], scope['sha256'])
+    summary = '\n'.join([
+        '# Reverse observation %s' % scope['id'], '',
+        'Question: %s' % scope['question'], '',
+        'Requested action: %s' % scope['action'], '',
+        'Analysis: %s' % observed, '',
+        'Target sha256: `%s`' % scope['sha256'], '',
+        'Raw REA output stays in local-state and is not copied here.', '',
+        'Continue with the normal design, specification, plan, implementation and verification workflow.', ''])
     atomic(root, 'docs/project/reverse/' + scope['id'] + '.md', summary)
-    return {'id': scope['id'], 'status': 'RECORDED'}
+    return {'id': scope['id'], 'status': observed, 'command': command}
 
 
 def reverse_report(root):

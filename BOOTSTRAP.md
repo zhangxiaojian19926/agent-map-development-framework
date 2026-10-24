@@ -62,7 +62,7 @@ python3 "$FRAMEWORK/tools/framework" accept-docs --target "$TARGET" --result "$L
 
 ## 6. 增强、恢复、交付
 
-关系地图由当前 Coding Agent 按第 4 节的 v2 协议写回。框架不探测、不安装、不启动 Codex 或其他特定 Agent CLI。
+关系地图由当前 Coding Agent 用第 4 节的 `map` 命令写回。`map` 内部仍按 v2 分批，不要绕过它去直接拼旧的分步命令。框架不探测、不安装、不启动某一种 Agent CLI。
 
 CodeGraph 是索引，不是地图。有源码且本次授权包含 index 时，Agent 执行：
 
@@ -78,7 +78,7 @@ hooks、OpenSpec 仍是独立的当次授权。hooks 只标过期，并在索引
 
 最终由 Agent 调用目标已安装的 `python3 "$TARGET/.agent-framework/tools/framework" doctor --target "$TARGET"`。只有 `initialization=COMPLETE` 才报告完整初始化；同时分别报告 PREPARED、documentation、coverage、handoff、索引和 runtime。新工程尚待设计确认时交付草案与 NEEDS_DESIGN_APPROVAL，不把它说成全完成，也不要求用户从头重来。
 
-handoff 保存项目身份、目标、模块路径/源码指纹/仓库 HEAD、规划证据、下一步和所需权限。用户说“继续”时读取 handoff 和当前 OpenSpec status/instructions/contextFiles，接续已批准计划，缺决定只问缺项。模块新增、消失或移动后重新 doctor、登记，并在结构变化时建图、在事实变化时 accept-docs。只改模块内部时地图保持 CURRENT；源码指纹变化会使 documentation 变为 STALE、initialization 变为 PARTIAL，这时核对资料原句，不重建地图。保留历史和人工内容，不能沿用旧 COMPLETE。继续开发走 [公共开发流程](docs/framework/development-workflow.md)。初始化不批准业务实现、逆向或知识内容写入。逆向工具只在单独的 `reverse` 授权后按 [版本清单](docs/framework/reverse-tools.md) 集中安装。
+handoff 保存项目身份、目标、模块路径/源码指纹/仓库 HEAD、规划证据、下一步和所需权限。用户说“继续”时读取 handoff 和当前 OpenSpec status/instructions/contextFiles，接续已批准计划，缺决定只问缺项。模块新增、消失或移动后重新 doctor、登记，并在结构变化时建图、在事实变化时 accept-docs。只改模块内部时地图保持 CURRENT；源码指纹变化会使 documentation 变为 STALE、initialization 变为 PARTIAL，这时核对资料原句，不重建地图。保留历史和人工内容，不能沿用旧 COMPLETE。继续开发走 [公共开发流程](docs/framework/development-workflow.md)。初始化不批准业务实现、逆向或知识内容写入。用户明确要求逆向时，才在这条流程之前增加观察：按 [版本清单](docs/framework/reverse-tools.md) 安装已有校验值的工具，做静态分析，然后回到第 5 节的设计草案和后续规格、计划、实现、验证。没有逆向要求时，不安装这些工具，流程与原来相同。`run` 和 `network` 不会被壳执行。
 
 ## 7. 接入边界、升级与退出
 
