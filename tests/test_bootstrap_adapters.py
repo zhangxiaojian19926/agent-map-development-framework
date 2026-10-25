@@ -31,6 +31,29 @@ class AdapterTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 adapter.validate_clone_url(url, set())
 
+    def test_legacy_clone_ignores_inherited_url_redirection(self):
+        import os
+        import subprocess
+        from unittest.mock import patch
+        adapter = importlib.import_module('framework_core.adapters')
+        with tempfile.TemporaryDirectory() as d:
+            base = Path(d).resolve()
+            source, target = base/'redirected', base/'target'
+            source.mkdir(); target.mkdir()
+            subprocess.run(['git', 'init', '-q', str(source)], check=True)
+            (source/'marker.txt').write_text('REDIRECTED\n')
+            subprocess.run(['git', '-C', str(source), 'add', 'marker.txt'], check=True)
+            subprocess.run(['git', '-C', str(source), '-c', 'user.name=Fixture',
+                            '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'], check=True)
+            url = 'https://127.0.0.1:1/repo'
+            env = {'GIT_CONFIG_COUNT': '1', 'GIT_CONFIG_KEY_0': 'url.'+str(source)+'.insteadOf',
+                   'GIT_CONFIG_VALUE_0': url}
+            with patch.dict(os.environ, env):
+                result = adapter.clone(target, url, 'modules/api', None,
+                                       {'write', 'clone', 'local-clone'})
+            self.assertNotEqual(result['exit_code'], 0)
+            self.assertFalse((target/'modules/api/marker.txt').exists())
+
     def test_openspec_refuses_ancestor_root(self):
         adapter = importlib.import_module('framework_core.adapters')
         self.assertTrue(hasattr(adapter, 'ensure_openspec'), 'OpenSpec root adapter missing')

@@ -106,7 +106,28 @@ class CompletionTests(unittest.TestCase):
         self.assertEqual(self.report().get('initialization'), 'PARTIAL')
         approved = invoke(*args, '--approve', 'design='+ref['sha256'])
         self.assertEqual(approved.returncode, 0, approved.stdout)
-        self.assertEqual(self.report()['initialization'], 'COMPLETE')
-        self.assertEqual(self.report()['coverage']['status'], 'NOT_APPLICABLE')
+        doctor = invoke('doctor', '--target', self.root)
+        self.assertEqual(doctor.returncode, 0, doctor.stdout)
+        report = json.loads(doctor.stdout)
+        self.assertEqual(report['initialization'], 'COMPLETE')
+        self.assertEqual(report['coverage']['status'], 'NOT_APPLICABLE')
         self.assertFalse((self.root/'.git').exists())
         self.assertFalse((self.root/'modules').exists())
+
+    def test_design_approval_rejects_a_requirements_file_hash(self):
+        self.prepare()
+        brief = self.root/'docs/project/requirements-input.md'
+        brief.write_text('Requirements only, not an approved design.\n')
+        ref = {'path': 'docs/project/requirements-input.md', 'anchor': 'Requirements only',
+               'sha256': fingerprint(brief)}
+        project = {k: {'value': 'Declared '+k, 'status': 'KNOWN',
+                       'provenance': 'DECLARED', 'evidence': [ref]} for k in PROJECT_FIELDS}
+        dossier = {'project': project, 'modules': [], 'blockers': [], 'rule_conflicts': [],
+                   'planning_refs': [ref]}
+        payload = self.root.parent/'requirements-dossier.json'
+        payload.write_text(encoded(dossier))
+        result = invoke('accept-docs', '--target', self.root, '--result', payload,
+                        '--allow', 'write', '--allow', 'agent', '--approve', 'design='+ref['sha256'])
+        self.assertEqual(result.returncode, 2, result.stdout)
+        self.assertIn('INVALID_DESIGN_APPROVAL', result.stdout)
+        self.assertEqual(self.report()['initialization'], 'PARTIAL')

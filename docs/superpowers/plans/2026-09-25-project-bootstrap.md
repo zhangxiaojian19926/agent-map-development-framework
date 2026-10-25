@@ -1,6 +1,6 @@
 # 工程初始化与模块地图 Implementation Plan
 
-> 历史实现计划，不是现行操作说明。现行规则以 [BOOTSTRAP.md](../../BOOTSTRAP.md) 为准。
+> 历史实现计划，不是现行操作说明。现行规则以 [BOOTSTRAP.md](../../../BOOTSTRAP.md) 为准。
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for native sequential execution, or superpowers:subagent-driven-development if the user selects it. Steps use checkbox syntax for tracking.
 

@@ -24,6 +24,15 @@ class DistributionTests(unittest.TestCase):
             page.write_text('[missing](missing.md)\n')
             self.assertEqual(len(self.checker.link_errors(root, page)), 1)
 
+    def test_link_components_match_actual_case_on_every_host(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            page = root / 'docs/superpowers/plans/page.md'
+            page.parent.mkdir(parents=True)
+            (root / 'docs/bootstrap.md').write_text('lower-case guide')
+            page.write_text('[guide](../../BOOTSTRAP.md)\n')
+            self.assertEqual(len(self.checker.link_errors(root, page)), 1)
+
     def test_inventory_rejects_tamper_and_extras(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

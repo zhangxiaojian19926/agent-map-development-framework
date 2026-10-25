@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import unicodedata
 
 CAPABILITIES = {'write', 'agent', 'index', 'index-install', 'hooks', 'clone', 'local-clone', 'openspec', 'auth', 'reverse', 'reverse-install', 'package'}
 
@@ -49,10 +50,12 @@ def build_plan(root, config, action):
         path = module.get('path', '')
         if not path or Path(path).is_absolute() or '..' in Path(path).parts:
             raise ValueError('INVALID_MODULE_PATH')
-        if mid in ids or path in paths:
+        normalized_id = mid.casefold()
+        normalized_path = unicodedata.normalize('NFC', Path(path).as_posix()).casefold()
+        if normalized_id in ids or normalized_path in paths:
             raise ValueError('DUPLICATE_ID_OR_PATH')
-        ids.add(mid)
-        paths.add(path)
+        ids.add(normalized_id)
+        paths.add(normalized_path)
     return {'schema_version': 1, 'action': action, 'target': str(root),
             'config': config, 'required_capabilities': sorted(capabilities),
             'actions': ['generate framework', 'register modules', 'check navigation'],

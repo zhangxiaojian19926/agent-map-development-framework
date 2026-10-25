@@ -147,7 +147,8 @@ def main(argv=None):
             return output(accept_analysis(root, json.loads(Path(args.result).read_text()), set(args.allow)))
         if args.action == 'doctor':
             report = inspect_project(root)
-            return output(report, 0 if report['status'] == 'READY' else 5)
+            complete = report['status'] == 'READY' or report['initialization'] == 'COMPLETE'
+            return output(report, 0 if complete else 5)
         if args.action == 'event':
             if not safe_path(root, 'framework-project.json').is_file():
                 return output({'status': 'NOT_CONFIGURED'}, 5)

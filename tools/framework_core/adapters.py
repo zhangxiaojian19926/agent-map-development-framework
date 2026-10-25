@@ -120,15 +120,13 @@ def clone(root, url, rel, ref, consent, runner=run):
     if path.exists():
         raise ValueError('CONFLICT: clone target exists')
     path.parent.mkdir(parents=True, exist_ok=True)
-    argv = ['git', '-c', 'core.hooksPath=/dev/null', '-c', 'protocol.ext.allow=never',
-            '-c', 'protocol.file.allow=' + ('always' if 'local-clone' in consent else 'never'),
-            'clone', '--template=', '--no-recurse-submodules']
+    from .acquisition import git_call
+    argv = ['clone', '--template=', '--no-recurse-submodules']
     if ref:
         if ref.startswith('-'):
             raise ValueError('INVALID_REF')
         argv += ['--branch', ref]
-    return runner(argv + ['--', url, str(path)], root, 300,
-                  {'GIT_TERMINAL_PROMPT': '0', 'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': '/dev/null'})
+    return git_call(argv + ['--', url, str(path)], root, consent, runner, timeout=300)
 
 
 def ensure_index(root, index, consent, runner=run):

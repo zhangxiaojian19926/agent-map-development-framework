@@ -228,7 +228,8 @@ def publish_project_docs(root, catalog, dossier, grants, approvals=None):
         outputs = project_doc_outputs(root, catalog, dossier)
         old = read_json(root, STATE, {})
         approved_design = old.get('approved_design')
-        refs = {r['sha256'] for r in dossier['planning_refs']}
+        refs = {r['sha256'] for r in dossier['planning_refs']
+                if r['path'] == 'docs/project/design-input.md'}
         if approved_design not in refs:
             approved_design = None
         if approvals:

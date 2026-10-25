@@ -47,6 +47,16 @@ def inventory_errors(root, expected):
             errors.append("fingerprint mismatch: " + file)
     return errors
 
+def exact_case_exists(root, path):
+    """Path.exists() alone misses wrong-case links on case-insensitive hosts."""
+    current = root.resolve()
+    for part in path.relative_to(current).parts:
+        if part not in os.listdir(current):
+            return False
+        current = current / part
+    return True
+
+
 def link_errors(root, file):
     text = re.sub(r"```[\s\S]*?```", "", file.read_text(encoding="utf-8"))
     errors = []
@@ -60,7 +70,7 @@ def link_errors(root, file):
         except ValueError:
             errors.append(str(file.relative_to(root)) + ": link escapes distribution")
             continue
-        if not resolved.exists():
+        if not resolved.exists() or not exact_case_exists(root, resolved):
             errors.append(str(file.relative_to(root)) + ": broken link " + target)
     return errors
 

@@ -7,6 +7,7 @@ import tempfile
 import unittest
 
 CLI = Path(__file__).resolve().parents[1] / 'tools/framework'
+sys.path.insert(0, str(CLI.parent))
 
 
 def invoke(*args):
@@ -51,6 +52,19 @@ class ConfigurationTests(unittest.TestCase):
             result = invoke('init', '--target', root, '--project-id', name,
                             '--agent', 'manual', '--dry-run')
             self.assertEqual(result.returncode, 2)
+
+    def test_advanced_config_rejects_case_collisions(self):
+        from framework_core.config import build_plan
+        cases = (
+            [{'id': 'API', 'path': 'modules/one'}, {'id': 'api', 'path': 'modules/two'}],
+            [{'id': 'one', 'path': 'Modules/api'}, {'id': 'two', 'path': 'modules/API'}],
+        )
+        with tempfile.TemporaryDirectory() as d:
+            for modules in cases:
+                with self.subTest(modules=modules):
+                    config = {'project_id': 'demo', 'agent': 'current', 'modules': modules}
+                    with self.assertRaisesRegex(ValueError, 'DUPLICATE_ID_OR_PATH'):
+                        build_plan(Path(d), config, 'prepare')
 
     def test_new_requires_real_approved_artifacts(self):
         with tempfile.TemporaryDirectory() as d:
