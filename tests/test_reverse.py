@@ -55,14 +55,14 @@ class ReverseTests(unittest.TestCase):
                 (prefix / 'package-lock.json').write_text(json.dumps(lock))
                 return {'exit_code': 0}
             raise AssertionError(argv)
-        present = set(self.reverse.bundle_for('darwin')) - {'rea-agents', 'temurin-jdk'}
+        present = set(self.reverse.bundle_for('darwin')) - {'rea-agents'}
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             report = self.reverse.prepare_reverse(root, None, {'write', 'reverse', 'reverse-install'}, runner=runner, platform='darwin', present=present)
         self.assertEqual(report['install'], ['rea-agents'])
         self.assertEqual(report['status'], 'READY')
-        self.assertIn('temurin-jdk', report['skipped'])
-        self.assertNotIn('temurin-jdk', report['missing'])
+        self.assertNotIn('jadx', report['install'])
+        self.assertNotIn('temurin-jdk', report['install'])
         self.assertTrue(any(argv[0] == 'npm' for argv in calls))
         calls.clear()
         again = self.reverse.prepare_reverse(root, None, {'write', 'reverse'}, runner=runner, platform='darwin')
@@ -111,6 +111,42 @@ class ReverseTests(unittest.TestCase):
                                'evidence': [{'path': 'docs/project/reverse/sample.md', 'sha256': 'abc', 'anchor': 'def api()'}]}],
             'uncertainties': []})
         self.assertIn('REVERSE_NOT_SOURCE', errors)
+
+    def test_archive_download_checks_hash_and_does_not_run_without_grant(self):
+        downloads = importlib.import_module('framework_core.reverse_downloads')
+        payload = b'pinned-bytes'
+        digest = hashlib.sha256(payload).hexdigest()
+        calls = []
+        class Response:
+            def read(self, _size):
+                if not hasattr(self, 'done'):
+                    self.done = True
+                    return payload
+                return b''
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+        def opener(url, timeout=None):
+            calls.append(url)
+            return Response()
+        spec = {'version': '1', 'artifacts': {'darwin-arm64': {'url': 'https://example.test/tool', 'sha256': digest, 'kind': 'file'}}}
+        with tempfile.TemporaryDirectory() as tmp:
+            installed = downloads.install_archive(Path(tmp), 'wabt', spec, 'darwin', 'arm64', opener)
+            self.assertEqual(installed['status'], 'INSTALLED')
+            self.assertEqual(calls, ['https://example.test/tool'])
+            calls.clear()
+            again = downloads.install_archive(Path(tmp), 'wabt', spec, 'darwin', 'arm64', opener)
+            self.assertEqual(again['status'], 'INSTALLED')
+            self.assertEqual(calls, [])
+            spec['artifacts']['darwin-arm64']['sha256'] = '0' * 64
+            with self.assertRaises(downloads.IntegrityError):
+                downloads.install_archive(Path(tmp) / 'other', 'wabt', spec, 'darwin', 'arm64', opener)
+        calls.clear()
+        with tempfile.TemporaryDirectory() as tmp:
+            report = self.reverse.prepare_reverse(Path(tmp), None, {'write'}, platform='darwin', opener=opener)
+        self.assertEqual(report['status'], 'NOT_CONFIGURED')
+        self.assertEqual(calls, [])
 
 
 if __name__ == '__main__':

@@ -2,7 +2,7 @@
 
 普通工程初始化不安装、不调用这些工具。只有明确的逆向请求才读取本页和 `tools/framework_core/rea-tools.lock.json`。
 
-有校验值的必备工具是 `rea-agents` 6.7.0 和 Ghidra 12.1.4。它们缺失且本次授予 `reverse-install` 时才会下载，已安装且校验相符则跳过。其余条目版本已固定，但 lock 里没有校验值，因此不下载，也不把观察状态卡成失败。`doctor` 的 `reverse` 不改变 `initialization=COMPLETE`。
+有校验值的工具只在 `reverse` 和 `reverse-install` 同时授予时下载。`rea-agents` 用 npm。Ghidra、Temurin JDK（当前仅 macOS arm64 已写入校验值）和 WABT 用 HTTPS，核对 SHA-256 后解压到 `.framework/tools/`。已有相同校验值则跳过。JADX、Apktool、Rizin、platform-tools 还没有校验值，所以不下载。TShark 和 sigrok-cli 只检测，不下载。没有逆向授权时这些函数不会运行。`doctor` 的 `reverse` 不改变 `initialization=COMPLETE`。
 
 | 工具 | 固定版本 | 系统 |
 |---|---|---|

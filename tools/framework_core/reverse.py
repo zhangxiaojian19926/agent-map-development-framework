@@ -44,6 +44,16 @@ def is_required(name, lock):
     return pinned_download(lock['tools'].get(name, {}))
 
 
+def checksums_for(spec):
+    found = set()
+    if len(spec.get('sha256') or '') == 64:
+        found.add(spec['sha256'])
+    for item in (spec.get('artifacts') or {}).values():
+        if len(item.get('sha256') or '') == 64:
+            found.add(item['sha256'])
+    return found
+
+
 def detect_installed(root, names, lock):
     found = set()
     lock_path = safe_path(root, '.framework/tools/rea/package-lock.json')
@@ -57,14 +67,22 @@ def detect_installed(root, names, lock):
     for name in names:
         if name == 'rea-agents':
             continue
-        spec = lock['tools'].get(name, {})
-        archive = safe_path(root, '.framework/tools/' + name + '/download')
-        if archive.is_file() and spec.get('sha256') and hashlib.sha256(archive.read_bytes()).hexdigest() == spec['sha256']:
+        marker = safe_path(root, '.framework/tools/' + name + '/.sha256')
+        if marker.is_file() and marker.read_text(encoding='utf-8').strip() in checksums_for(lock['tools'].get(name, {})):
             found.add(name)
     return found
 
 
-def prepare_reverse(root, scope, grants, runner=None, platform=None, present=None):
+def machine_name(machine=None):
+    name = (machine or __import__('platform').machine()).lower()
+    if name in ('arm64', 'aarch64'):
+        return 'arm64'
+    if name in ('x86_64', 'amd64'):
+        return 'x64'
+    return name
+
+
+def prepare_reverse(root, scope, grants, runner=None, platform=None, present=None, opener=None, machine=None):
     """Install required tools once, then record a static observation.
 
     Tools without a checksum are reported and do not block the observation.
@@ -79,23 +97,39 @@ def prepare_reverse(root, scope, grants, runner=None, platform=None, present=Non
     lock = load_lock()
     names = bundle_for(platform)
     known = set(present) if present is not None else detect_installed(root, names, lock)
+    host = host_name(platform)
+    machine = machine_name(machine)
     required = [name for name in names if is_required(name, lock)]
     optional = [name for name in names if name not in required]
     missing_required = [name for name in required if name not in known]
-    report = {'status': 'READY', 'bundle': names, 'missing': missing_required, 'install': [],
-              'skipped': [name for name in optional if name not in known]}
+    skipped = []
+    extra = []
+    for name in optional:
+        if name in known:
+            continue
+        spec = lock['tools'].get(name, {})
+        if is_required(name, lock) or artifact_ready(spec, host, machine):
+            extra.append(name)
+        else:
+            skipped.append(name)
+    report = {'status': 'READY', 'bundle': names, 'missing': missing_required, 'install': [], 'skipped': skipped}
     if missing_required and 'reverse-install' not in grants:
         report['status'] = 'DEPENDENCY_MISSING'
         return report
-    for name in missing_required:
+    for name in missing_required + extra:
+        if 'reverse-install' not in grants:
+            break
         if name == 'rea-agents':
             installed = install_rea(root, lock['rea-agents'], runner)
         else:
-            installed = install_named(root, name, lock['tools'][name], runner)
+            installed = install_named(root, name, lock['tools'][name], host, machine, opener)
         if installed['status'] != 'INSTALLED':
-            report['status'] = installed['status']
-            report['failed'] = name
-            break
+            if name in required:
+                report['status'] = installed['status']
+                report['failed'] = name
+                break
+            report['skipped'].append(name)
+            continue
         report['install'].append(name)
         known.add(name)
     if not report.get('failed'):
@@ -132,20 +166,19 @@ def install_rea(root, spec, runner):
     return {'status': 'INSTALLED', 'version': spec['version']}
 
 
-def install_named(root, name, spec, runner):
-    if not pinned_download(spec):
-        return {'status': 'INTEGRITY_UNPINNED'}
-    dest = safe_path(root, '.framework/tools/' + name)
-    dest.mkdir(parents=True, exist_ok=True)
-    archive = dest / 'download'
-    result = runner(['download', spec['url'], str(archive)], dest)
-    if result['exit_code'] or not archive.is_file():
-        return {'status': 'INSTALL_FAILED'}
-    digest = hashlib.sha256(archive.read_bytes()).hexdigest()
-    if digest != spec['sha256']:
-        archive.unlink()
+def artifact_ready(spec, platform, machine):
+    from .reverse_downloads import artifact_for
+    return artifact_for(spec, platform, machine) is not None
+
+
+def install_named(root, name, spec, platform, machine, opener=None):
+    from .reverse_downloads import IntegrityError, install_archive
+    try:
+        return install_archive(root, name, spec, platform, machine, opener)
+    except IntegrityError:
         return {'status': 'INTEGRITY_MISMATCH'}
-    return {'status': 'INSTALLED', 'version': spec['version']}
+    except (OSError, ValueError):
+        return {'status': 'INSTALL_FAILED'}
 
 
 def record_scope(root, scope, runner):
@@ -165,7 +198,7 @@ def record_scope(root, scope, runner):
         rea = safe_path(root, '.framework/tools/rea/node_modules/.bin/rea')
         command = [str(rea) if rea.is_file() else 'rea', 'analyze', str(target), '--json']
         result = runner(command, root)
-        observed = 'RECORDED'
+        observed = 'RECORDED' if result.get('exit_code', 1) == 0 else 'FAILED'
     else:
         result = {'exit_code': 0, 'stdout': ''}
         command = []

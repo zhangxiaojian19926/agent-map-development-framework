@@ -10,11 +10,55 @@
       "sha256": "ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387d2d4db",
       "url": "https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.4_build/ghidra_12.1.4_PUBLIC_20260921.zip"
     },
-    "temurin-jdk": {"version": "21.0.13+9", "sha256": ""},
-    "jadx": {"version": "1.5.6", "sha256": ""},
-    "apktool": {"version": "3.0.3", "sha256": ""},
+    "temurin-jdk": {
+      "version": "21.0.13+9",
+      "artifacts": {
+        "darwin-arm64": {
+          "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jdk_aarch64_mac_hotspot_21.0.13_9.tar.gz",
+          "sha256": "bf036b35b071bfb2f54f2c0af8ee8d88afa95ee6eb3dce02c0f94cfc2524d04a",
+          "kind": "tar"
+        }
+      }
+    },
+    "jadx": {
+      "version": "1.5.6",
+      "artifacts": {
+        "darwin-arm64": {"url": "https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip", "sha256": "", "kind": "zip"},
+        "darwin-x64": {"url": "https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip", "sha256": "", "kind": "zip"},
+        "linux-arm64": {"url": "https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip", "sha256": "", "kind": "zip"},
+        "linux-x64": {"url": "https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip", "sha256": "", "kind": "zip"}
+      }
+    },
+    "apktool": {
+      "version": "3.0.3",
+      "artifacts": {
+        "darwin-arm64": {"url": "https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar", "sha256": "", "kind": "file"},
+        "darwin-x64": {"url": "https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar", "sha256": "", "kind": "file"},
+        "linux-arm64": {"url": "https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar", "sha256": "", "kind": "file"},
+        "linux-x64": {"url": "https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar", "sha256": "", "kind": "file"}
+      }
+    },
     "rizin": {"version": "0.9.1", "sha256": ""},
-    "wabt": {"version": "1.0.42", "sha256": ""},
+    "wabt": {
+      "version": "1.0.42",
+      "artifacts": {
+        "darwin-arm64": {
+          "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.42/wabt-1.0.42-macos-arm64.tar.gz",
+          "sha256": "3f654779b436c628db3ca4323c51538815f5fbc887a6d5f3bb1c18d36281e240",
+          "kind": "tar"
+        },
+        "linux-x64": {
+          "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.42/wabt-1.0.42-linux-x64.tar.gz",
+          "sha256": "84895407a6bbb80e918f33b16b2fb2206021c150b6bc9ff6f761263a745ab131",
+          "kind": "tar"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.42/wabt-1.0.42-linux-arm64.tar.gz",
+          "sha256": "a7632c1cc66f70886441842ecf5a2ffa91a98c79e026059458451234ad013ea8",
+          "kind": "tar"
+        }
+      }
+    },
     "platform-tools": {"version": "pinned-at-release", "sha256": ""},
     "pwntools": {"version": "linux-only", "sha256": ""},
     "unblob": {"version": "linux-only", "sha256": ""},
