@@ -3,9 +3,35 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import posixpath
+import re
+from urllib.parse import unquote
 
 from .config import encoded
 from .storage import safe_path, read_json, owned_changes, fingerprint
+
+
+RUNTIME_ROOT_FILES = ('AGENTS.md', 'BOOTSTRAP.md', 'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md')
+RUNTIME_DOC_FILES = ('docs/project-intake.md', 'docs/bootstrap.md', 'docs/integrations.md')
+RUNTIME_DIRECTORIES = ('skill/', 'templates/', 'tools/framework_core/', 'docs/framework/', 'docs/guide/')
+RUNTIME_REQUIRED_FILES = RUNTIME_ROOT_FILES + RUNTIME_DOC_FILES + (
+    'skill/llm-wiki/SKILL.md', 'templates/PROJECT-START.md', 'templates/runtime-README.md',
+    'tools/framework', 'tools/framework_core/cli.py',
+)
+RUNTIME_EXCLUDED_DOCS = ('docs/archive/', 'docs/maintainer/', 'docs/superpowers/', 'docs/verification/')
+
+
+def runtime_markdown(rel, text):
+    """Remove links to maintainer-only content without changing the source distribution."""
+    def replace(match):
+        label, target = match.group(1), match.group(2).split('#')[0]
+        if not target or re.match(r'^[a-zA-Z][\w+.-]*:', target):
+            return match.group(0)
+        resolved = posixpath.normpath(posixpath.join(posixpath.dirname(rel), unquote(target)))
+        if resolved == 'docs/acceptance.md' or resolved.startswith(RUNTIME_EXCLUDED_DOCS):
+            return label
+        return match.group(0)
+    return re.sub(r'\[([^\]]*)\]\(([^)]+)\)', replace, text)
 
 
 def generation_changes(root, config, distribution, prepare=False):
@@ -13,18 +39,27 @@ def generation_changes(root, config, distribution, prepare=False):
     if distribution == root or distribution.is_relative_to(root):
         raise ValueError('TARGET_CONTAINS_DISTRIBUTION')
     manifest = read_json(distribution, 'framework-manifest.json')
+    for rel in RUNTIME_REQUIRED_FILES:
+        if rel not in manifest['files'] or not safe_path(distribution, rel).is_file():
+            raise ValueError('RUNTIME_PAYLOAD_INCOMPLETE: ' + rel)
     outputs = {'framework-project.json': encoded(config)}
+    runtime_readme = None
     for rel, expected in manifest['files'].items():
-        if rel.startswith('docs/superpowers/'):
-            continue
-        if not (rel.startswith(('skill/', 'templates/', 'docs/', 'tools/framework_core/')) or
-                rel in ('tools/framework', 'AGENTS.md', 'BOOTSTRAP.md', 'README.md', 'CHANGELOG.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md')):
+        if not (rel.startswith(RUNTIME_DIRECTORIES) or
+                rel in RUNTIME_ROOT_FILES + RUNTIME_DOC_FILES + ('tools/framework',)):
             continue
         path = safe_path(distribution, rel)
         data = path.read_bytes()
         if hashlib.sha256(data).hexdigest() != expected:
             raise ValueError('DISTRIBUTION_HASH_MISMATCH: ' + rel)
-        outputs['.agent-framework/' + rel] = data.decode('utf-8')
+        text = data.decode('utf-8')
+        if rel.endswith('.md'):
+            text = runtime_markdown(rel, text)
+        if rel == 'templates/runtime-README.md':
+            runtime_readme = text.replace('](../', '](')
+        elif rel != 'README.md':
+            outputs['.agent-framework/' + rel] = text
+    outputs['.agent-framework/README.md'] = runtime_readme
     outputs['.agent-framework/framework-manifest.json'] = encoded(manifest)
     agent = ('# Project development entry\n\n'
              'Read [public workflow](.agent-framework/AGENTS.md), then '
@@ -73,7 +108,15 @@ def generation_changes(root, config, distribution, prepare=False):
         rel = 'docs/project/' + name + '.md'
         if not safe_path(root, rel).exists():
             outputs[rel] = content
-    return entry_changes + owned_changes(root, outputs)
+    package = safe_path(root, '.agent-framework')
+    deletions = []
+    if package.exists():
+        for path in package.rglob('*'):
+            if path.is_file() or path.is_symlink():
+                rel = path.relative_to(root).as_posix()
+                if rel not in outputs:
+                    deletions.append(rel)
+    return entry_changes + owned_changes(root, outputs, deletions)
 
 
 def wiki_helpers(distribution):

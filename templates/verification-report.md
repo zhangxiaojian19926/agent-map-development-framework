@@ -2,6 +2,7 @@
 
 任务范围、时间、环境：
 各模块版本组合、工作树/产物标识：
+报告与证据保存位置、最终 commit 或工作树 diff：
 | Req / Scenario | Task / module | Test | Environment | Evidence | Result |
 |---|---|---|---|---|---|
 | 待填写 | 待填写 | 待填写 | 待填写 | 待填写 | NOT_RUN |

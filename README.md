@@ -2,14 +2,18 @@
 
 跨项目复用的 AI 工程协作框架：公共规则 + 完整技能包 + 项目/模块模板 + 验证工具。
 
-## 开始使用
+## 使用工程壳开发软件
 
 1. 准备一份输入：已有工程填“模块名称 = 仓库 URL”，全新工程只描述项目和目标。见 [启动单模板](templates/PROJECT-START.md)。
 2. 把输入与 [BOOTSTRAP.md](BOOTSTRAP.md) 的位置给具备文件/执行能力的 Coding Agent，说：“初始化工程”。
 3. Agent 自行预览并按名称下载。有白名单源码时才建立关系地图；全新需求先留下设计草案。同时建立空知识库 `knowledge/project/`（alias `project`）。用户无需选择 init/new、填写 JSON/hash 或执行脚本。
-4. Agent 运行 `doctor` 并留下开发交接。只有 `initialization=COMPLETE` 才是完整初始化。新工程尚未确认设计时交付草案和待确认项。基础接入不批准业务实施，也不写入知识内容。下一步按 [开发流程](docs/framework/development-workflow.md) 接续。任何能读写文件并执行 Python 的 Coding Agent 都用同一入口。已实测范围见 [验收记录](docs/acceptance.md)，那是历史证据，不是现行操作步骤。
+4. Agent 运行 `doctor` 并留下开发交接。只有 `initialization=COMPLETE` 才是完整初始化。新工程尚未确认设计时交付草案和待确认项。基础接入不批准业务实施，也不写入知识内容。
+5. 初始化后按 [项目布局](docs/guide/project-layout.md) 管理目录，按 [日常开发指南](docs/guide/daily-development.md) 接续。任何能读写文件并执行 Python 的 Coding Agent 都用同一入口。
 
-维护者验证（不是用户接入前置操作）：
+## 开发公共工程壳
+
+维护者从 [仓库布局](docs/maintainer/repository-layout.md)、[验证指南](docs/maintainer/verification.md) 和 [发布指南](docs/maintainer/release.md) 开始。以下命令不是业务项目的初始化前置操作：
+
 ```bash
 python3 tools/check-framework
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
@@ -19,13 +23,16 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 
 | 文档 | 作用 |
 |---|---|
-| [开发流程](docs/framework/development-workflow.md) | 任务分流与 OpenSpec/Superpowers 全周期协作 |
-| [技能规则](docs/framework/skill-policy.md) | 调用、权限、冲突与停止条件 |
-| [多模块协作](docs/framework/collaboration-policy.md) | 模块职责、接口、交接、集成与接入 |
-| [知识规则](docs/framework/knowledge-policy.md) | KB 查询、建立、路由、摄入与确认 |
-| [初始化](BOOTSTRAP.md) | 当前 Agent 的唯一初始化步骤，含升级与退出 |
-| [集成](docs/integrations.md) | 22 个技能入口及外部工具边界 |
-| [验收](docs/acceptance.md) | 工作流覆盖和实际验证范围 |
+| [项目布局](docs/guide/project-layout.md) | 业务目录所有权、提交规则和模块归置 |
+| [日常开发](docs/guide/daily-development.md) | 任务分流、TDD、评审和交付入口 |
+| [模块生命周期](docs/guide/module-lifecycle.md) | 新增、修改、移动和跨模块交接 |
+| [测试与交付](docs/guide/testing-and-delivery.md) | 测试分层、证据矩阵和完成门禁 |
+| [框架升级](docs/guide/framework-upgrade.md) | 公共包升级、人工内容保护和回滚 |
+| [公共开发流程](docs/framework/development-workflow.md) | OpenSpec/Superpowers 全周期规则 |
+| [初始化](BOOTSTRAP.md) | 当前 Agent 的唯一初始化步骤 |
+| [集成](docs/integrations.md) | 技能入口及外部工具边界 |
+| [维护者指南](docs/maintainer/repository-layout.md) | 公共壳布局、验证和发布 |
+| [历史资料](docs/archive/README.md) | 历史计划与验收，不是当前状态 |
 | [第三方说明](THIRD_PARTY_NOTICES.md) | 来源、许可证和本地适配 |
 
 ## 包含与不包含

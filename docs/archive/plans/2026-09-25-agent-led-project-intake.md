@@ -37,7 +37,7 @@
 
 ## 执行边界和共享数据
 
-继续在现有公共 worktree 实施。用户“符合，开始执行”已批准本计划，采用 Native 顺序执行。宏观完成状态以同 change 的 tasks.md 为单源；下列微步骤保留设计时的检查清单，未逐项核实的合并条目不批量勾选。执行证据记录在本地 `.superpowers/sdd/2026-09-25-agent-led-project-intake/progress.md`，公共验收边界见 [acceptance](../../acceptance.md)。初始化真实验收只能使用合成或明确授权来源，不从当前业务工程采集源码。
+继续在现有公共 worktree 实施。用户“符合，开始执行”已批准本计划，采用 Native 顺序执行。宏观完成状态以同 change 的 tasks.md 为单源；下列微步骤保留设计时的检查清单，未逐项核实的合并条目不批量勾选。执行证据记录在本地 `.superpowers/sdd/2026-09-25-agent-led-project-intake/progress.md`，公共验收边界见 [acceptance](../acceptance.md)。初始化真实验收只能使用合成或明确授权来源，不从当前业务工程采集源码。
 
 入口仅对 Agent 暴露：在现有 tools/framework 增加 intake/prepare/analyze-request/accept-analysis 等 action；自然语言用户不需要调用它们。确切参数写入同任务 help 与测试，旧命令参数不能改义。
 

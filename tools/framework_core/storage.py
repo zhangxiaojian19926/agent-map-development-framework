@@ -84,7 +84,7 @@ def apply_files(root, changes, run_id, locked=False):
     for change in changes:
         path = safe_path(root, change['path'])
         actual = fingerprint(path)
-        after = hashlib.sha256(change['content'].encode()).hexdigest()
+        after = None if change.get('delete') else hashlib.sha256(change['content'].encode()).hexdigest()
         if actual not in (change['before_sha256'], after):
             raise ValueError('CONFLICT: ' + change['path'])
     record = {'schema_version': 1, 'run_id': run_id, 'changes': changes, 'completed': [], 'status': 'APPLYING'}
@@ -92,11 +92,14 @@ def apply_files(root, changes, run_id, locked=False):
     for change in changes:
         path = safe_path(root, change['path'])
         actual = fingerprint(path)
-        after = hashlib.sha256(change['content'].encode()).hexdigest()
+        after = None if change.get('delete') else hashlib.sha256(change['content'].encode()).hexdigest()
         if actual != after:
             if actual != change['before_sha256']:
                 raise ValueError('CONFLICT: ' + change['path'])
-            atomic(root, change['path'], change['content'])
+            if change.get('delete'):
+                path.unlink()
+            else:
+                atomic(root, change['path'], change['content'])
         record['completed'].append({'path': change['path'], 'sha256': after})
         atomic(root, journal, encoded(record))
     record['status'] = 'COMPLETE'
@@ -139,7 +142,7 @@ def read_json(root, rel, default=None):
     return json.loads(p.read_text()) if p.exists() else default
 
 
-def owned_changes(root, outputs):
+def owned_changes(root, outputs, deletions=()):
     """Generator owns only hashes it wrote. Existing manual content is a conflict."""
     registry = read_json(root, '.framework/local-state/owned.json', {})
     changes = []
@@ -153,6 +156,13 @@ def owned_changes(root, outputs):
             raise ValueError('CONFLICT: ' + rel)
         changes.append({'path': rel, 'before_sha256': actual, 'content': content})
         registry[rel] = after
+    for rel in sorted(set(deletions)):
+        actual = fingerprint(safe_path(root, rel))
+        if actual is not None and registry.get(rel) != actual:
+            raise ValueError('CONFLICT: ' + rel)
+        if actual is not None:
+            changes.append({'path': rel, 'before_sha256': actual, 'delete': True})
+        registry.pop(rel, None)
     rel = '.framework/local-state/owned.json'
     content = encoded(registry)
     if fingerprint(safe_path(root, rel)) != hashlib.sha256(content.encode()).hexdigest():

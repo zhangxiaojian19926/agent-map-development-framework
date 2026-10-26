@@ -40,6 +40,16 @@ class StorageTests(unittest.TestCase):
             self.storage.resume_run(self.root, 'run-1', {'write'})
         self.assertEqual((self.root / 'a/b.txt').read_text(), 'manual')
 
+    def test_delete_is_idempotent_and_resume_recreates_no_file(self):
+        path = self.root / 'a/old.txt'
+        path.parent.mkdir(parents=True)
+        path.write_text('legacy')
+        changes = [{'path': 'a/old.txt', 'before_sha256': self.storage.fingerprint(path), 'delete': True}]
+        self.storage.apply_files(self.root, changes, 'delete-1')
+        self.assertFalse(path.exists())
+        self.storage.resume_run(self.root, 'delete-1', {'write'})
+        self.assertFalse(path.exists())
+
     def test_lock_owner_is_not_removed(self):
         with self.storage.project_lock(self.root):
             with self.assertRaises(ValueError):

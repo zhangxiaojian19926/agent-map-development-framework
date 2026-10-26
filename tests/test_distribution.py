@@ -27,7 +27,7 @@ class DistributionTests(unittest.TestCase):
     def test_link_components_match_actual_case_on_every_host(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            page = root / 'docs/superpowers/plans/page.md'
+            page = root / 'docs/archive/plans/page.md'
             page.parent.mkdir(parents=True)
             (root / 'docs/bootstrap.md').write_text('lower-case guide')
             page.write_text('[guide](../../BOOTSTRAP.md)\n')

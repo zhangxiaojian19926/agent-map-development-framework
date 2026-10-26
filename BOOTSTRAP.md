@@ -1,6 +1,6 @@
 # 初始化工程：当前 Coding Agent 的通用入口
 
-用户只需提供一份启动输入并说“初始化工程”。首次使用时在同一请求指出本文件位置；未配置的 Agent 不会凭空发现框架。不要求安装 Codex 或厂商插件。
+用户只需提供一份启动输入并说“初始化工程”。首次使用时在同一请求指出本文件位置；未配置的 Agent 不会凭空发现框架。不要求安装 Codex 或厂商插件。初始化后的目录责任见[项目布局指南](docs/guide/project-layout.md)，日常任务从[开发指南](docs/guide/daily-development.md)继续；维护公共工程壳则使用[维护者入口](docs/maintainer/repository-layout.md)。
 
 ## 1. 定位与能力
 

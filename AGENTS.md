@@ -1,6 +1,6 @@
 # AGENTS.md — 公共开发流程入口
 
-本文件规定开发顺序、每步技能及交接门禁;详细公共规则在 docs/framework,当前项目事实在 docs/project,模块内部职责和命令在各模块 AGENTS.md。规则文档不是工具实现或执行授权。
+本文件规定开发顺序、每步技能及交接门禁;详细公共规则在 docs/framework,当前项目事实在 docs/project,模块内部职责和命令在各模块 AGENTS.md。目录所有权和提交边界见[项目布局指南](docs/guide/project-layout.md)。规则文档不是工具实现或执行授权。
 
 ## 0. 先读谁
 

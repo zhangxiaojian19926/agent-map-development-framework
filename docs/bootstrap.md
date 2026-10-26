@@ -108,4 +108,4 @@ python3 tools/verify-live --target /path/to/new-validation-directory --allow-liv
 
 它运行三模块已有工程接入、重复运行、真正业务调用、新需求审批拒绝/批准、Codex 开发、独立测试及规格/地图检查。原始输出位于 evidence，汇总在 report.json。普通 CI 不执行此命令，不使用任何模型凭据；只跑离线合成测试。
 
-已执行环境、独立复审、场景证据与未执行边界见[本地验收记录](verification/bootstrap-0.2.0.md)。
+已执行环境、独立复审、场景证据与未执行边界见[本地验收记录](archive/verification/bootstrap-0.2.0.md)。
