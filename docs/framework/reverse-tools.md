@@ -17,3 +17,23 @@
 | pwntools、Unblob、TShark 4.x、sigrok-cli 0.7.2 | Linux 专用 | macOS 返回 HOST_UNSUPPORTED，不下载 |
 
 Ghidra 使用已公布的 SHA-256 `ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387d2d4db`。不安装 Hopper、IDA 或 JEB。Node.js 只检测，壳不安装。
+
+## 工具选择与命名操作
+
+旧五字段 scope 继续使用上方主机 bundle。`reverse-scope/v2` 只检查 `target.tools` 声明的必要工具；仅需 REA 时，Ghidra、JADX、WABT 等工具缺失不会阻塞。必要工具缺失且没有 `reverse-install` 时返回 `DEPENDENCY_MISSING`，不下载、不执行目标；有安装授权也只能安装锁中固定且完整性可校验的工具。
+
+动态动作只允许 `reverse-operations.lock.json` 中登记的操作。范围提供操作名和命名目标，不提供任意 argv、shell、重定向或替代目标。默认锁只含 ADB 基线／只读观察和命名网络提供方，不含修改、恢复或批量危险操作；业务项目以后新增此类操作时仍需独立变更、当次授权和实机验收。
+
+## 权限与状态
+
+| 授权 | 只控制 |
+|---|---|
+| `reverse` | 进入逆向流程 |
+| `reverse-install` | 安装锁定且必要的工具 |
+| `device-connect` | 连接命名设备 |
+| `device-observe` | 只读设备基线和状态观察 |
+| `network-capture` | 命名设备及端点的网络观察 |
+| `device-change` | 单设备试点和独立恢复动作 |
+| `device-rollout` | 已验证试点向兼容命名设备逐台复制 |
+
+工具链、观察、运行验证和设备变更分别报告。没有实际执行时保持 `NOT_RUN` 或 `NOT_AUTHORIZED`；工具 `READY` 不代表运行或修改成功。假执行器只验证离线控制逻辑，真实设备、真实网络、私有认证、可恢复性和部署没有实测证据时必须写 `NOT_RUN`，不得写 `PASS`。

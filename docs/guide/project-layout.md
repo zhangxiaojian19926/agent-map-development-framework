@@ -59,6 +59,8 @@ knowledge     = 已验证且以后仍值得复用什么
 
 静态关系地图不证明业务运行成功；`initialization=COMPLETE` 不代替具体业务 Scenario、集成验证或发布批准。
 
+明确逆向任务另使用 `docs/project/reverse/<id>.md` 保存脱敏公开摘要，原始输出、行为契约和设备状态放在 `.framework/local-state/reverse/`。前者不是源码地图证据，后者不提交；业务模块和设备协议适配器只在实际项目获批准后建立，公共壳不预建空控制台或品牌模块。详见[逆向工具与授权边界](../framework/reverse-tools.md)。
+
 ## 业务源码和测试归置
 
 - 已有源码原地接入，在 `docs/project/resources.md` 和模块资料中记录真实路径。

@@ -1,0 +1,33 @@
+{
+  "schema": "reverse-operations/v1",
+  "operations": {
+    "adb.baseline": {
+      "action": "device",
+      "grant": "device-observe",
+      "read_only": true,
+      "argv": ["adb", "-s", "{device_id}", "shell", "getprop"],
+      "timeout": 30
+    },
+    "adb.get-state": {
+      "action": "device",
+      "grant": "device-observe",
+      "read_only": true,
+      "argv": ["adb", "-s", "{device_id}", "get-state"],
+      "timeout": 30
+    },
+    "adb.list-packages": {
+      "action": "device",
+      "grant": "device-observe",
+      "read_only": true,
+      "argv": ["adb", "-s", "{device_id}", "shell", "pm", "list", "packages"],
+      "timeout": 30
+    },
+    "network.capture": {
+      "action": "network",
+      "grant": "network-capture",
+      "read_only": true,
+      "provider": "network",
+      "timeout": 30
+    }
+  }
+}

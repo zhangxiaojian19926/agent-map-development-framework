@@ -82,12 +82,13 @@ def machine_name(machine=None):
     return name
 
 
-def prepare_reverse(root, scope, grants, runner=None, platform=None, present=None, opener=None, machine=None):
-    """Install required tools once, then record a static observation.
-
-    Tools without a checksum are reported and do not block the observation.
-    run and network actions are not executed.
-    """
+def prepare_reverse(root, scope, grants, runner=None, platform=None, present=None, opener=None, machine=None,
+                    device_executor=None, operation_runner=None):
+    """Prepare only the tools required by the selected reverse workflow."""
+    if operation_runner is None and runner is None:
+        def operation_runner(argv, cwd, timeout):
+            from .process import run
+            return run(argv, cwd, timeout, {})
     runner = runner or default_runner
     grants = set(grants or ())
     if 'reverse' not in grants:
@@ -95,12 +96,16 @@ def prepare_reverse(root, scope, grants, runner=None, platform=None, present=Non
     if 'write' not in grants:
         raise ValueError('CONSENT_REQUIRED')
     lock = load_lock()
-    names = bundle_for(platform)
-    known = set(present) if present is not None else detect_installed(root, names, lock)
+    from .reverse_v2 import execute_v2, is_v2, validate_scope
+    versioned = is_v2(scope)
     host = host_name(platform)
+    if host not in lock['bundles']:
+        raise ValueError('HOST_UNSUPPORTED')
+    names = validate_scope(scope, lock, host) if versioned else bundle_for(host)
+    known = set(present) if present is not None else detect_installed(root, names, lock)
     machine = machine_name(machine)
-    required = [name for name in names if is_required(name, lock)]
-    optional = [name for name in names if name not in required]
+    required = names if versioned else [name for name in names if is_required(name, lock)]
+    optional = [] if versioned else [name for name in names if name not in required]
     missing_required = [name for name in required if name not in known]
     skipped = []
     extra = []
@@ -113,8 +118,13 @@ def prepare_reverse(root, scope, grants, runner=None, platform=None, present=Non
         else:
             skipped.append(name)
     report = {'status': 'READY', 'bundle': names, 'missing': missing_required, 'install': [], 'skipped': skipped}
+    if versioned:
+        report.update({'toolchain_status': 'READY', 'observation_status': 'NOT_RUN',
+                       'runtime_validation': 'NOT_RUN', 'device_change_status': 'NOT_REQUESTED'})
     if missing_required and 'reverse-install' not in grants:
         report['status'] = 'DEPENDENCY_MISSING'
+        if versioned:
+            report['toolchain_status'] = 'DEPENDENCY_MISSING'
         return report
     for name in missing_required + extra:
         if 'reverse-install' not in grants:
@@ -135,8 +145,14 @@ def prepare_reverse(root, scope, grants, runner=None, platform=None, present=Non
     if not report.get('failed'):
         report['missing'] = [name for name in required if name not in known]
         report['status'] = 'READY' if not report['missing'] else 'PROVIDER_MISSING'
+    if versioned:
+        report['toolchain_status'] = report['status']
     if report['status'] == 'READY' and scope is not None:
-        report['observation'] = record_scope(root, scope, runner)
+        if versioned:
+            report.update(execute_v2(root, scope, grants, runner, lock,
+                                     device_executor=device_executor, operation_runner=operation_runner))
+        else:
+            report['observation'] = record_scope(root, scope, runner)
     marker = {'status': report['status'], 'install': report['install'], 'bundle': names,
               'skipped': report['skipped']}
     atomic(root, '.framework/local-state/reverse-bundle.json', json.dumps(marker, indent=2) + '\n')
@@ -208,8 +224,13 @@ def record_scope(root, scope, runner):
                'exit_code': result.get('exit_code', 1),
                'limitations': ['REA observation is not source evidence and runtime_validation is NOT_RUN',
                                'run and network actions are not executed by the shell']}
+    raw_message = 'No raw REA output was produced.'
     if result.get('stdout'):
-        payload['raw_sha256'] = hashlib.sha256(result['stdout'].encode()).hexdigest()
+        output = result['stdout']
+        payload['raw_sha256'] = hashlib.sha256(output.encode()).hexdigest()
+        payload['raw_path'] = '.framework/local-state/rea/' + scope['id'] + '.raw'
+        atomic(root, payload['raw_path'], output)
+        raw_message = 'Raw REA output stays in local-state and is not copied here.'
     atomic(root, '.framework/local-state/rea/' + scope['id'] + '.json', json.dumps(payload, indent=2) + '\n')
     summary = '\n'.join([
         '# Reverse observation %s' % scope['id'], '',
@@ -217,7 +238,7 @@ def record_scope(root, scope, runner):
         'Requested action: %s' % scope['action'], '',
         'Analysis: %s' % observed, '',
         'Target sha256: `%s`' % scope['sha256'], '',
-        'Raw REA output stays in local-state and is not copied here.', '',
+        raw_message, '',
         'Continue with the normal design, specification, plan, implementation and verification workflow.', ''])
     atomic(root, 'docs/project/reverse/' + scope['id'] + '.md', summary)
     return {'id': scope['id'], 'status': observed, 'command': command}
@@ -237,6 +258,15 @@ def reverse_report(root):
                 if (not target.is_file() or target.is_symlink()
                         or hashlib.sha256(target.read_bytes()).hexdigest() != recorded['sha256']):
                     return {'status': 'STALE', 'id': recorded['id']}
+                if recorded.get('raw_path'):
+                    raw = safe_path(root, recorded['raw_path'])
+                    if (not raw.is_file()
+                            or hashlib.sha256(raw.read_bytes()).hexdigest() != recorded['raw_sha256']):
+                        return {'status': 'STALE', 'id': recorded['id']}
+        from .reverse_v2 import report_v2
+        versioned = report_v2(root)
+        if versioned and versioned['status'] != 'READY':
+            return versioned
         if marker.get('status') != 'READY':
             return {'status': 'PROVIDER_MISSING', 'missing': marker.get('skipped', [])}
         return {'status': 'READY'}

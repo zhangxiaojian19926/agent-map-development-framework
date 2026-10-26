@@ -111,6 +111,18 @@ class ReverseTests(unittest.TestCase):
                                'evidence': [{'path': 'docs/project/reverse/sample.md', 'sha256': 'abc', 'anchor': 'def api()'}]}],
             'uncertainties': []})
         self.assertIn('REVERSE_NOT_SOURCE', errors)
+        for path in ('docs/project/reverse/v2-public.md',
+                     '.framework/local-state/reverse/v2/case/behavior-contract.json',
+                     '.framework/local-state/reverse/v2/case/raw/observe-1.txt'):
+            catalog = {'modules': {'api': {'path': 'api', 'sources': {path: 'abc'}}}}
+            payload = {'module_summaries': [{'id': 'api', 'summary': 'Api'}],
+                       'relationships': [{'id': 'edge', 'from': 'api', 'to': 'api', 'kind': 'contains',
+                                          'interface': 'entry', 'provenance': 'STATIC_SUPPORTED',
+                                          'runtime_validation': 'NOT_RUN',
+                                          'evidence': [{'path': path, 'sha256': 'abc', 'anchor': 'def api()'}]}],
+                       'uncertainties': []}
+            with self.subTest(path=path):
+                self.assertIn('REVERSE_NOT_SOURCE', self.maps.validate_map(Path('/tmp'), catalog, payload))
 
     def test_archive_download_checks_hash_and_does_not_run_without_grant(self):
         downloads = importlib.import_module('framework_core.reverse_downloads')
