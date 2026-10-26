@@ -16,13 +16,18 @@
 
 ## 线上验证
 
-- 目标提交：`NOT_RUN`
-- 验证工作流运行 ID：`NOT_RUN`
-- Ubuntu：`NOT_RUN`
-- macOS：`NOT_RUN`
-- checkout / setup-python 的 Node.js 20 弃用警告：`NOT_RUN`
-- 发布工作流实测：`NOT_RUN`；本变更不主动触发发布。
+- 目标提交：`1187767b442c79b81c56dc435c2a3a5285b3763b`
+- 验证工作流运行 ID：`40326687726`；状态 `completed`，结论 `success`，运行提交与目标提交一致
+- Ubuntu：`success`；任务 `validate (ubuntu-latest)`，任务 ID `121585102282`
+- macOS：`success`；任务 `validate (macos-latest)`，任务 ID `121585102589`
+- checkout / setup-python 的 Node.js 20 弃用警告：两个任务的检查注解中均未出现，线上警告已消除
+- Ubuntu 平台提示：`ubuntu-latest` 标签将迁移至 Ubuntu 26；不属于本变更的消除目标
+- macOS 平台提示：arm64 runner 容量限制可能延长排队时间；不属于本变更的消除目标
+- 发布工作流实测：`NOT_RUN`；本变更未主动触发发布。
 
 ## 最终范围
 
-待线上验收后记录最终提交、工作树、其他活跃变更和未验证项。
+- 功能提交 `1187767b442c79b81c56dc435c2a3a5285b3763b` 已推送到 `origin/main`，两个工作流仍保持原有触发器、权限、并发、验证矩阵和发布条件。
+- `add-project-bootstrap-and-maps` 与 `agent-led-project-intake` 在功能提交及后续工作树中均无改动。
+- 已完成本地契约测试、完整测试、框架检查、严格规格校验及目标提交的 Ubuntu/macOS 实际 CI 验收。
+- 未验证项仅为发布工作流实测，状态保持 `NOT_RUN`；平台 runner 迁移和容量提示不属于本变更缺陷。
