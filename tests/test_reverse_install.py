@@ -129,7 +129,10 @@ class TransactionInstallTests(unittest.TestCase):
             packed.addfile(item, io.BytesIO(b'x'))
         original = self.downloads.tarfile.TarFile.extractall
         def python39_extractall(packed, path, members=None, *, numeric_owner=False):
-            return original(packed, path, members=members, numeric_owner=numeric_owner, filter='data')
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore', DeprecationWarning)
+                return original(packed, path, members=members, numeric_owner=numeric_owner)
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive = root / 'tool.tar'
