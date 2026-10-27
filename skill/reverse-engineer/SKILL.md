@@ -17,6 +17,27 @@ python3 .agent-framework/tools/framework reverse --target "$TARGET" --scope "$SC
 
 没有 `reverse-install` 时，缺失的必备工具只报告，不下载。已经装好且校验值相符的工具不会重装。版本、最小工具选择和操作锁见 [逆向工具与授权边界](../../docs/framework/reverse-tools.md)。
 
+### 自动目标驱动流程
+
+自动请求使用 `schema=reverse-request/v1`。调用方只提供稳定 `id`、目标、意图、验收、命名观察、证据和行为契约；本地文件/目录提供当前内容 SHA-256，URL 提供完整 URL 和明确网络边界。请求不得包含工具下载地址、任意版本、argv、shell 或输出路径。
+
+```text
+请求 → 本地画像 / URL 授权与私有快照 → 最小工具链计划
+     → 用户批准计划 → 安装或健康复用 → 命名适配器 → 私有证据与公开摘要
+```
+
+先预览，再由当前 Agent 将返回的计划哈希传入批准参数；用户无需手工编辑内部计划：
+
+```bash
+python3 .agent-framework/tools/framework reverse --target "$TARGET" --request "$REQUEST" --dry-run
+python3 .agent-framework/tools/framework reverse --target "$TARGET" --request "$REQUEST" \
+  --yes --allow write --allow reverse --allow reverse-install --approve toolchain=<PLAN_SHA256>
+```
+
+URL 还需要 `web-fetch`。浏览器 DOM/脚本观察、网络记录、既有登录态分别需要 `browser-observe`、`network-capture`、`web-auth`，静态授权不会隐式包含它们。默认没有真实浏览器 provider，动态观察诚实返回 `PROVIDER_MISSING`。HTTP、localhost/私网、跨域和资源预算必须在请求中明确限制；壳不执行目标二进制、不自动绕过反爬、认证或混淆。
+
+自动状态位于 `.framework/local-state/reverse/auto/<id>/`，版本化工具位于 `.framework/tools/<tool>/<version>/`。安装动作变化会产生新计划；相同目标和语义工具链的已完成观察保持幂等，未授权或缺 provider 的观察可在同计划补齐条件后恢复。
+
 ### 兼容 v1 静态观察
 
 旧 `--scope` JSON 字段只有 `id`、`target`、`sha256`、`question`、`action`。`action=static` 调用本地 `rea analyze`；`run` 和 `network` 只记录为未执行，壳不运行目标，也不打开网络。旧调用方无需增加 v2 字段。

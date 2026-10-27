@@ -1,0 +1,140 @@
+{
+  "schema": "reverse-catalog/v1",
+  "tools": {
+    "rea-agents": {
+      "installer": "npm",
+      "requires": [],
+      "entrypoint": "node_modules/.bin/rea",
+      "probe": true
+    },
+    "ghidra": {
+      "installer": "archive",
+      "requires": ["temurin-jdk"],
+      "entrypoint": "ghidra_12.1.4_PUBLIC/support/analyzeHeadless",
+      "probe": false
+    },
+    "temurin-jdk": {
+      "installer": "archive",
+      "requires": [],
+      "entrypoints": {
+        "darwin": "jdk-21.0.13+9.jdk/Contents/Home/bin/java",
+        "linux": "jdk-21.0.13+9/bin/java"
+      },
+      "probe": true,
+      "probe_expect": "21.0.13"
+    },
+    "wabt": {
+      "installer": "archive",
+      "requires": [],
+      "entrypoint": "wabt-1.0.42/bin/wasm2wat",
+      "probe": true
+    },
+    "jadx": {
+      "installer": "archive",
+      "requires": ["temurin-jdk"],
+      "entrypoint": "bin/jadx",
+      "probe": true
+    },
+    "apktool": {
+      "installer": "archive",
+      "requires": ["temurin-jdk"],
+      "entrypoint": "apktool.jar",
+      "probe": false
+    }
+  },
+  "capabilities": {
+    "binary.static.generic": {
+      "tools": ["rea-agents"],
+      "adapter": "binary.static.rea",
+      "targets": ["native"]
+    },
+    "binary.static.native": {
+      "tools": ["ghidra"],
+      "adapter": "binary.static.ghidra",
+      "targets": ["native"]
+    },
+    "android.static.bytecode": {
+      "tools": ["jadx"],
+      "adapter": "android.static.jadx",
+      "targets": ["android"]
+    },
+    "android.static.resources": {
+      "tools": ["apktool"],
+      "adapter": "android.static.apktool",
+      "targets": ["android"]
+    },
+    "wasm.static": {
+      "tools": ["wabt"],
+      "adapter": "wasm.static.wabt",
+      "targets": ["wasm", "web_snapshot"]
+    },
+    "web.static.resources": {
+      "tools": [],
+      "adapter": "web.static.resources",
+      "targets": ["web_snapshot", "url"]
+    },
+    "web.dynamic.dom": {
+      "tools": [],
+      "adapter": "web.dynamic.browser",
+      "targets": ["web_snapshot", "url"],
+      "grant": "browser-observe"
+    },
+    "web.dynamic.network": {
+      "tools": [],
+      "adapter": "web.dynamic.browser",
+      "targets": ["web_snapshot", "url"],
+      "grant": "network-capture"
+    }
+  },
+  "adapters": {
+    "binary.static.rea": {
+      "action": "static",
+      "tools": ["rea-agents"],
+      "grant": "reverse",
+      "timeout": 180,
+      "argv": ["{tool_path}", "analyze", "{target_path}", "--json"]
+    },
+    "binary.static.ghidra": {
+      "action": "static",
+      "tools": ["ghidra", "temurin-jdk"],
+      "grant": "reverse",
+      "timeout": 300,
+      "argv": ["{tool_path}", "{output_path}", "reverse-project", "-import", "{target_path}", "-overwrite"]
+    },
+    "android.static.jadx": {
+      "action": "static",
+      "tools": ["jadx", "temurin-jdk"],
+      "grant": "reverse",
+      "timeout": 300,
+      "argv": ["{tool_path}", "-d", "{output_path}", "{target_path}"]
+    },
+    "android.static.apktool": {
+      "action": "static",
+      "tools": ["apktool", "temurin-jdk"],
+      "grant": "reverse",
+      "timeout": 300,
+      "argv": ["{jdk_path}", "-jar", "{tool_path}", "d", "-f", "-o", "{output_path}", "{target_path}"]
+    },
+    "wasm.static.wabt": {
+      "action": "static",
+      "tools": ["wabt"],
+      "grant": "reverse",
+      "timeout": 120,
+      "argv": ["{tool_path}", "{target_path}", "-o", "{output_path}"]
+    },
+    "web.static.resources": {
+      "action": "static",
+      "tools": [],
+      "grant": "reverse",
+      "timeout": 30,
+      "provider": "builtin-web-static"
+    },
+    "web.dynamic.browser": {
+      "action": "browser",
+      "tools": [],
+      "grant": "browser-observe",
+      "timeout": 60,
+      "provider": "browser"
+    }
+  }
+}

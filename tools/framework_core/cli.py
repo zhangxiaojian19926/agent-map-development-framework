@@ -94,6 +94,15 @@ def main(argv=None):
             report = execute_intake(plan, grants, auth={'ssh_agent': args.ssh_agent} if args.ssh_agent else None)
             return output(report, 0 if report['status'] == 'PREPARED' else 5)
         if args.action == 'reverse':
+            if args.request:
+                from .reverse_auto import execute_auto
+                request_path = Path(args.request)
+                if request_path.is_symlink() or not request_path.is_file() or request_path.stat().st_size > 1024 * 1024:
+                    raise ValueError('INVALID_REQUEST_FILE')
+                request = json.loads(request_path.read_text(encoding='utf-8'))
+                approvals = dict(item.split('=', 1) for item in args.approve)
+                report = execute_auto(root, request, set(args.allow), approvals, dry_run=args.dry_run)
+                return output(report, 0 if report['status'] in ('READY', 'DRY_RUN', 'SNAPSHOT_REQUIRED') else 5)
             from .reverse import prepare_reverse
             if args.dry_run:
                 return output({'action': 'reverse', 'required_capabilities': ['write', 'reverse'], 'target': str(root)})

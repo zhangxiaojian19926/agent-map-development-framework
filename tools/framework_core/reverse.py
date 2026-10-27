@@ -246,9 +246,14 @@ def record_scope(root, scope, runner):
 
 def reverse_report(root):
     try:
+        from .reverse_auto import auto_report
+        automatic = auto_report(root)
+        if automatic and automatic['status'] == 'STALE':
+            return {'status': 'STALE', 'automatic': automatic}
         marker_path = safe_path(root, '.framework/local-state/reverse-bundle.json')
         if not marker_path.is_file():
-            return {'status': 'NOT_CONFIGURED'}
+            return ({'status': 'READY', 'automatic': automatic} if automatic
+                    else {'status': 'NOT_CONFIGURED'})
         marker = json.loads(marker_path.read_text(encoding='utf-8'))
         folder = safe_path(root, '.framework/local-state/rea')
         if folder.is_dir():
@@ -268,7 +273,7 @@ def reverse_report(root):
         if versioned and versioned['status'] != 'READY':
             return versioned
         if marker.get('status') != 'READY':
-            return {'status': 'PROVIDER_MISSING', 'missing': marker.get('skipped', [])}
-        return {'status': 'READY'}
+            return {'status': 'PROVIDER_MISSING', 'missing': marker.get('skipped', []), 'automatic': automatic}
+        return {'status': 'READY', 'automatic': automatic}
     except (OSError, ValueError, KeyError, json.JSONDecodeError):
         return {'status': 'PROVIDER_MISSING'}

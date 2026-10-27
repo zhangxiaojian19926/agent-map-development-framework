@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 import unicodedata
 
-CAPABILITIES = {'write', 'agent', 'index', 'index-install', 'hooks', 'clone', 'local-clone', 'openspec', 'auth', 'reverse', 'reverse-install', 'package'}
+CAPABILITIES = {'write', 'agent', 'index', 'index-install', 'hooks', 'clone', 'local-clone', 'openspec', 'auth', 'reverse', 'reverse-install', 'web-fetch', 'browser-observe', 'network-capture', 'web-auth', 'package'}
 
 
 def encoded(value):
