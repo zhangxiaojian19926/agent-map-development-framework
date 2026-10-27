@@ -87,7 +87,12 @@ def extract_archive(archive, kind, staging, max_files=10000, max_extract_bytes=1
                 safe_member(item.name, item.size, limits)
                 if item.issym() or item.islnk() or not (item.isfile() or item.isdir()):
                     raise ValueError('ARCHIVE_UNSAFE')
-            packed.extractall(staging, filter='data')
+            # Python 3.9 lacks the filter parameter; the member checks above remain mandatory.
+            import inspect
+            if 'filter' in inspect.signature(packed.extractall).parameters:
+                packed.extractall(staging, filter='data')
+            else:
+                packed.extractall(staging)
     else:
         raise ValueError('INSTALL_FAILED')
     return staging

@@ -120,6 +120,27 @@ class TransactionInstallTests(unittest.TestCase):
             healthy = self.install.inspect_installed(root, 'wabt', '1', runner=self.runner(calls), probe=True)
             self.assertEqual(healthy['status'], 'READY')
 
+    def test_tar_extract_supports_python39_signature(self):
+        from unittest import mock
+        stream = io.BytesIO()
+        with tarfile.open(fileobj=stream, mode='w') as packed:
+            item = tarfile.TarInfo('tool/bin/tool')
+            item.size = 1
+            packed.addfile(item, io.BytesIO(b'x'))
+        original = self.downloads.tarfile.TarFile.extractall
+        def python39_extractall(packed, path, members=None, *, numeric_owner=False):
+            return original(packed, path, members=members, numeric_owner=numeric_owner, filter='data')
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive = root / 'tool.tar'
+            archive.write_bytes(stream.getvalue())
+            staging = root / 'staging'
+            staging.mkdir()
+            with mock.patch.object(self.downloads.tarfile.TarFile, 'extractall',
+                                   new=python39_extractall):
+                self.downloads.extract_archive(archive, 'tar', staging)
+            self.assertEqual((staging / 'tool/bin/tool').read_text(), 'x')
+
     def test_malicious_archives_and_expand_limits_are_rejected(self):
         cases = [zip_bytes([('../escape', 'bad')]), tar_link_bytes(), zip_bytes([('a', '1'), ('b', '2')])]
         for index, payload in enumerate(cases):
