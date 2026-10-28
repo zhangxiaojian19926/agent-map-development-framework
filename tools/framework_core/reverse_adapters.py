@@ -300,7 +300,7 @@ def behavior_contract(request, plan, records):
             'source_map_evidence': False, 'implementation_approved': False}
 
 
-def public_summary(request, plan, records, toolchain_status):
+def public_summary(request, plan, records, toolchain_status, product=None):
     statuses = ','.join(record['id'] + '=' + record['status'] for record in records)
     raw_states = ','.join(sorted({record['raw_status'] for record in records}))
     lines = ['# Reverse observation ' + request['id'], '',
@@ -315,4 +315,7 @@ def public_summary(request, plan, records, toolchain_status):
              'Raw evidence: `' + raw_states + '`', '',
              'Raw web/tool output is private; secrets and response bodies are not copied here.', '',
              'Reverse evidence is not source-map evidence and does not approve implementation.', '']
+    if product is not None:
+        from .product_recon import product_public_block
+        lines.append(product_public_block(product))
     return '\n'.join(lines)

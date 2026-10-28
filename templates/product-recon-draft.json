@@ -1,0 +1,10 @@
+{
+  "schema": "product-recon-draft/v1",
+  "id": "replace-with-reverse-request-id",
+  "plan_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "screens": [],
+  "flows": [],
+  "components": [],
+  "entities": [],
+  "exclusions": []
+}

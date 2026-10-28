@@ -28,6 +28,12 @@ Ghidra 使用已公布的 SHA-256 `ddac49f903da9d5bac833e5cc79395098b9c33cfd3279
 
 网页默认仅 HTTPS GET、隔离无凭据会话和显式 origin 列表，每次重定向及 DNS 结果都重新检查，限制资源数、总字节和超时。HTML、JavaScript、DOM、console、截图、HAR、Cookie 和 Authorization 均按私有证据处理，公开摘要只含状态和脱敏结论。静态资源分析使用标准库，不启动浏览器；真实浏览器 provider 默认未安装，不能用静态结果冒充动态行为。
 
+## 可选产品行为观察
+
+自动 `reverse --request` 可显式附加 `--product-recon <draft.json>`，输入独立的 `product-recon-draft/v1`，不改变 `reverse-request/v1` 或工具链计划哈希。草案由当前 Agent 根据已授权私有证据整理；框架只校验结构、资源预算、计划绑定和证据引用，不自动理解截图、DOM、脚本或网络原文。S/F/C/E ID 必须唯一，交叉引用必须存在；事实观察、动态观察和推断分别使用 `STATIC_SUPPORTED`、`DYNAMIC_OBSERVED`、`INFERRED`，未观察状态不得补成事实。
+
+完整 `product-recon/v1` 写入 `.framework/local-state/reverse/auto/<id>/product-recon.json`，保持 `runtime_validation=NOT_RUN`、`source_map_evidence=False`、`implementation_approved=False`。`docs/project/reverse/<id>.md` 的受管产品区块只含 ID、数量、provenance、confidence、状态统计和安全排除分类，不复制名称、目的、步骤、字段、关系、排除原因或其他草案自由文本。相同输入确定性幂等；更新须完整校验并原子替换，失败保留旧产物。dry-run 只读预览且不写文件，旧 scope、v2、设备动作和非逆向命令不支持该选项。
+
 ## 权限与状态
 
 | 授权 | 只控制 |

@@ -38,6 +38,22 @@ URL 还需要 `web-fetch`。浏览器 DOM/脚本观察、网络记录、既有�
 
 自动状态位于 `.framework/local-state/reverse/auto/<id>/`，版本化工具位于 `.framework/tools/<tool>/<version>/`。安装动作变化会产生新计划；相同目标和语义工具链的已完成观察保持幂等，未授权或缺 provider 的观察可在同计划补齐条件后恢复。
 
+自动 `reverse --request` 命令可附加 `--summary`，复用原报告与退出码并输出六段式中文摘要。摘要只展示状态、工具动作及固定产物路径，不读取或输出 HTML、脚本、DOM、抓包、反编译正文或凭据；不加参数仍输出原 JSON。旧 `reverse --scope` 和其他动作不支持该参数，会在业务执行前返回输入错误。
+
+### 可选产品行为观察
+
+只有需要根据已授权观察重建产品或 UI 时，才由当前 Agent 整理 `product-recon-draft/v1` 草案。先 dry-run 取得计划哈希，再复制 `.agent-framework/templates/product-recon-draft.json`，填写稳定 S/F/C/E ID、证据引用、provenance、confidence、已观察/未观察状态和排除范围。框架不从自由文本猜测屏幕或流程，也不自动读取原始证据生成草案。
+
+```bash
+python3 .agent-framework/tools/framework reverse --target "$TARGET" --request "$REQUEST" \
+  --product-recon "$DRAFT" --dry-run
+python3 .agent-framework/tools/framework reverse --target "$TARGET" --request "$REQUEST" \
+  --product-recon "$DRAFT" --yes --allow write --allow reverse \
+  --approve toolchain=<PLAN_SHA256>
+```
+
+事实条目只能引用当前计划中已成功且 provenance 相符的观察；推断不得引用观察，未观察状态保持未观察。完整 `product-recon.json` 位于自动逆向私有目录，公开摘要只增加 ID、统计、证据分类和固定交接状态，不复制草案自由文本。相同草案幂等，合法更新原子替换派生视图，非法更新保留旧产物。该视图只交回设计和 OpenSpec，不自动创建需求、批准实现或声明运行验证通过；未提供 `--product-recon` 时既有行为不变。
+
 ### 兼容 v1 静态观察
 
 旧 `--scope` JSON 字段只有 `id`、`target`、`sha256`、`question`、`action`。`action=static` 调用本地 `rea analyze`；`run` 和 `network` 只记录为未执行，壳不运行目标，也不打开网络。旧调用方无需增加 v2 字段。

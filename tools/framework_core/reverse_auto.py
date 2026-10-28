@@ -89,7 +89,8 @@ def summarize_observations(records):
 
 
 def execute_auto(root, request, grants, approvals=None, dry_run=False, opener=None, runner=None,
-                 provider=None, platform=None, machine=None, snapshot=None, resolver=None):
+                 provider=None, platform=None, machine=None, snapshot=None, resolver=None,
+                 product_draft=None):
     approvals = approvals or {}
     grants = set(grants)
     validate_request(request)
@@ -108,9 +109,16 @@ def execute_auto(root, request, grants, approvals=None, dry_run=False, opener=No
             return manifest
     profile = profile_snapshot(root, request, manifest) if manifest else profile_request(request)
     plan = build_plan(root, request, profile, catalog, lock, platform, machine, probe=False)
+    product_preview = None
+    if product_draft is not None:
+        from .product_recon import preview_product_recon
+        product_preview = preview_product_recon(product_draft, request, plan)
     if dry_run:
-        return {'status': 'DRY_RUN', 'plan': plan, 'plan_sha256': plan.get('plan_sha256'),
-                'required_grants': plan.get('required_grants', [])}
+        result = {'status': 'DRY_RUN', 'plan': plan, 'plan_sha256': plan.get('plan_sha256'),
+                  'required_grants': plan.get('required_grants', [])}
+        if product_preview is not None:
+            result['product_recon'] = product_preview
+        return result
     if plan['status'] != 'READY':
         return {'status': plan['status'], 'plan': plan, 'toolchain_status': 'BLOCKED',
                 'observation_status': 'NOT_RUN', 'runtime_validation': 'NOT_RUN'}
@@ -118,8 +126,11 @@ def execute_auto(root, request, grants, approvals=None, dry_run=False, opener=No
     atomic(root, auto_root(request['id']) + '/request.json', encoded(request))
     approved = approvals.get('toolchain')
     if approved is None:
-        return {'status': 'PLAN_APPROVAL_REQUIRED', 'plan': plan, 'plan_sha256': plan['plan_sha256'],
-                'plan_path': saved_plan, 'required_grants': plan['required_grants']}
+        result = {'status': 'PLAN_APPROVAL_REQUIRED', 'plan': plan, 'plan_sha256': plan['plan_sha256'],
+                  'plan_path': saved_plan, 'required_grants': plan['required_grants']}
+        if product_preview is not None:
+            result['product_recon'] = product_preview
+        return result
     if approved != plan['plan_sha256']:
         return {'status': 'PLAN_CONFLICT', 'expected': plan['plan_sha256'], 'approved': approved,
                 'plan_path': saved_plan}
@@ -140,19 +151,29 @@ def execute_auto(root, request, grants, approvals=None, dry_run=False, opener=No
                for observation in request['observations']]
     observation_status = summarize_observations(records)
     contract = None
+    product_result = None
     if observation_status == 'RECORDED':
         contract = behavior_contract(request, plan, records)
         atomic(root, auto_root(request['id']) + '/behavior-contract.json', encoded(contract))
+        if product_draft is not None:
+            from .product_recon import generate_product_recon
+            product_result = generate_product_recon(root, request, plan, contract, records, product_draft)
+    elif product_draft is not None:
+        raise ValueError('PRODUCT_RECON_EVIDENCE: behavior contract is not ready')
     if request['evidence']['public']:
         atomic(root, 'docs/project/reverse/' + request['id'] + '.md',
-               public_summary(request, plan, records, 'READY'))
-    return {'status': 'READY' if observation_status == 'RECORDED' else 'PARTIAL',
-            'plan_sha256': plan['plan_sha256'], 'plan_path': saved_plan,
-            'toolchain_status': 'READY', 'installation': installation,
-            'observation_status': observation_status, 'runtime_validation': 'NOT_RUN',
-            'observations': [{'id': record['id'], 'status': record['status']} for record in records],
-            'behavior_contract': contract['schema'] if contract else 'NOT_READY',
-            'snapshot_sha256': manifest['snapshot_sha256'] if manifest else None}
+               public_summary(request, plan, records, 'READY',
+                              product=product_result['product'] if product_result else None))
+    result = {'status': 'READY' if observation_status == 'RECORDED' else 'PARTIAL',
+              'plan_sha256': plan['plan_sha256'], 'plan_path': saved_plan,
+              'toolchain_status': 'READY', 'installation': installation,
+              'observation_status': observation_status, 'runtime_validation': 'NOT_RUN',
+              'observations': [{'id': record['id'], 'status': record['status']} for record in records],
+              'behavior_contract': contract['schema'] if contract else 'NOT_READY',
+              'snapshot_sha256': manifest['snapshot_sha256'] if manifest else None}
+    if product_result is not None:
+        result['product_recon'] = {key: product_result[key] for key in ('status', 'path', 'sha256')}
+    return result
 
 
 def auto_report(root):

@@ -37,6 +37,7 @@ def parser():
     p.add_argument('--reason', default='git-event')
     p.add_argument('--scope', help='Reverse scope JSON: id, target, sha256, question, action')
     p.add_argument('--request', help='Human startup input; current agent supplies the path')
+    p.add_argument('--product-recon', help='Optional product-recon-draft/v1 JSON for automatic reverse')
     p.add_argument('--staging', help='Private launch directory outside target and framework')
     p.add_argument('--result', help='Current-session analysis envelope JSON')
     p.add_argument('--protocol', choices=['v1', 'v2'], default='v1')
@@ -57,6 +58,8 @@ def main(argv=None):
     try:
         safe_path(root, '.')
         root = root.resolve()
+        if args.product_recon and not (args.action == 'reverse' and args.request):
+            raise ValueError('PRODUCT_RECON_NOT_SUPPORTED: use automatic reverse --request')
         if args.action == 'accept-docs':
             from .project_docs import publish_project_docs
             if args.dry_run:
@@ -100,8 +103,13 @@ def main(argv=None):
                 if request_path.is_symlink() or not request_path.is_file() or request_path.stat().st_size > 1024 * 1024:
                     raise ValueError('INVALID_REQUEST_FILE')
                 request = json.loads(request_path.read_text(encoding='utf-8'))
+                product_draft = None
+                if args.product_recon:
+                    from .product_recon import read_product_draft
+                    product_draft = read_product_draft(args.product_recon)
                 approvals = dict(item.split('=', 1) for item in args.approve)
-                report = execute_auto(root, request, set(args.allow), approvals, dry_run=args.dry_run)
+                report = execute_auto(root, request, set(args.allow), approvals, dry_run=args.dry_run,
+                                      product_draft=product_draft)
                 return output(report, 0 if report['status'] in ('READY', 'DRY_RUN', 'SNAPSHOT_REQUIRED') else 5)
             from .reverse import prepare_reverse
             if args.dry_run:
