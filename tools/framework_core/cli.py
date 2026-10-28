@@ -38,6 +38,7 @@ def parser():
     p.add_argument('--scope', help='Reverse scope JSON: id, target, sha256, question, action')
     p.add_argument('--request', help='Human startup input; current agent supplies the path')
     p.add_argument('--product-recon', help='Optional product-recon-draft/v1 JSON for automatic reverse')
+    p.add_argument('--design-handoff', help='Existing automatic reverse ID for product design handoff')
     p.add_argument('--staging', help='Private launch directory outside target and framework')
     p.add_argument('--result', help='Current-session analysis envelope JSON')
     p.add_argument('--protocol', choices=['v1', 'v2'], default='v1')
@@ -58,6 +59,10 @@ def main(argv=None):
     try:
         safe_path(root, '.')
         root = root.resolve()
+        if args.design_handoff and not (args.action == 'reverse' and not args.request
+                                        and not args.scope and not args.product_recon
+                                        and not args.approve):
+            raise ValueError('DESIGN_HANDOFF_NOT_SUPPORTED: use standalone reverse --design-handoff')
         if args.product_recon and not (args.action == 'reverse' and args.request):
             raise ValueError('PRODUCT_RECON_NOT_SUPPORTED: use automatic reverse --request')
         if args.action == 'accept-docs':
@@ -97,6 +102,11 @@ def main(argv=None):
             report = execute_intake(plan, grants, auth={'ssh_agent': args.ssh_agent} if args.ssh_agent else None)
             return output(report, 0 if report['status'] == 'PREPARED' else 5)
         if args.action == 'reverse':
+            if args.design_handoff:
+                if not args.dry_run and 'write' not in args.allow:
+                    return output({'status': 'CONSENT_REQUIRED', 'required': ['write']}, 3)
+                from .product_design_handoff import handoff
+                return output(handoff(root, args.design_handoff, dry_run=args.dry_run))
             if args.request:
                 from .reverse_auto import execute_auto
                 request_path = Path(args.request)

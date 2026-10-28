@@ -34,6 +34,14 @@ Ghidra 使用已公布的 SHA-256 `ddac49f903da9d5bac833e5cc79395098b9c33cfd3279
 
 完整 `product-recon/v1` 写入 `.framework/local-state/reverse/auto/<id>/product-recon.json`，保持 `runtime_validation=NOT_RUN`、`source_map_evidence=False`、`implementation_approved=False`。`docs/project/reverse/<id>.md` 的受管产品区块只含 ID、数量、provenance、confidence、状态统计和安全排除分类，不复制名称、目的、步骤、字段、关系、排除原因或其他草案自由文本。相同输入确定性幂等；更新须完整校验并原子替换，失败保留旧产物。dry-run 只读预览且不写文件，旧 scope、v2、设备动作和非逆向命令不支持该选项。
 
+## 产品观察设计交接
+
+已有产品视图需要进入设计时，使用独立 `reverse --design-handoff <id>`。dry-run 只读预览来源和草案哈希，正式交接只需当次 `write`，不需要也不隐式获得 `reverse`、安装、网络或浏览器权限。入口与新 request、旧 scope、`--product-recon` 及计划批准组合互斥，不重放目标或观察。
+
+交接核验产品 schema 与预算、请求/计划/契约哈希、观察 request 指纹、目标新鲜度和保留证据哈希。工具后来卸载不否定已固定证据，但目标、契约、观察或保留原文变化会拒绝交接。公开 `docs/project/design-input.md` 只含来源 ID/哈希、S/F/C/E ID、provenance、confidence、安全状态 token 和排除分类；私有自由文本与原文仍只留在 `.framework/local-state/reverse/`。
+
+私有 `design-handoff.json` 记录来源、文档指纹和 `NEEDS_DESIGN_APPROVAL`，同一来源确定性幂等或原子更新。人工文档、跨来源、记录不一致和交接后人工编辑均冲突保留；第二份写入失败恢复旧公开草案。设计确认后仍走普通 DISCOVERY、OpenSpec、计划、TDD、评审和验证，交接不创建或批准需求，不生成业务代码，也不改变 `runtime_validation=NOT_RUN`。
+
 ## 权限与状态
 
 | 授权 | 只控制 |

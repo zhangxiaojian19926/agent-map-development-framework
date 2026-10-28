@@ -54,6 +54,19 @@ python3 .agent-framework/tools/framework reverse --target "$TARGET" --request "$
 
 事实条目只能引用当前计划中已成功且 provenance 相符的观察；推断不得引用观察，未观察状态保持未观察。完整 `product-recon.json` 位于自动逆向私有目录，公开摘要只增加 ID、统计、证据分类和固定交接状态，不复制草案自由文本。相同草案幂等，合法更新原子替换派生视图，非法更新保留旧产物。该视图只交回设计和 OpenSpec，不自动创建需求、批准实现或声明运行验证通过；未提供 `--product-recon` 时既有行为不变。
 
+### 产品观察设计交接
+
+需要把产品观察用于新设计时，对已有自动逆向 ID 显式执行独立交接，不与新观察或产品草案生成组合：
+
+```bash
+python3 .agent-framework/tools/framework reverse --target "$TARGET" --design-handoff <ID> --dry-run
+python3 .agent-framework/tools/framework reverse --target "$TARGET" --design-handoff <ID> --yes --allow write
+```
+
+交接只读核验请求、计划、行为契约、成功观察、目标与保留证据指纹，不重跑工具、浏览器或网络。`docs/project/design-input.md` 只包含固定结构、S/F/C/E ID、证据与未观察状态、排除分类和来源哈希，不复制私有名称、步骤、字段、原因或凭据；私有交接记录位于 `design-handoff.json`。相同来源幂等，人工草案、其他来源或交接后人工编辑会触发冲突并保留现状。
+
+交接结果始终是 `NEEDS_DESIGN_APPROVAL`。先由用户确认设计，再按 [开发流程](../../docs/framework/development-workflow.md) 进入 DISCOVERY、OpenSpec SPEC/PLAN、TDD、评审和验证；不自动创建需求、业务代码或通过结论。目标或证据过期时重新核对观察，草案冲突时人工决定保留或迁移，不强行覆盖。
+
 ### 兼容 v1 静态观察
 
 旧 `--scope` JSON 字段只有 `id`、`target`、`sha256`、`question`、`action`。`action=static` 调用本地 `rea analyze`；`run` 和 `network` 只记录为未执行，壳不运行目标，也不打开网络。旧调用方无需增加 v2 字段。

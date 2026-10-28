@@ -59,7 +59,16 @@ knowledge     = 已验证且以后仍值得复用什么
 
 静态关系地图不证明业务运行成功；`initialization=COMPLETE` 不代替具体业务 Scenario、集成验证或发布批准。
 
-明确逆向任务另使用 `docs/project/reverse/<id>.md` 保存脱敏公开摘要，原始输出、行为契约和设备状态放在 `.framework/local-state/reverse/`。显式产品行为观察的完整 `product-recon.json` 也只属于该私有目录，其公开受管区块不含草案自由文本；产品视图不是需求、实现状态或验证证据。前者不是源码地图证据，后者不提交；业务模块和设备协议适配器只在实际项目获批准后建立，公共壳不预建空控制台或品牌模块。详见[逆向工具与授权边界](../framework/reverse-tools.md)。
+明确逆向任务另使用 `docs/project/reverse/<id>.md` 保存脱敏公开摘要，原始输出、行为契约和设备状态放在 `.framework/local-state/reverse/`。显式产品行为观察的完整 `product-recon.json` 和 `design-handoff.json` 也只属于该私有目录，公开逆向区块不含草案自由文本。
+
+需要设计交接时显式运行 `reverse --design-handoff <id>`，经证据新鲜度核验后生成公开 `docs/project/design-input.md`。该文件只含固定结构、稳定 ID、证据分层、未观察/排除边界与来源哈希，保持 `NEEDS_DESIGN_APPROVAL`；人工已有草案或交接后编辑不会被覆盖。完整私有语义仍在产品视图，不复制到公开项目资料。
+
+```text
+授权观察 → product-recon.json → 显式设计交接 → design-input.md（待确认）
+→ 人工批准 → DISCOVERY / OpenSpec → modules/<module-id>/ 实现 → 验证
+```
+
+逆向证据不是源码地图证据，产品视图和交接记录不提交，也不代表需求、实现状态或验证证据。业务模块和设备协议适配器只在实际项目获批准后建立，公共壳不预建空控制台或品牌模块；单纯设计交接不改变模块结构，不发布关系地图。详见[逆向工具与授权边界](../framework/reverse-tools.md)。
 
 ## 业务源码和测试归置
 
