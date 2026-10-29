@@ -28,6 +28,14 @@
 
 候选报告只索引显式产物，不复制文件、不生成平台安装包，也不提交、推送、打 tag、上传、部署或创建 Release。真实发布仍需独立渠道适配、明确目标和本次授权。
 
+## 可选发布渠道适配
+
+已有 READY 候选且需要准备某个发布渠道的本地产物时，责任方准备 `release-channel-request/v1`。请求固定包含独立 ID、`candidate`、`channel` 和 `assets`：候选引用绑定候选 ID、请求路径及其规范化 SHA-256、候选报告 SHA-256；首版 `channel.type` 仅支持 `github-release`，目标包含受限 `owner/repo`、tag、标题及布尔 `draft`、`prerelease`；`assets` 逐项选择候选清单内文件并指定不冲突的公开文件名，不隐式复制整个目录。候选请求和报告的规范化 JSON 指纹可用 `tools/framework_core/reverse_v2.py` 中的 `canonical` 与 `sha_text` 计算，候选报告指纹按文件原字节计算。
+
+先执行 `python3 .agent-framework/tools/framework channel --target . --request <请求> --dry-run`，确认来源、目标、资产和预计产物；仅在本次获准写入时去掉 `--dry-run` 并增加 `--allow write`。非 READY 候选、候选或证据被修改、当前资产变化均在写入前拒绝；已有产物缺失、被人工修改或含额外文件时形成冲突，不自动覆盖。相同请求重复执行为 UNCHANGED，同 ID 合法变化为 UPDATED。
+
+正式执行只生成 `dist/delivery/<request-id>/` 中所选资产、`release-notes.md`、`channel-manifest.json`，以及公开报告 `docs/delivery/<request-id>-channel.md` 和私有回执 `.framework/local-state/delivery/<request-id>-channel.json`。适配器仅复制所选资产原字节并从候选公开说明生成 Release 文案，最多 100 项且总计不超过 100 MiB；报告和回执固定记录 `publish=NOT_RUN`、`execution=NOT_RUN`。本步骤不访问网络、不执行 Git、不上传、不打 tag、不创建 Release、不部署，也不运行构建或测试。人工核对本地产物后，真实发布仍需后续独立规格与明确授权。
+
 ## 交付顺序
 
 1. 将每个 Req/Scenario 关联到 task、模块、测试、环境和证据。
