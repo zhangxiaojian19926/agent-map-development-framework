@@ -25,6 +25,7 @@ def parser():
     p.add_argument('--allow', action='append', choices=sorted(CAPABILITIES), default=[])
     p.add_argument('--yes', action='store_true')
     p.add_argument('--dry-run', action='store_true')
+    p.add_argument('--summary', action='store_true', help='Human summary for doctor or automatic reverse')
     p.add_argument('--index', action='store_true')
     p.add_argument('--hooks', action='store_true')
     p.add_argument('--openspec', action='store_true')
@@ -48,8 +49,11 @@ def parser():
     return p
 
 
-def output(result, code=0):
-    print(encoded(result), end='')
+def output(result, code=0, summary=None):
+    if summary is None:
+        print(encoded(result), end='')
+    else:
+        print(summary, end='')
     return code
 
 
@@ -60,7 +64,7 @@ def main(argv=None):
         safe_path(root, '.')
         root = root.resolve()
         if args.action == 'parity':
-            unsupported = (args.operation, args.config, args.project_id, args.agent,
+            unsupported = (args.operation, args.config, args.project_id, args.agent, args.summary,
                            args.index, args.hooks, args.openspec, args.path, args.id, args.url, args.ref,
                            args.run_id, args.scope, args.product_recon, args.design_handoff, args.staging,
                            args.result, args.session_id, args.batch_id, args.ssh_agent, args.yes)
@@ -71,6 +75,8 @@ def main(argv=None):
             from .verified_feature_parity import generate
             result = generate(Path(args.target).absolute(), args.request, dry_run=args.dry_run)
             return output(result, 5 if result['overall'] in ('GAPS_OPEN', 'FAILED') else 0)
+        if args.summary and not (args.action == 'doctor' or (args.action == 'reverse' and args.request)):
+            raise ValueError('SUMMARY_NOT_SUPPORTED: use doctor or automatic reverse --request')
         if args.design_handoff and not (args.action == 'reverse' and not args.request
                                         and not args.scope and not args.product_recon
                                         and not args.approve):
@@ -132,7 +138,12 @@ def main(argv=None):
                 approvals = dict(item.split('=', 1) for item in args.approve)
                 report = execute_auto(root, request, set(args.allow), approvals, dry_run=args.dry_run,
                                       product_draft=product_draft)
-                return output(report, 0 if report['status'] in ('READY', 'DRY_RUN', 'SNAPSHOT_REQUIRED') else 5)
+                code = 0 if report['status'] in ('READY', 'DRY_RUN', 'SNAPSHOT_REQUIRED') else 5
+                summary = None
+                if args.summary:
+                    from .completion_summary import render_reverse
+                    summary = render_reverse(root, request, report)
+                return output(report, code, summary)
             from .reverse import prepare_reverse
             if args.dry_run:
                 return output({'action': 'reverse', 'required_capabilities': ['write', 'reverse'], 'target': str(root)})
@@ -187,7 +198,11 @@ def main(argv=None):
         if args.action == 'doctor':
             report = inspect_project(root)
             complete = report['status'] == 'READY' or report['initialization'] == 'COMPLETE'
-            return output(report, 0 if complete else 5)
+            summary = None
+            if args.summary:
+                from .completion_summary import render_ordinary
+                summary = render_ordinary(root, report)
+            return output(report, 0 if complete else 5, summary)
         if args.action == 'event':
             if not safe_path(root, 'framework-project.json').is_file():
                 return output({'status': 'NOT_CONFIGURED'}, 5)

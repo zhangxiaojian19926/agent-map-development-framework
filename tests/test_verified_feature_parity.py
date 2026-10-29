@@ -380,7 +380,7 @@ class CliTests(ParityCase):
 
     def test_unsupported_combinations_fail_before_execution(self):
         base = ['parity', '--target', str(self.root), '--request', str(self.request_path)]
-        for extra in (['--design-handoff', 'case'], ['--product-recon', 'missing.json'],
+        for extra in (['--summary'], ['--design-handoff', 'case'], ['--product-recon', 'missing.json'],
                       ['--scope', 'missing.json'], ['--approve', 'toolchain=' + 'a' * 64]):
             with self.subTest(extra=extra):
                 code, result = self.invoke(base + extra + ['--allow', 'write'])

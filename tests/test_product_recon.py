@@ -305,6 +305,13 @@ class CliIntegrationTests(unittest.TestCase):
         self.assertTrue(product_path.is_file())
         summary_path = self.root / 'docs/project/reverse/case.md'
         self.assertNotIn('private-account-screen', summary_path.read_text())
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            code = self.cli.main(base_args + ['--allow', 'write', '--allow', 'reverse',
+                                              '--approve', 'toolchain=' + pending['plan_sha256'],
+                                              '--product-recon', str(draft_path), '--summary'])
+        self.assertEqual(code, 0)
+        self.assertIn('product-recon.json', stdout.getvalue())
         code, default_result = self.invoke(base_args + ['--allow', 'write', '--allow', 'reverse',
                                                         '--approve', 'toolchain=' + pending['plan_sha256']])
         self.assertEqual(code, 0)

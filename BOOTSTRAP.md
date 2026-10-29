@@ -76,7 +76,7 @@ hooks、OpenSpec 仍是独立的当次授权。hooks 只标过期，并在索引
 
 恢复时读取私有启动区快照与记录并重验权限。目标的 `.framework/local-state/intake.json` 保存私有启动区与原分发位置，便于后续 Agent 找回需求；它不是权限。对同一框架版本使用原分发入口重新调用 intake，可省略 request 和已绑定的 staging，不用用户记 run-id。输入或来源变更会冲突，先核对差异和迁移范围；不得换个启动区强行覆盖已有目录。已完成接入后日常维护用目标工程的 doctor/refresh，不用旧输入覆盖后来事实。
 
-最终由 Agent 调用目标已安装的 `python3 "$TARGET/.agent-framework/tools/framework" doctor --target "$TARGET"`。只有 `initialization=COMPLETE` 才报告完整初始化；同时分别报告 PREPARED、documentation、coverage、handoff、索引和 runtime。新工程尚待设计确认时交付草案与 NEEDS_DESIGN_APPROVAL，不把它说成全完成，也不要求用户从头重来。
+最终由 Agent 调用目标已安装的 `python3 "$TARGET/.agent-framework/tools/framework" doctor --target "$TARGET"`；需要面向用户的中文完成摘要时，可在同一命令末尾加 `--summary`。摘要固定展示结果、当前流程产物、条件性未生成、未执行与限制、提交与本机状态、下一步；不加参数时默认 JSON 完全不变。只有 `initialization=COMPLETE` 才报告完整初始化；同时分别报告 PREPARED、documentation、coverage、handoff、索引和 runtime，COMPLETE 不表示业务运行或验收成功。新工程尚待设计确认时交付草案与 NEEDS_DESIGN_APPROVAL，不把它说成全完成，也不要求用户从头重来。
 
 handoff 保存项目身份、目标、模块路径/源码指纹/仓库 HEAD、规划证据、下一步和所需权限。用户说“继续”时读取 handoff 和当前 OpenSpec status/instructions/contextFiles，接续已批准计划，缺决定只问缺项。模块新增、消失或移动后重新 doctor、登记，并在结构变化时建图、在事实变化时 accept-docs。只改模块内部时地图保持 CURRENT；源码指纹变化会使 documentation 变为 STALE、initialization 变为 PARTIAL，这时核对资料原句，不重建地图。保留历史和人工内容，不能沿用旧 COMPLETE。继续开发走 [公共开发流程](docs/framework/development-workflow.md)。初始化不批准业务实现、逆向或知识内容写入。用户明确要求逆向时，才在这条流程之前增加观察：按 [版本清单](docs/framework/reverse-tools.md) 安装已有校验值的工具，做静态分析，然后回到第 5 节的设计草案和后续规格、计划、实现、验证。没有逆向要求时，不安装这些工具，流程与原来相同。`run` 和 `network` 不会被壳执行。
 

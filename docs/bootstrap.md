@@ -86,7 +86,10 @@ python3 .agent-framework/tools/framework doctor --target .
 
 ```bash
 python3 .agent-framework/tools/framework resume --target . --run-id bootstrap --yes --allow write
+python3 .agent-framework/tools/framework doctor --target . --summary
 ```
+
+`doctor` 和自动 `reverse --request` 可显式使用 `--summary`，输出结果、当前流程产物、条件性未生成、未执行与限制、提交与本机状态、下一步六段中文摘要。旧 `reverse --scope` 及其他动作不支持该参数。摘要只改变标准输出的展示形式，复用原报告和退出码，不改变授权、业务状态或副作用；默认 JSON 保持兼容。
 
 resume 重验已写文件，人工改动则停；外部步骤用带当次权限的 refresh 恢复。僵死锁先确认 PID 已结束后人工处理，不自动抢锁或删除数据。配置、人工 AGENTS、排除策略冲突时保留现状。
 
