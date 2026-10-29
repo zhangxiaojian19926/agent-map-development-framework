@@ -19,6 +19,19 @@
 | 新行为或接口 | DISCOVERY → SPEC → PLAN → APPLY → TDD → REVIEW → VERIFY | 已批准场景、实现和适用验证 |
 | 知识摄入 | 查询 → 明确内容与目标授权 → 摄入和校验 | 真实知识页、索引和日志 |
 
+## 可选：公开市场研究交接
+
+需要把竞品或市场资料带入 DISCOVERY 时，先由当前 Agent 按用户授权完成公开研究，再整理 `market-research-request/v1` 请求。请求绑定研究 ID、问题、公开 HTTP/HTTPS 来源、访问日期、声明内容 SHA-256、来源事实、Agent 推断、局限和待确认设计草案；工具本身不联网、不抓网页，也不验证来源仍在线或内容真实。
+
+```bash
+python3 tools/framework research --target . --request path/to/research-request.json --dry-run
+python3 tools/framework research --target . --request path/to/research-request.json --allow write
+```
+
+正式写入只生成 `docs/project/market-research/<id>.md` 和私有回执 `.framework/local-state/market-research/<id>.json`。报告分区展示来源事实与 Agent 推断，固定 `design_status=NEEDS_DESIGN_APPROVAL`、`source_verification=NOT_RUN` 和 `execution=NOT_RUN`；不覆盖 `docs/project/design-input.md`，不自动创建或批准 OpenSpec，不生成业务代码或发布证据。
+
+重复输入返回 `UNCHANGED`，合法更新返回 `UPDATED`；人工修改或回执不匹配会形成冲突，不会被静默覆盖。未显式运行此入口时，普通初始化、开发、逆向和发布候选流程不增加研究文件、网络或授权步骤。
+
 ## 新行为主流程
 
 ```text

@@ -16,7 +16,7 @@ from .hooks import mark_dirty
 
 def parser():
     p = argparse.ArgumentParser(description='Project-scoped development framework')
-    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'map', 'analyze-request', 'accept-analysis', 'analysis-batch', 'accept-batch', 'finalize-analysis', 'accept-docs', 'doctor', 'resume', 'refresh', 'module', 'event', 'reverse', 'parity', 'candidate', 'package'])
+    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'map', 'analyze-request', 'accept-analysis', 'analysis-batch', 'accept-batch', 'finalize-analysis', 'accept-docs', 'doctor', 'resume', 'refresh', 'module', 'event', 'reverse', 'research', 'parity', 'candidate', 'package'])
     p.add_argument('operation', nargs='?', choices=['clone', 'add', 'sync'])
     p.add_argument('--target', required=True)
     p.add_argument('--config')
@@ -63,6 +63,18 @@ def main(argv=None):
     try:
         safe_path(root, '.')
         root = root.resolve()
+        if args.action == 'research':
+            unsupported = (args.operation, args.config, args.project_id, args.agent, args.summary,
+                           args.index, args.hooks, args.openspec, args.path, args.id, args.url, args.ref,
+                           args.run_id, args.scope, args.product_recon, args.design_handoff, args.staging,
+                           args.result, args.session_id, args.batch_id, args.ssh_agent, args.yes)
+            if (not args.request or any(unsupported) or args.approve or args.protocol != 'v1'
+                    or set(args.allow) - {'write'}):
+                raise ValueError('RESEARCH_NOT_SUPPORTED: use standalone research --request with optional --dry-run or --allow write')
+            if not args.dry_run and 'write' not in args.allow:
+                return output({'status': 'CONSENT_REQUIRED', 'required': ['write']}, 3)
+            from .market_research_handoff import generate
+            return output(generate(root, args.request, dry_run=args.dry_run))
         if args.action == 'candidate':
             unsupported = (args.operation, args.config, args.project_id, args.agent, args.summary,
                            args.index, args.hooks, args.openspec, args.path, args.id, args.url, args.ref,

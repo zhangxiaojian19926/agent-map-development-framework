@@ -30,7 +30,7 @@ class CiWorkflowTests(unittest.TestCase):
         self.assertIn('cancel-in-progress: true\n', self.validate)
 
     def test_validate_matrix_and_python_contract(self):
-        self.assertIn('os: [ubuntu-latest, macos-latest]\n', self.validate)
+        self.assertIn('os: [ubuntu-24.04, macos-latest]\n', self.validate)
         self.assertIn('runs-on: ${{ matrix.os }}\n', self.validate)
         self.assertIn("python-version: '3.9'\n", self.validate)
         self.assertIn('timeout-minutes: 15\n', self.validate)
@@ -50,7 +50,7 @@ class CiWorkflowTests(unittest.TestCase):
         self.assertIn('cancel-in-progress: false\n', self.release)
 
     def test_release_runner_checkout_and_python_contract(self):
-        self.assertIn('runs-on: ubuntu-latest\n', self.release)
+        self.assertIn('runs-on: ubuntu-24.04\n', self.release)
         self.assertIn('timeout-minutes: 20\n', self.release)
         self.assertIn('fetch-depth: 0\n', self.release)
         self.assertIn('persist-credentials: true\n', self.release)
