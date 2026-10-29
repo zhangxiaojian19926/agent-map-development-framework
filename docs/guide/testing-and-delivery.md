@@ -20,6 +20,14 @@
 
 只有 FUNCTION/PASS 和有效 artifact 支持 VERIFIED；VISUAL/ACCESSIBILITY/BRAND 保留为独立诊断。MUST 项未实现、未验证或缺失必须 Scenario 时为 GAPS_OPEN，匹配功能 FAIL 时为 FAILED；S1–S4 开放问题按显式策略阻断或报告。公开报告不复制私有产品自由文本，私有回执记录来源与报告指纹。dry-run、重复、更新和失败恢复均确定性处理，不能以完成分数、文件存在或 Agent 声明替代实际验收。
 
+## 可选发布候选检查
+
+需要把已声明的构建与功能验证整理成发布候选时，责任方准备 `release-candidate-request/v1`，绑定候选 ID、版本、源码版本、公开说明、证据及 `dist/` 中明确允许公开的文件。证据使用 `delivery-evidence/v1`，每条记录包含 BUILD/FUNCTION/INTEGRATION 类别、结果、环境和公开附件哈希；PASS 必须有有效附件。工具只核验声明与附件匹配，不证明历史执行，也不运行构建或测试。
+
+先执行 `python3 .agent-framework/tools/framework candidate --target . --request <请求> --dry-run`。确认结果后，仅在本次获准写入时增加 `--allow write`。公开报告写入 `docs/delivery/<id>-candidate.md`，私有回执位于 `.framework/local-state/delivery/<id>.json`。READY 仍需至少一条 BUILD/PASS 和 FUNCTION/PASS；失败为 FAILED，缺少通过记录或其他未执行项为 GAPS_OPEN。报告始终保留 release=NOT_RUN，重复执行幂等，人工修改冲突保留，第二份写入失败恢复旧报告。
+
+候选报告只索引显式产物，不复制文件、不生成平台安装包，也不提交、推送、打 tag、上传、部署或创建 Release。真实发布仍需独立渠道适配、明确目标和本次授权。
+
 ## 交付顺序
 
 1. 将每个 Req/Scenario 关联到 task、模块、测试、环境和证据。
