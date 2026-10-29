@@ -67,6 +67,24 @@ python3 .agent-framework/tools/framework reverse --target "$TARGET" --design-han
 
 交接结果始终是 `NEEDS_DESIGN_APPROVAL`。先由用户确认设计，再按 [开发流程](../../docs/framework/development-workflow.md) 进入 DISCOVERY、OpenSpec SPEC/PLAN、TDD、评审和验证；不自动创建需求、业务代码或通过结论。目标或证据过期时重新核对观察，草案冲突时人工决定保留或迁移，不强行覆盖。
 
+### 可选证据驱动功能差距报告
+
+设计获批并完成适用实现与验证后，可显式生成差距报告。当前 Agent 根据已批准的一个 change 准备 `feature-parity-request/v1`：选择产品 S/F/C/E 集合，绑定多个 capability spec、tasks 和 `docs/verification/<change>/` 下的 `verification-evidence/v1`，逐项映射 Requirement、Scenario、task 和证据。未知或重复 ID、MUST Scenario 排除、过期哈希和跨 change 证据会拒绝；未映射目标、未实现或未验证的 MUST 项形成差距，不能通过删减规格换取通过。
+
+```text
+授权观察 → 产品视图 → 设计交接与批准 → OpenSpec SPEC/PLAN
+→ TDD / 适用环境验证 → verification-evidence/v1 → 功能差距报告
+```
+
+```bash
+python3 .agent-framework/tools/framework parity --target "$TARGET" --request "$PARITY_REQUEST" --dry-run
+python3 .agent-framework/tools/framework parity --target "$TARGET" --request "$PARITY_REQUEST" --allow write
+```
+
+工具不运行测试、目标、浏览器或网络。只有已完成 task 上匹配 Scenario 的 FUNCTION/PASS 记录及哈希匹配的 artifact 才能支持 `VERIFIED`；task 勾选、VISUAL/ACCESSIBILITY/BRAND 诊断、NOT_RUN、INFRA_ERROR 和 N/A 都不能替代功能验证。整体只报告 PASS、GAPS_OPEN 或 FAILED，开放严重问题按请求中的 S1–S4 BLOCK/REPORT 策略处理。
+
+公开 `docs/verification/<change>-parity.md` 只含稳定 ID、来源指纹、三维状态、差距、策略和证据索引；私有回执位于 `.framework/local-state/parity/<change>.json`，记录输入哈希、报告指纹和 `execution=NOT_RUN`。dry-run 零写入，相同输入幂等，合法更新原子替换，人工修改或第二份写入失败保留旧版本。结构化记录只证明所声明证据可核验，不证明历史执行真实性；责任方仍须完成适用评审和真实环境验收。
+
 ### 兼容 v1 静态观察
 
 旧 `--scope` JSON 字段只有 `id`、`target`、`sha256`、`question`、`action`。`action=static` 调用本地 `rea analyze`；`run` 和 `network` 只记录为未执行，壳不运行目标，也不打开网络。旧调用方无需增加 v2 字段。

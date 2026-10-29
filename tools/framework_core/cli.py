@@ -16,7 +16,7 @@ from .hooks import mark_dirty
 
 def parser():
     p = argparse.ArgumentParser(description='Project-scoped development framework')
-    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'map', 'analyze-request', 'accept-analysis', 'analysis-batch', 'accept-batch', 'finalize-analysis', 'accept-docs', 'doctor', 'resume', 'refresh', 'module', 'event', 'reverse', 'package'])
+    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'map', 'analyze-request', 'accept-analysis', 'analysis-batch', 'accept-batch', 'finalize-analysis', 'accept-docs', 'doctor', 'resume', 'refresh', 'module', 'event', 'reverse', 'parity', 'package'])
     p.add_argument('operation', nargs='?', choices=['clone', 'add', 'sync'])
     p.add_argument('--target', required=True)
     p.add_argument('--config')
@@ -59,6 +59,18 @@ def main(argv=None):
     try:
         safe_path(root, '.')
         root = root.resolve()
+        if args.action == 'parity':
+            unsupported = (args.operation, args.config, args.project_id, args.agent,
+                           args.index, args.hooks, args.openspec, args.path, args.id, args.url, args.ref,
+                           args.run_id, args.scope, args.product_recon, args.design_handoff, args.staging,
+                           args.result, args.session_id, args.batch_id, args.ssh_agent, args.yes)
+            if not args.request or any(unsupported) or args.approve or args.protocol != 'v1':
+                raise ValueError('PARITY_NOT_SUPPORTED: use standalone parity --request with optional --dry-run or --allow write')
+            if not args.dry_run and 'write' not in args.allow:
+                return output({'status': 'CONSENT_REQUIRED', 'required': ['write']}, 3)
+            from .verified_feature_parity import generate
+            result = generate(Path(args.target).absolute(), args.request, dry_run=args.dry_run)
+            return output(result, 5 if result['overall'] in ('GAPS_OPEN', 'FAILED') else 0)
         if args.design_handoff and not (args.action == 'reverse' and not args.request
                                         and not args.scope and not args.product_recon
                                         and not args.approve):

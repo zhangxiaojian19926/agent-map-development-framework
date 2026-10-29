@@ -42,6 +42,14 @@ Ghidra 使用已公布的 SHA-256 `ddac49f903da9d5bac833e5cc79395098b9c33cfd3279
 
 私有 `design-handoff.json` 记录来源、文档指纹和 `NEEDS_DESIGN_APPROVAL`，同一来源确定性幂等或原子更新。人工文档、跨来源、记录不一致和交接后人工编辑均冲突保留；第二份写入失败恢复旧公开草案。设计确认后仍走普通 DISCOVERY、OpenSpec、计划、TDD、评审和验证，交接不创建或批准需求，不生成业务代码，也不改变 `runtime_validation=NOT_RUN`。
 
+## 证据驱动功能差距报告
+
+`parity --request` 是设计与验证后的独立只读核验入口，不属于工具链计划，也不重放逆向。请求使用 `feature-parity-request/v1`，显式选择一个产品观察 ID、一个 change、产品集合、多个 spec、tasks、证据文件及 S1–S4 策略；所有路径和 SHA-256 必须匹配。规格只解析 `### Requirement:` 与 `#### Scenario:`，tasks 只解析复选框，工具不修改任何来源状态。
+
+验证责任方在 `docs/verification/<change>/` 提供 `verification-evidence/v1`，每条记录包含稳定 ID、Requirement、Scenario、task、test、environment、result、category、artifact 和原因分类。FUNCTION/PASS 必须关联已完成 task 及哈希匹配的本地 artifact 才支持 VERIFIED；FAIL 使对应项失败，NOT_RUN、INFRA_ERROR、N/A 不通过。VISUAL、ACCESSIBILITY、BRAND 只进入独立诊断。findings 的开放问题按显式 BLOCK/REPORT 策略处理，CLOSED 不阻断。
+
+先 `--dry-run` 零写入预览，再仅以 `--allow write` 生成。公开报告固定为 `docs/verification/<change>-parity.md`，只含 ID、输入指纹、目标/实现/验证三维状态、差距、策略和证据索引；不复制产品名称、目的、步骤、字段、关系、排除原因、凭据或原始观察。`.framework/local-state/parity/<change>.json` 保存私有回执，始终 `execution=NOT_RUN`。人工冲突、跨 change 或过期输入不覆盖旧报告；双产物写入失败恢复旧公开版本。工具验证的是证据结构与绑定，不是测试曾经真实执行的独立证明。
+
 ## 权限与状态
 
 | 授权 | 只控制 |

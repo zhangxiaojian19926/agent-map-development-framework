@@ -70,6 +70,17 @@ knowledge     = 已验证且以后仍值得复用什么
 
 逆向证据不是源码地图证据，产品视图和交接记录不提交，也不代表需求、实现状态或验证证据。业务模块和设备协议适配器只在实际项目获批准后建立，公共壳不预建空控制台或品牌模块；单纯设计交接不改变模块结构，不发布关系地图。详见[逆向工具与授权边界](../framework/reverse-tools.md)。
 
+显式差距报告扩展上述流程：
+
+```text
+观察 → 设计交接与批准 → OpenSpec → TDD / 适用环境验证
+→ docs/verification/<change>/（结构化证据与 artifact）
+→ docs/verification/<change>-parity.md（公开白名单报告）
+→ .framework/local-state/parity/<change>.json（私有回执，不提交）
+```
+
+`parity --request` 只有显式调用才读取这些资料，不自动建立目录、不运行测试、不更新规格或 task。公开报告仅包含稳定 ID、来源哈希、三维状态、差距、严重问题策略和证据索引；产品私有语义仍留在原产品视图，结构化证据公开前由验证责任方另行脱敏审查。普通项目未使用该入口时目录和输出不变。
+
 ## 业务源码和测试归置
 
 - 已有源码原地接入，在 `docs/project/resources.md` 和模块资料中记录真实路径。

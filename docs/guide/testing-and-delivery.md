@@ -14,6 +14,12 @@
 
 未执行写 NOT_RUN，环境故障写 INFRA_ERROR，不适用写 N/A 并解释，只有实际断言通过写 PASS。
 
+## 可选功能差距追踪
+
+需要把产品目标、已批准 Scenario、tasks 和验证记录放在同一追踪链时，验证责任方可准备 `feature-parity-request/v1` 与 `verification-evidence/v1`，再独立运行 `parity --request`。证据文件和 artifact 位于 `docs/verification/<change>/`，每条记录关联 Req/Scenario、已完成 task、测试、环境、结果和产物 SHA-256。报告生成器不运行测试，不补写证据，不修改 task。
+
+只有 FUNCTION/PASS 和有效 artifact 支持 VERIFIED；VISUAL/ACCESSIBILITY/BRAND 保留为独立诊断。MUST 项未实现、未验证或缺失必须 Scenario 时为 GAPS_OPEN，匹配功能 FAIL 时为 FAILED；S1–S4 开放问题按显式策略阻断或报告。公开报告不复制私有产品自由文本，私有回执记录来源与报告指纹。dry-run、重复、更新和失败恢复均确定性处理，不能以完成分数、文件存在或 Agent 声明替代实际验收。
+
 ## 交付顺序
 
 1. 将每个 Req/Scenario 关联到 task、模块、测试、环境和证据。
