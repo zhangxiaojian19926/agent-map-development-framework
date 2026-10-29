@@ -45,6 +45,8 @@ def generation_changes(root, config, distribution, prepare=False):
     outputs = {'framework-project.json': encoded(config)}
     runtime_readme = None
     for rel, expected in manifest['files'].items():
+        if rel.endswith('.pdf'):
+            continue
         if not (rel.startswith(RUNTIME_DIRECTORIES) or
                 rel in RUNTIME_ROOT_FILES + RUNTIME_DOC_FILES + ('tools/framework',)):
             continue

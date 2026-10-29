@@ -98,6 +98,8 @@ def main():
             check = subprocess.run(["bash", "-n", str(file)], capture_output=True, text=True)
             if check.returncode:
                 errors.append("shell syntax: " + rel)
+        if rel.endswith(".pdf"):
+            continue
         body = file.read_text(encoding="utf-8")
         # Machine-specific paths and common credential formats, not a full secret detector.
         if re.search(r"/Users/|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|-----BEGIN (?:RSA |OPENSSH )?PRIVATE KEY-----", body) and rel != "tools/check-framework":
