@@ -85,10 +85,10 @@ openspec instructions apply --change <change-id> --json
 
 ## 8. IMPLEMENT — 实现与任务验证
 
-**技能**:`superpowers:test-driven-development`。
-1. RED:先运行能到达目标路径的失败测试,证明目标行为缺失。
+**技能**:`matt-pocock:tdd`。
+1. RED:写测试前先确认被测 seam,并核对该 seam 与模块接口契约一致,未经确认不写测试;再运行能到达目标路径的失败测试,证明目标行为缺失。期望值来自独立真值源,不由被测代码同样推导。
 2. GREEN:最小实现使该场景通过。
-3. REFACTOR:只做当前任务必要整理,测试保持通过。
+3. REFACTOR:只做当前任务必要整理,测试保持通过;设计级重构不在此步,归入评审阶段讨论。
 4. REGRESSION:运行受影响范围的测试;需要时用已有 CodeGraph 辅助定位。
 5. TASK_VERIFIED:检查实际结果、局限和证据,再更新 OpenSpec 对应任务。部分完成不得勾选。
 纯文档使用 §1 的文档验证路径;无可用自动化时明确人工验证方式与证据缺口。不得把编译器缺失、设备不可达、网络或 runner 故障当作有效 RED。

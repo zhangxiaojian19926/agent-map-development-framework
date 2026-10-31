@@ -1,4 +1,13 @@
-# Writing Good Tests
+# Test Quality (local adaptation)
+
+> **Source of the material:** adapted from `obra/superpowers`
+> `test-driven-development/writing-good-tests.md` (MIT, copyright Jesse
+> Vincent), pinned at `5bf4e78011075bcfc0dc295f0724994cd123ee71`. The upstream
+> skill was retired when this group was introduced; see
+> `THIRD_PARTY_NOTICES.md` for the distribution-level attribution.
+>
+> **Local additions by this framework:** the seam tie-in in Principle 1 and the
+> seam-bound rows in the quick reference.
 
 **Load this reference when:** writing or changing tests, adding mocks, or
 adding cleanup/helper methods for tests.
@@ -24,6 +33,11 @@ make this test fail — and is that change a bug or a decision?** A test
 earns its place by catching a wrong branch, missing side effect, wrong
 argument, boundary case, or broken contract.
 
+**The break lives at the seam.** A test names a break only when it crosses
+the seam you confirmed. If the break you can imagine sits inside the module
+rather than across its interface, the test is reaching past the boundary —
+rework it around the confirmed seam instead.
+
 **Derive expectations independently.** Use literals and hand-checked
 fixtures; table-driven tests with literal `want` values are the preferred
 shape. An expectation computed by the code under test — or its helpers —
@@ -48,8 +62,7 @@ retried 5 times and the 6th attempt never happens."
 contains an exact line proves only that the source is the source. Run
 scripts against controlled inputs and assert outputs, side effects, or
 exit codes. Documents that instruct agents are tested by the consuming
-agent's behavior (superpowers:writing-skills); prose for humans earns no
-test at all.
+agent's behavior; prose for humans earns no test at all.
 
 **Your code, not the framework.** Test the contract your code makes at
 its boundaries — the route you register, the query you emit, the payload
@@ -76,6 +89,10 @@ BEFORE writing the test body:
   Confirm the expected value is derived without the code under test.
   IF it reuses the code's logic or helpers:
     Replace it with a literal or hand-checked fixture
+
+  Confirm the break sits across the confirmed seam.
+  IF it sits inside the module:
+    Move the test back to the interface
 ```
 
 ## Principle 2: Exercise the Real Thing
@@ -92,9 +109,6 @@ expect(screen.getByRole('navigation')).toBeInTheDocument();
 // ❌ Mock existence
 expect(screen.getByTestId('sidebar-mock')).toBeInTheDocument();
 ```
-
-**your human partner's correction:** "Are we testing the behavior of a
-mock?"
 
 **Mock at the right level.** Learn every side effect of the real method
 before replacing it; mock the slow or external operation and keep what
@@ -129,27 +143,11 @@ class own this resource's lifecycle? Wrong answers → test utility.
 **Prefer real components over complex mocks.** When mock setup outgrows
 the test logic, mocks miss methods the real components have, or tests
 break when the mock changes, switch to an integration test with real
-components. **your human partner's question:** "Do we need to be using a
-mock here?"
-
-### Gate Function
-
-```
-BEFORE adding a mock or test helper:
-  List the real method's side effects; keep the ones the test
-  depends on real — mock the slow/external level below them.
-
-  Mock responses mirror the complete real structure.
-
-  A method only tests call lives in test utilities, not production.
-
-  About to assert on the mock itself?
-    Unmock it or delete the assertion.
-```
+components.
 
 ## Tests Ship With the Implementation
 
-The TDD cycle — failing test, minimal implementation, refactor — is what
+The TDD cycle — failing test, minimal implementation, cleanup — is what
 "complete" means. Ship the tests the behavior needs and only those:
 trivial code and human prose earn none, and a test written to satisfy
 process costs maintenance forever.
@@ -173,6 +171,7 @@ test as tautological.
 | When you... | Do |
 |-------------|-----|
 | Write any test | Name the break it catches — a bug, not a decision |
+| Pick where to test | Test across the confirmed seam, not inside the module |
 | Build an expected value | Derive it by hand; never with the code under test |
 | Test a script or document | Run it / pressure-test its consumer; never grep its text |
 | Reach for a dependency test | Test your boundary contract, not their documented mechanics |
@@ -196,3 +195,4 @@ test as tautological.
 - A method is called only from test files
 - Mock setup is more than half the test, or you can't explain why the mock is needed
 - Mocking "just to be safe"
+- The test reaches inside the module instead of across its confirmed seam
