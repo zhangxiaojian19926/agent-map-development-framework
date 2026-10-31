@@ -80,4 +80,3 @@
 - `openspec validate --all --strict` 覆盖 20 个能力规格与 2 个活跃 change，全部通过。
 - 新增的 CI 门禁 `openspec validate --archived` 会拒绝任何带未完成任务归档的 change，为上述决定提供机器校验。
 - 若将来取得真实宿主与跨宿主证据，先按正常流程重验适用场景并逐项记录，再同步核对，最后归档；在此之前两个 change 的状态保持未完成。
-
