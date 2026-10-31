@@ -155,3 +155,5 @@ OpenSpec archive
 | verification | `wiki/sources/verifications/` | 验证已通过。只写环境、版本、结论和证据位置 |
 
 不摄入未批准草案、整份关系地图、CodeGraph 输出、REA 原始输出、反编译文本、目标软件、源码 diff、密钥和一次性日志。命令卡片见 [llm-wiki 技能](../../skill/llm-wiki/SKILL.md)。
+
+术语表与决策记录不属于知识库内容。术语表是项目当前的词汇，落在 `docs/project/GLOSSARY.md`,人工维护;决策记录落在 OpenSpec change 的 design 产物与 `docs/project/architecture.md`,随变更归档。两者都不列入本页清单:知识库存的是已验证且以后仍值得复用的经验,不是项目当前的词汇与决定。

@@ -13,6 +13,7 @@
 - 新增发布渠道适配：把 READY 候选转换为具体渠道可复核的本地产物，首版支持 `github-release` 渠道，固定 `publish=NOT_RUN` 与 `execution=NOT_RUN`，不执行任何远端访问、Git 操作或真实发布。
 - `doctor` 和自动 `reverse` 增加显式 `--summary` 中文摘要，统一展示结果、当前流程产物、条件性未生成、未执行与限制、提交与本机状态、下一步六部分；默认 JSON、既有退出码、授权和文件写入保持兼容。
 - 补齐规格库缺失的 8 个能力规格：`project-bootstrap`、`agent-project-maps`、`module-lifecycle`、`project-readiness`、`codegraph-maintenance`、`project-intake`、`named-module-acquisition`、`host-neutral-onboarding`。它们的实现早已存在并在用，但因两个旧 change 从未归档（归档门禁需要本环境拿不到的真实宿主与跨宿主证据），规格库长期低估了工程壳自身能力。两个旧 change 继续保留在活跃区、不归档，未勾选任务仍是未验证部分的唯一权威记录；决定与审计证据见维护者对账记录。
+- 引入 `matt-pocock/domain-modeling` 的词汇部分：挑战与术语表冲突的用词、锐化含糊表达、用具体场景压测概念边界、拿代码与人的说法互相核对。术语表落在 `docs/project/GLOSSARY.md`，人工维护、首个术语确定时才建立。术语表与决策记录都不进知识库——知识库存的是已验证且可复用的经验，不是项目当前的词汇；本框架也不另建 ADR 集合，决策分别落在 change 的设计产物、项目架构与约束文档、模块局部规则。技能入口由 27 增至 28。
 - 设计讨论支持多分支整轮提问：若干互相独立的开放决策可一次问完整个前沿，每问附推荐答案，依赖未决答案的问题留到下一轮；需要环境事实时由 Agent 自查，不把查证转给用户。该技法改编自 mattpocock/skills 的 grilling，未新增技能入口。
 - 引入 `matt-pocock:retro` 作为会话复盘技能：按导航缺口、自动化检查缺失、编码规范、steering 文件、工具经济、空转指令和信息获取七类产出改进候选，候选必须绑定会话证据，无法绑定的不记入清单。它是本框架第一个用户调用型技能，同时声明 `disable-model-invocation` 与 `allow_implicit_invocation: false`，作为调用形态机制的前向试点。复盘结果记入维护者复盘记录并逐条标注已做、已排期或待决定。技能入口由 26 增至 27。
 - 评审阶段引入 `matt-pocock:code-review` 的两轴方法：规范符合性与规格符合性分轴评审并分别汇报，规范轴带固定气味基线且仓库自身规范优先，基线项记为判断项；规格来源改为当前 OpenSpec change，提交信息不充当需求；跨模块变更加评集成维度并记录版本组合。评审结论绑定实际区间、规格版本与支撑命令，重要问题闭合后重跑受影响检查，自查必须标注为自查。`superpowers:requesting-code-review` 保留为评审节奏与派发机制。技能入口由 25 增至 26。
