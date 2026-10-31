@@ -106,9 +106,9 @@ openspec instructions apply --change <change-id> --json
 
 ## 10. REVIEW — 评审
 
-**技能**:`superpowers:requesting-code-review`、`superpowers:receiving-code-review`。
-提供规格、相关计划、实际 diff 和验证证据;先检查需求符合性,再检查实现质量、回归和跨模块接口。
-反馈须核实后处理,重要问题闭合并重跑受影响检查。独立评审依赖可用且获授权的评审机制;只有自查时明确标注自查,不得伪称独立评审。
+**技能**:`matt-pocock:code-review` 提供两轴评审方法;`superpowers:requesting-code-review` 提供评审节奏与派发;`superpowers:receiving-code-review` 处理收到的反馈。
+提供规格、相关计划、实际 diff 和验证证据。规格以当前 OpenSpec change 为准,提交信息不能替代需求;找不到 change 时如实报告无可用规格并跳过规格轴。规范符合性与规格符合性分轴评审并分别汇报,不合并排序;仓库自身规范优先于气味基线,基线项记为判断项。跨模块变更加评集成维度并记录版本组合,单模块变更显式说明跳过理由。
+反馈须核实后处理,重要问题闭合并重跑受影响检查,驳回需记录理由。评审结论绑定实际评审的区间、规格版本与支撑命令;范围变动后重评或标注失效。独立评审依赖可用且获授权的评审机制;只有自查时明确标注自查,不得伪称独立评审。
 
 ## 11. VERIFY — 整体完成验证
 

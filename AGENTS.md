@@ -47,7 +47,7 @@ OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设�
 | 4. WORKSPACE | 需隔离时 using-git-worktrees; 顺序 executing-plans | 各仓库基线、正确工作区、最小环境检查;委派需授权 |
 | 5. APPLY | openspec-apply-change + 已选执行技能 | 重新读取 status/instructions/all contextFiles,核对计划,选定 task |
 | 6. IMPLEMENT | matt-pocock:tdd | 有效 RED → GREEN → REFACTOR → 相关回归 → TASK_VERIFIED |
-| 7. REVIEW | requesting-code-review / receiving-code-review | 规格符合性、质量和接口评审;重要问题处理,自查不得冒充独立评审 |
+| 7. REVIEW | matt-pocock:code-review / requesting-code-review / receiving-code-review | 规格符合性、质量和接口分轴评审;重要问题处理,自查不得冒充独立评审 |
 | 8. VERIFY | verification-before-completion | 最终工作树/产物的新鲜证据;适用局部与集成场景分别验证 |
 | 9. INTEGRATE | finishing-a-development-branch | 用户选择合并/PR/保留等;不擅自提交、推送、部署或操作设备 |
 | 10. ARCHIVE | openspec-sync-specs → openspec-archive-change | 同步核对后归档,未完成/无证据不得宣称完整归档 |

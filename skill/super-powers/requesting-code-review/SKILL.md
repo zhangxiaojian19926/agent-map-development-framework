@@ -39,6 +39,11 @@ Dispatch a `general-purpose` subagent, filling the template at [code-reviewer.md
 - `{BASE_SHA}` - Starting commit
 - `{HEAD_SHA}` - Ending commit
 
+> **When the review must check conventions and spec conformance as separate
+> axes**, use `matt-pocock:code-review`. This template covers dispatching a
+> single reviewer for a per-task review; the two-axis method covers reviewing
+> a whole change against its standards and its originating specification.
+
 **3. Act on feedback:**
 - Fix Critical issues immediately
 - Fix Important issues before proceeding
