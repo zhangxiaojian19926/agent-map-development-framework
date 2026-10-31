@@ -9,12 +9,15 @@ python3 tools/check-framework
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 openspec validate --all --strict --no-interactive
 openspec validate --archived --no-interactive
+python3 tools/check-changes
 git diff --check <base>...HEAD
 ```
 
-这五道检查由 `.github/workflows/validate.yml` 在 Ubuntu 与 macOS 上执行，发布流水线在打 tag 前跑同一套。OpenSpec CLI 在 CI 里以固定版本安装（`@fission-ai/openspec@1.13.2`，与清单登记的上游提交 `db230978` 同版本），不随包分发，也不在业务项目里自动安装。
+这六道检查由 `.github/workflows/validate.yml` 在 Ubuntu 与 macOS 上执行，发布流水线在打 tag 前跑同一套。OpenSpec CLI 在 CI 里以固定版本安装（`@fission-ai/openspec@1.13.2`，与清单登记的上游提交 `db230978` 同版本），不随包分发，也不在业务项目里自动安装。
 
 `openspec validate` 的两个范围不能互相替代：`--all` 校验活动 change 的 delta 规格和 `openspec/specs/` 下的正式规格；`--archived` 单独校验归档目录里每个 change 的任务是否全部完成。带未完成任务归档的 change 只有第二道能发现，因此两道都要跑。
+
+`tools/check-changes` 补的是第三个方向：**任务已全部完成的 change 却还留在活动区**。这种 change 的能力规格没进 `openspec/specs/`，规格库因此低估了工程壳实际拥有的能力——读规格的人分不清"已完成的能力"和"不存在的能力"。它只读不写：报出哪些 change 完成了、缺哪些能力的同步、该走归档流程了，不代替规格同步与归档。
 
 `git diff --check` 需要显式给出比较基点，否则在干净工作树上等于空检查。推送用 `github.event.before`，拉取请求用 `github.event.pull_request.base.sha`，都没有时退回 `HEAD^`。
 
@@ -23,7 +26,7 @@ git diff --check <base>...HEAD
 ### 提交前的固定顺序
 
 ```bash
-python3 tools/pre-commit-check              # 刷新清单、分发检查、全量单测、暂存区空白检查
+python3 tools/pre-commit-check              # 刷新清单、分发检查、未归档 change 检查、全量单测、暂存区空白检查
 git commit ...
 python3 tools/pre-commit-check --committed  # 复查 CI 将要检查的提交范围
 ```

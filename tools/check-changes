@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""Report changes whose tasks are complete but that were never archived.
+
+A change whose every task is checked has finished its work. It still has to
+reach two places: the capability specs it declares have to be synced into
+openspec/specs/, and the change itself has to move into
+openspec/changes/archive/. When that does not happen, the spec store
+understates what the repository actually contains, and the next reader
+cannot tell a finished capability from an absent one.
+
+This check is read-only. It reports and it exits non-zero; it never moves,
+writes or syncs anything.
+
+Usage:
+  tools/check-changes              human readable report
+  tools/check-changes --json       machine readable report
+"""
+import argparse
+import json
+from pathlib import Path
+import re
+import sys
+
+
+DONE = re.compile(r"^\s*-\s*\[x\]", re.M)
+TODO = re.compile(r"^\s*-\s*\[ \]", re.M)
+
+
+def task_counts(change_dir):
+    """Return (done, todo) for a change, or None when it has no task file."""
+    tasks = change_dir / 'tasks.md'
+    if not tasks.is_file():
+        return None
+    text = tasks.read_text(encoding='utf-8')
+    return len(DONE.findall(text)), len(TODO.findall(text))
+
+
+def declared_capabilities(change_dir):
+    """Capability ids the change declares, from its delta spec paths."""
+    specs = change_dir / 'specs'
+    if not specs.is_dir():
+        return []
+    return sorted(p.parent.name for p in specs.glob('*/spec.md'))
+
+
+def skips_specs(change_dir):
+    """True when the change declares that it has no delta specs."""
+    meta = change_dir / '.openspec.yaml'
+    return meta.is_file() and 'skip_specs' in meta.read_text(encoding='utf-8')
+
+
+def find_outstanding(root):
+    """Complete changes that are still active, with what is missing."""
+    changes = root / 'openspec' / 'changes'
+    specs = root / 'openspec' / 'specs'
+    findings = []
+    if not changes.is_dir():
+        return findings
+    for change in sorted(changes.iterdir()):
+        if not change.is_dir() or change.name == 'archive':
+            continue
+        counts = task_counts(change)
+        if counts is None:
+            continue
+        done, todo = counts
+        if todo or not done:
+            continue
+        capabilities = declared_capabilities(change)
+        unsynced = [c for c in capabilities if not (specs / c / 'spec.md').is_file()]
+        if unsynced:
+            problem = 'capabilities are not synced into openspec/specs/'
+            detail = ', '.join(unsynced)
+        else:
+            problem = 'is still active and should be archived'
+            detail = 'no delta specs' if skips_specs(change) else 'capabilities synced'
+        findings.append({
+            'change': change.name,
+            'tasks': '%d/%d' % (done, done + todo),
+            'problem': problem,
+            'detail': detail,
+        })
+    return findings
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument('--root', default=str(Path(__file__).resolve().parents[1]))
+    parser.add_argument('--json', action='store_true', help='machine readable output')
+    args = parser.parse_args(argv)
+
+    root = Path(args.root).resolve()
+    findings = find_outstanding(root)
+
+    if args.json:
+        print(json.dumps({'status': 'FAIL' if findings else 'PASS',
+                          'outstanding': findings}, ensure_ascii=False, indent=2))
+    else:
+        if findings:
+            for item in findings:
+                print('FAIL: change %s (%s tasks) %s: %s'
+                      % (item['change'], item['tasks'], item['problem'], item['detail']))
+            print('  Sync the missing capabilities, then archive the change with the normal archive flow.')
+        else:
+            print('PASS: no completed change is left unsynced or unarchived')
+    return 1 if findings else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

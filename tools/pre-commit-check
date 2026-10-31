@@ -105,6 +105,10 @@ def main(argv=None):
         print('\n%sA fingerprint mismatch means the manifest is stale.%s' % (RED, RESET))
         return 1
 
+    ok, _ = run('outstanding change check', ['python3', 'tools/check-changes'])
+    if not ok:
+        return 1
+
     if not args.skip_tests:
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
         result = subprocess.run(

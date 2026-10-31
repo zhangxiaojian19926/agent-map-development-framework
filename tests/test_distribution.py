@@ -1,4 +1,5 @@
 import importlib.machinery
+import json
 import importlib.util
 from pathlib import Path
 import tempfile
@@ -51,3 +52,31 @@ class DistributionTests(unittest.TestCase):
             (root / 'link').symlink_to('/tmp')
             with self.assertRaises(ValueError):
                 self.checker.inventory(root)
+
+    def test_unbalanced_bold_markers_are_reported(self):
+        balanced = (
+            '# Title\n\n'
+            '- **WHEN** something happens\n'
+            '- **THEN** it works\n\n'
+            'Text with **bold** and `code`.\n\n'
+            '**bold text that\n'
+            'continues on the next line.**\n\n'
+            '```\n'
+            '**not markdown**\n'
+            '```\n'
+        )
+        unbalanced = '# Title\n\n- **THEN] it breaks\n'
+        self.assertEqual(self.checker.emphasis_errors(Path('.'), 'ok.md', balanced), [])
+        errors = self.checker.emphasis_errors(Path('.'), 'bad.md', unbalanced)
+        self.assertEqual(len(errors), 1)
+        self.assertIn('unbalanced bold marker', errors[0])
+
+    def test_every_distribution_markdown_file_has_balanced_markers(self):
+        root = Path(__file__).resolve().parents[1]
+        manifest = json.loads((root / 'framework-manifest.json').read_text(encoding='utf-8'))
+        problems = []
+        for rel in sorted(manifest['files']):
+            if not rel.endswith('.md'):
+                continue
+            problems.extend(self.checker.emphasis_errors(root, rel, (root / rel).read_text(encoding='utf-8')))
+        self.assertEqual(problems, [], 'unbalanced bold markers: ' + '; '.join(problems))

@@ -22,7 +22,7 @@ class PreCommitCheckTests(unittest.TestCase):
 
     def test_script_runs_the_same_gates_as_ci(self):
         for gate in ('tools/check-framework', 'tools/update-manifest',
-                     'unittest', 'diff', '--check'):
+                     'tools/check-changes', 'unittest', 'diff', '--check'):
             with self.subTest(gate=gate):
                 self.assertIn(gate, self.text)
 

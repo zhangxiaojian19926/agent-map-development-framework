@@ -100,6 +100,47 @@ def invocation_errors(root, expected):
     return errors
 
 
+def emphasis_errors(root, rel, text):
+    """Flag markdown paragraphs whose bold markers do not pair up.
+
+    A stray `**` renders literally and hides the sentence it was meant to
+    emphasise, which is easy to miss in a long specification.
+
+    The count is per paragraph, not per line: bold text may span two lines,
+    and counting lines would flag every such paragraph.
+    """
+    errors = []
+    fenced = False
+    paragraph = []
+    start = 0
+    number = 0
+    for number, line in enumerate(text.splitlines(), 1):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            fenced = not fenced
+            continue
+        if fenced:
+            continue
+        if not stripped:
+            if paragraph:
+                errors.extend(_paragraph_error(root, rel, start, paragraph))
+                paragraph = []
+            continue
+        if not paragraph:
+            start = number
+        paragraph.append(line)
+    if paragraph:
+        errors.extend(_paragraph_error(root, rel, start, paragraph))
+    return errors
+
+
+def _paragraph_error(root, rel, start, lines):
+    bare = re.sub(r"`[^`]*`", "", "\n".join(lines))
+    if bare.count("**") % 2:
+        return ["%s:%d: unbalanced bold marker" % (rel, start)]
+    return []
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     manifest = json.loads((root / MANIFEST).read_text(encoding="utf-8"))
@@ -118,6 +159,7 @@ def main():
             continue
         if rel.endswith(".md"):
             errors.extend(link_errors(root, file))
+            errors.extend(emphasis_errors(root, rel, file.read_text(encoding="utf-8")))
         if rel.endswith(".py") or rel == "tools/check-framework":
             ast.parse(file.read_text(encoding="utf-8"), filename=rel)
         if rel.endswith(".sh"):

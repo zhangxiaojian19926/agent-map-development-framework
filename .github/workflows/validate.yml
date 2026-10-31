@@ -32,6 +32,8 @@ jobs:
         run: openspec validate --all --strict --no-interactive
       - name: Validate archived changes have completed tasks
         run: openspec validate --archived --no-interactive
+      - name: Report completed changes that were never archived
+        run: python3 tools/check-changes
       - name: Check whitespace errors in this change
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then

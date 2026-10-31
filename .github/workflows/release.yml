@@ -40,6 +40,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -q
           openspec validate --all --strict --no-interactive
           openspec validate --archived --no-interactive
+          python3 tools/check-changes
         env:
           PYTHONDONTWRITEBYTECODE: '1'
       - name: Check whitespace errors in this change

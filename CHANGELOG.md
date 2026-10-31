@@ -13,6 +13,8 @@
 - 新增发布渠道适配：把 READY 候选转换为具体渠道可复核的本地产物，首版支持 `github-release` 渠道，固定 `publish=NOT_RUN` 与 `execution=NOT_RUN`，不执行任何远端访问、Git 操作或真实发布。
 - `doctor` 和自动 `reverse` 增加显式 `--summary` 中文摘要，统一展示结果、当前流程产物、条件性未生成、未执行与限制、提交与本机状态、下一步六部分；默认 JSON、既有退出码、授权和文件写入保持兼容。
 - 补齐规格库缺失的 8 个能力规格：`project-bootstrap`、`agent-project-maps`、`module-lifecycle`、`project-readiness`、`codegraph-maintenance`、`project-intake`、`named-module-acquisition`、`host-neutral-onboarding`。它们的实现早已存在并在用，但因两个旧 change 从未归档（归档门禁需要本环境拿不到的真实宿主与跨宿主证据），规格库长期低估了工程壳自身能力。两个旧 change 继续保留在活跃区、不归档，未勾选任务仍是未验证部分的唯一权威记录；决定与审计证据见维护者对账记录。
+- 新增只读检查 `tools/check-changes`：报出任务已全部完成却仍留在活动区的 change，区分能力规格未同步与已同步未归档两种欠账。接入本地提交前检查、每次推送与拉取请求的校验、以及发布打 tag 前。
+- 分发结构检查新增 markdown 强调符配平校验：按段落统计 `**` 数量，奇数即失败，避免跨行加粗被误报。
 - 路径与命名对齐：技能组目录 `skill/super-powers/` 改名为 `skill/superpowers/`，与调用前缀一致；计划文档位置约定改为 `docs/plans/`，并同步更新运行时排除清单、目录归属表、测试夹具与技能内的示例路径，清理磁盘残留空目录与已失效的排除项；发布工作流 cron 由 `0 2 * * 1` 改为 `17 2 * * 1`，避开整点调度高峰。
 - 统一技能的调用形态声明：补齐 code-review、codebase-design、diagnosing-bugs、tdd、writing-for-agents 的 `agents/openai.yaml`（上游原文），并把 to-tickets 改为模型调用型——它是计划阶段的主技能，Agent 必须能自主到达。`tools/check-framework` 增加形态一致性检查，只对一侧声明形态即失败。技能入口总数不变（28）。
 - 引入 `matt-pocock/domain-modeling` 的词汇部分：挑战与术语表冲突的用词、锐化含糊表达、用具体场景压测概念边界、拿代码与人的说法互相核对。术语表落在 `docs/project/GLOSSARY.md`，人工维护、首个术语确定时才建立。术语表与决策记录都不进知识库——知识库存的是已验证且可复用的经验，不是项目当前的词汇；本框架也不另建 ADR 集合，决策分别落在 change 的设计产物、项目架构与约束文档、模块局部规则。技能入口由 27 增至 28。
