@@ -54,6 +54,7 @@ OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设�
 | 11. KNOWLEDGE | 已选知识库技能,按公共知识规则 | 每次问题解决即询问是否摄入,无需等发布;获明确授权才写入 |
 
 表中未写前缀的 Superpowers 技能同属 superpowers。未安装、不可调用或参数不支持时报告,不伪造执行。
+另有两个参考技能按需取用,不构成必做步骤:编写或修改技能、AGENTS.md 及任何被指针引用的文档时用 `matt-pocock:writing-for-agents`;设计模块接口、决定 seam 位置或判断可测试性时用 `matt-pocock:codebase-design`。它们是参考材料,不产生新的授权、状态或完成判据。
 技能选择与缺失处理、权限冲突见 [技能约束](docs/framework/skill-policy.md)。当前用户指令和已有明确授权优先,阶段切换不重复索取相同授权。
 
 ## 3. 异常与交付

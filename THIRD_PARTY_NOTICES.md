@@ -21,6 +21,14 @@ The imported local metadata declared MIT and attributed its adaptation to Mavis,
 Upstream README and package metadata declare MIT at efa2294dd7c00479f7d8463fef88812d2fd5d1bc; a standalone upstream LICENSE file was absent at that revision. The included MIT terms retain source/adapter attribution rather than inventing an upstream copyright year.
 This public adaptation replaces the local helper implementation and entry documentation to enforce project-scoped routing and truthful completion states; base page templates are retained with distribution hashes.
 
+## mattpocock/skills
+
+Source: https://github.com/mattpocock/skills
+License: MIT, copyright Matt Pocock; notice in skill/matt-pocock/LICENSE.
+This distribution carries two reference skills and their supporting files, not a claim of byte-for-byte equivalence to a tagged upstream release.
+Upstream license checked at a496f5513d4a4cf889bc48e189e579f4b0bdf6aa. Distributed file hashes are pinned in framework-manifest.json.
+Both included skills are unmodified upstream copies; no local adaptation was applied. They are reference material and create no runtime or workflow obligation.
+
 ## Boundaries
 
 No upstream runtime, private project data, bundled node_modules or original project Git history is included.
