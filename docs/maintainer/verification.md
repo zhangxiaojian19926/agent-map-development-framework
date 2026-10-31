@@ -20,6 +20,21 @@ git diff --check <base>...HEAD
 
 清单新增或内容变化后运行 `python3 tools/update-manifest`，再核对指纹 diff。文档任务验证真实相对链接、内容归属和规则一致性；行为变化必须先获得有效 RED，再完成 GREEN 和受影响回归。
 
+### 提交前的固定顺序
+
+```text
+改动文件
+  → python3 tools/update-manifest
+  → python3 tools/check-framework
+  → 全量单元测试
+  → 提交
+  → git diff --check HEAD^ HEAD
+```
+
+清单是分发文件与指纹的单源，任何文件内容改动后都必须重跑 `tools/update-manifest`，否则 `tools/check-framework` 会以指纹不匹配失败。
+
+提交之后那一步不能省：提交前的 `git diff --check` 查的是工作树与暂存区，不是 CI 将要检查的提交范围。CI 检查的是 `github.event.before..HEAD`，本地要复现同一段才作数。顺序里任何一步之后再改文件，都要从 `tools/update-manifest` 重新开始。
+
 ## 目录治理专项
 
 - 使用者与维护者入口分别走查，历史资料不出现在当前最短操作路径。
