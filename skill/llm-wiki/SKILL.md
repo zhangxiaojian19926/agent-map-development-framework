@@ -12,7 +12,7 @@ Read [knowledge policy](../../docs/framework/knowledge-policy.md) before writes.
 ## Entry and routing
 
 1. Identify the task's modules and explicitly associated KB aliases. Read project resources and selected KB AGENTS/purpose/schema before writes.
-2. Use project-local llm-wiki-aliases.json; aliases are paths relative to its project root. Never use a global registry or infer association from the current directory.
+2. Use project-local llm-wiki-aliases.json; aliases are paths relative to its project root. Never use a global registry or infer association from the current directory. A registry shape example is [templates/llm-wiki-aliases.example.json](../../templates/llm-wiki-aliases.example.json).
 3. Explicit alias is authoritative: unknown alias fails, never falls back to current KB. Explicit paths must be verified against the authorized target; '.' means deliberately select current KB.
 4. Git boundaries stop automatic upward discovery. For non-Git projects use framework-project.json, or explicitly set FRAMEWORK_PROJECT_ROOT to a confirmed root containing the current directory.
 5. Project initialization creates one empty shell at `knowledge/project/` and alias `project`. That shell is not ingested content. query --all still returns NOT_CONFIGURED when the registry is absent. Do not create another KB for a query, a repair, or one ingestion.

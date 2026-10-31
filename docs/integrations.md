@@ -3,7 +3,7 @@
 ## 发布能力
 
 skill/openspec 保存 6 个工作流，skill/super-powers 保存 14 个工作流，skill/llm-wiki 保存知识管理入口及本地辅助脚本。
-skill/project-bootstrap 提供接入、刷新与地图 schema 参考；合计 22 个技能入口。
+skill/project-bootstrap 提供接入、刷新与地图 schema 参考；skill/reverse-engineer 提供授权内的静态与动态逆向观察入口；合计 23 个技能入口。
 不重复创建竞争版本：一次任务确定一个技能来源，先完整读取该入口及其必需引用。
 框架文件不能替代系统/宿主权限；附带技能示例中的自动提交、全局配置或委派建议，仅在当前用户授权且宿主支持时适用。
 

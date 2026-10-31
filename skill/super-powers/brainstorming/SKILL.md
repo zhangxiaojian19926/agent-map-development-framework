@@ -97,7 +97,7 @@ your path and complete them in order.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+6. **Write design doc** — write the validated design into the current OpenSpec change's design artifact, at the path the OpenSpec CLI returns for that change. When no change exists yet, keep the design in the conversation and let `openspec-propose` create the artifacts instead of writing a second copy of the spec. Do not commit it here
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
 9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
@@ -203,10 +203,10 @@ is the whole process.
 
 **Documentation:**
 
-- Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
-  - (User preferences for spec location override this default)
-- Use elements-of-style:writing-clearly-and-concisely skill if available
-- Commit the design document to git
+- Write the validated design into the current OpenSpec change's design artifact, at the path the OpenSpec CLI returns for that change. Use the artifact name the schema actually declares rather than assuming a fixed file name.
+  - When no change exists yet, keep the design in the conversation and let `openspec-propose` create the artifacts; extra design or plan files are linked from the change, not written beside it as a second copy.
+  - (User preferences for spec location override this default, but the same requirement is never duplicated into two files.)
+- Do not commit or push the design document. Commit, push, deploy and release are authorized separately from design.
 
 **Spec Self-Review:**
 After writing the spec document, look at it with fresh eyes:
