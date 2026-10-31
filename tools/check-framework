@@ -74,6 +74,32 @@ def link_errors(root, file):
             errors.append(str(file.relative_to(root)) + ": broken link " + target)
     return errors
 
+def invocation_errors(root, expected):
+    """A skill must declare the same invocation form to every host.
+
+    Claude Code reads `disable-model-invocation` in the skill frontmatter.
+    Codex reads `policy.allow_implicit_invocation` in agents/openai.yaml. If
+    only one side declares the form, that host reaches a skill the other
+    host cannot, and the workflow stage that names it silently stops firing.
+    """
+    errors = []
+    for rel in sorted(expected):
+        if not rel.endswith("/SKILL.md"):
+            continue
+        skill = root / rel
+        front = skill.read_text(encoding="utf-8")[:800]
+        claude_user = "disable-model-invocation: true" in front
+        yaml = skill.parent / "agents/openai.yaml"
+        codex_user = False
+        if yaml.is_file():
+            codex_user = "allow_implicit_invocation: false" in yaml.read_text(encoding="utf-8")
+        if claude_user and not codex_user:
+            errors.append("invocation form declared for one host only: " + rel)
+        if codex_user and not claude_user:
+            errors.append("invocation form declared for one host only: " + rel)
+    return errors
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     manifest = json.loads((root / MANIFEST).read_text(encoding="utf-8"))
@@ -107,11 +133,12 @@ def main():
     skills = sorted(p for p in expected if p.endswith("/SKILL.md"))
     if len(skills) != sum(manifest['skills'].values()):
         errors.append("skill entrypoint count does not match manifest: " + str(len(skills)))
+    errors.extend(invocation_errors(root, expected))
     if errors:
         for error in errors:
             print("FAIL: " + error, file=sys.stderr)
         return 1
-    print("PASS: %d inventoried files, %d skills; hashes, links and script syntax" % (len(expected), len(skills)))
+    print("PASS: %d inventoried files, %d skills; hashes, links, syntax and invocation forms" % (len(expected), len(skills)))
     return 0
 
 if __name__ == "__main__":
