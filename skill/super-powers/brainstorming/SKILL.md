@@ -171,6 +171,23 @@ is the whole process.
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
 
+**When the decision tree has several branches:**
+
+The one-question-per-message rule above governs a single line of inquiry. When
+the open decisions are independent — several questions that can each be
+answered without the others — ask the whole frontier in one round instead:
+number the questions, give your recommended answer with each one, and wait
+for the answers before asking anything that depends on them. A question whose
+answer depends on another still-open question belongs to a later round, not
+this one.
+
+Facts are the agent's job, not the user's. When a frontier question needs
+something only the environment can answer, look it up yourself rather than
+asking the user for it.
+
+*(The frontier-round technique is adapted from `mattpocock/skills` `grilling`,
+MIT, copyright Matt Pocock; see `THIRD_PARTY_NOTICES.md`.)*
+
 **Exploring approaches:**
 
 - Propose 2-3 different approaches with trade-offs
