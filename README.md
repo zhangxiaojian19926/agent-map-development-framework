@@ -37,7 +37,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 
 ## 包含与不包含
 
-包含 6 个 OpenSpec 技能、12 个 Superpowers 技能、llm-wiki、project-bootstrap、reverse-engineer 和 matt-pocock 的测试驱动、调试诊断、写作与接口设计参考技能及所需支持文件。版本和文件指纹见 [发布清单](framework-manifest.json)。
+包含 6 个 OpenSpec 技能、11 个 Superpowers 技能、llm-wiki、project-bootstrap、reverse-engineer 和 matt-pocock 的测试驱动、调试诊断、切片分解、写作与接口设计参考技能及所需支持文件。版本和文件指纹见 [发布清单](framework-manifest.json)。
 
 包含确定性的工程接入 CLI、模块登记、可选 CodeGraph 索引、由当前 Agent 提交证据的关系地图、空知识库壳和只读诊断。逆向工具不在初始化时安装；版本见 [逆向工具](docs/framework/reverse-tools.md)。OpenSpec CLI、Node、模型、Git、业务测试环境、设备及部署工具不随包附带，也不会自动安装。
 不提供全局 watcher 或全局 Git hook；一键初始化不等于自动完成未批准的产品需求。

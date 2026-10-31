@@ -45,7 +45,7 @@ override it:
 - **Architectural** — new projects, new subsystems, changes that
   restructure how components fit together or alter interfaces others
   depend on. Follow the full process: questions, approaches, sectioned
-  design, written spec, then the writing-plans skill.
+  design, written spec, then the to-tickets skill.
 
 When in doubt between two paths, take the heavier one. The ratchet is
 one-way: hidden complexity discovered mid-task upgrades the path —
@@ -100,7 +100,7 @@ your path and complete them in order.
 6. **Write design doc** — write the validated design into the current OpenSpec change's design artifact, at the path the OpenSpec CLI returns for that change. When no change exists yet, keep the design in the conversation and let `openspec-propose` create the artifacts instead of writing a second copy of the spec. Do not commit it here
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+9. **Transition to implementation** — invoke to-tickets skill to create the implementation slices
 
 ## Process Flow
 
@@ -121,7 +121,7 @@ digraph brainstorming {
     "Write design doc" [shape=box];
     "Spec self-review\n(fix inline)" [shape=box];
     "User reviews spec?" [shape=diamond];
-    "Invoke writing-plans skill" [shape=doublecircle];
+    "Invoke to-tickets skill" [shape=doublecircle];
     "Hidden complexity? Upgrade path" [shape=box];
 
     "Classify: spike / bounded / architectural" -> "Present question + probe (2-3 sentences)" [label="spike"];
@@ -142,12 +142,12 @@ digraph brainstorming {
     "Write design doc" -> "Spec self-review\n(fix inline)";
     "Spec self-review\n(fix inline)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
+    "User reviews spec?" -> "Invoke to-tickets skill" [label="approved"];
 }
 ```
 
 **Terminal states are path-bound.** Architectural: the ONLY skill you
-invoke after brainstorming is writing-plans — never frontend-design,
+invoke after brainstorming is to-tickets — never frontend-design,
 mcp-builder, or any other implementation skill. Bounded: after
 approval, implementation proceeds directly through the normal
 development workflow; no plan document. Spike: the terminal state is a
@@ -227,8 +227,8 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 **Implementation:**
 
-- Invoke the writing-plans skill to create a detailed implementation plan
-- Do NOT invoke any other skill. writing-plans is the next step.
+- Invoke the to-tickets skill to create the implementation slices
+- Do NOT invoke any other skill. to-tickets is the next step.
 
 ## Visual Companion
 

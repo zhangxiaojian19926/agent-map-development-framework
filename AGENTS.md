@@ -43,7 +43,7 @@ OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设�
 |---|---|---|
 | 1. DISCOVERY | openspec-explore; superpowers:brainstorming; 故障先 matt-pocock:diagnosing-bugs | 目标、范围、模块、兼容性、验证环境、方案与待确认项 |
 | 2. SPEC | openspec-propose / openspec-update-change | 稳定 Req/Scenario、真实 schema 校验、用户认可 |
-| 3. PLAN | superpowers:writing-plans | 关联规格的微步骤、文件/模块、测试、依赖、集成与恢复计划;计划获批 |
+| 3. PLAN | matt-pocock:to-tickets | 垂直切片、阻塞边、Req/Scenario 关联、文件/模块、测试、集成与恢复;计划获批 |
 | 4. WORKSPACE | 需隔离时 using-git-worktrees; 顺序 executing-plans | 各仓库基线、正确工作区、最小环境检查;委派需授权 |
 | 5. APPLY | openspec-apply-change + 已选执行技能 | 重新读取 status/instructions/all contextFiles,核对计划,选定 task |
 | 6. IMPLEMENT | matt-pocock:tdd | 有效 RED → GREEN → REFACTOR → 相关回归 → TASK_VERIFIED |
@@ -60,7 +60,7 @@ OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设�
 ## 3. 异常与交付
 
 - 实现失败:matt-pocock:diagnosing-bugs 复现并验证根因,再回当前任务。
-- 需求/场景改变:openspec-update-change → 校验/确认 → writing-plans 更新;不能为通过测试降低规格。
+- 需求/场景改变:openspec-update-change → 校验/确认 → to-tickets 更新切片;不能为通过测试降低规格。
 - 环境故障:INFRA_ERROR,不是 RED;缺少关键决定仅停止依赖它的工作。
 - 新模块:按公共协作规则先只读发现,再按授权登记;发现不等于获准执行、建库或安装。
 - 每次交付分别说明改动、适用验证、未验证项、集成/归档与知识摄入状态;多模块部分成功分别报告。

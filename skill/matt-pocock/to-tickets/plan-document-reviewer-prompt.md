@@ -1,3 +1,8 @@
+> **Local adaptation.** Derived from `obra/superpowers` `writing-plans`
+> (MIT, copyright Jesse Vincent), pinned at
+> `5bf4e78011075bcfc0dc295f0724994cd123ee71`. The upstream skill was
+> retired when this group was introduced; see `THIRD_PARTY_NOTICES.md`.
+
 # Plan Document Reviewer Prompt Template
 
 Use this template when dispatching a plan document reviewer subagent.

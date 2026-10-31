@@ -10,6 +10,7 @@ Two upstream skills were retired in favour of merged skills that carry their mat
 
 - `test-driven-development` → `matt-pocock/tdd`. Its compliance material (Iron Law, rationalization table, red flags, completion checklist) and its test-quality reference survive inside that skill, each carrying its own source header.
 - `systematic-debugging` → `matt-pocock/diagnosing-bugs`. Its discipline material, three technique references, validation scenarios and creation history survive inside that skill.
+- `writing-plans` → `matt-pocock/to-tickets`. Its plan document format, task right-sizing rules, placeholder rules, self-review checklist and plan reviewer template survive inside that skill.
 
 The remaining superpowers skills carry local edits limited to skill references and this framework's directory and authorization rules. Upstream creation histories are kept as upstream history and were not edited.
 
@@ -33,7 +34,7 @@ Source: https://github.com/mattpocock/skills
 License: MIT, copyright Matt Pocock; notice in skill/matt-pocock/LICENSE.
 This distribution carries reference and workflow skills and their supporting files, not a claim of byte-for-byte equivalence to a tagged upstream release.
 Upstream license checked at a496f5513d4a4cf889bc48e189e579f4b0bdf6aa. Distributed file hashes are pinned in framework-manifest.json.
-`writing-for-agents`, `codebase-design`, the three upstream files of `tdd` and the two upstream files of `diagnosing-bugs` are unmodified upstream copies. Declared local adaptations that carry superpowers-derived material plus this framework's own rules live inside those two skills: `tdd/discipline.md` and `tdd/test-quality.md` carry the testing compliance and quality layers; `diagnosing-bugs/discipline.md`, its three technique references, four validation scenarios, the creation history and the two scripts carry the debugging layer, with this framework's environment-failure and evidence-binding rules added to the discipline file. Each carries its own source header. The upstream `agents/openai.yaml` files that distinguish user-invoked from model-invoked skills are not included; that invocation-form mechanism is handled separately.
+`writing-for-agents`, `codebase-design`, the three upstream files of `tdd`, the two upstream files of `diagnosing-bugs` and the upstream file of `to-tickets` are unmodified upstream copies. Declared local adaptations that carry superpowers-derived material plus this framework's own rules live inside those two skills: `tdd/discipline.md` and `tdd/test-quality.md` carry the testing compliance and quality layers; `diagnosing-bugs/discipline.md`, its three technique references, four validation scenarios, the creation history and the two scripts carry the debugging layer, with this framework's environment-failure and evidence-binding rules added to the discipline file; `to-tickets/plan-format.md` carries the plan document format, task right-sizing, placeholder rules and self-review checklist, with this framework's requirement that slices and their blocking edges live in the change's task list added. Each carries its own source header. The upstream `agents/openai.yaml` files that distinguish user-invoked from model-invoked skills are not included; that invocation-form mechanism is handled separately.
 
 ## Boundaries
 
