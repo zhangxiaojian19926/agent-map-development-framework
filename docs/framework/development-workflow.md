@@ -28,7 +28,7 @@
 ## 3. DISCOVERY — 理解与设计
 
 **进入**:目标、问题或架构变化需要澄清。
-**技能**:已有规格上下文用 `openspec-explore`;新设计用 `superpowers:brainstorming`;排障先用 `superpowers:systematic-debugging`;设计模块接口、决定 seam 位置或判断可测试性时参考 `matt-pocock:codebase-design`。
+**技能**:已有规格上下文用 `openspec-explore`;新设计用 `superpowers:brainstorming`;排障先用 `matt-pocock:diagnosing-bugs`;设计模块接口、决定 seam 位置或判断可测试性时参考 `matt-pocock:codebase-design`。
 **步骤**:
 1. 完成入口路由、KB 查询,检查目标模块的 Git 根、HEAD 和已有修改。
 2. 已存在 CodeGraph 时先查图定位再核对源码;没有索引默认 rg。仅当本次明确授权 index 时由适配器 init 或 sync。CLI 不在 PATH 上时，另有 index-install 才把锁定版本装进项目内 `.framework/tools/codegraph`；不全局安装，不调用 `codegraph install`。新文件先更新受管放行列表再 sync。索引新鲜不等于关系地图已更新。模块内部修改不发布地图。doctor 显示还没有地图或模块结构已失效，且本次可以改代码时，用 `map` 发布一轮。本次改动了模块职责或模块间关系时同样发布一次，不要等用户再次要求。下载配置不能自行授权。
@@ -97,7 +97,7 @@ openspec instructions apply --change <change-id> --json
 
 | 触发 | 技能/动作 | 恢复条件 |
 |---|---|---|
-| 测试异常或实现失败 | systematic-debugging:复现 → 根因假设 → 最小实验 → 修复 | 有效失败原因与回归证据 |
+| 测试异常或实现失败 | diagnosing-bugs:建立可复现的红色回路 → 排序假设 → 最小实验 → 修复 | 有效失败原因与回归证据 |
 | 需求、接口、场景变化 | openspec-update-change → 校验 → 审批 → 更新计划 | 规格和计划重新一致 |
 | 实施顺序或步骤漂移 | writing-plans 更新受影响部分 | 不改变已批准需求,重大变化获确认 |
 | 环境/设备不可用 | 记录 INFRA_ERROR,查项目约束 | 环境恢复,重跑受影响验证 |

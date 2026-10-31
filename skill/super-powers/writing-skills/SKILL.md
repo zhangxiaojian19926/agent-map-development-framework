@@ -283,7 +283,7 @@ wc -w skills/path/SKILL.md
 
 Use skill name only, with explicit requirement markers:
 - ✅ Good: `**REQUIRED SUB-SKILL:** Use matt-pocock:tdd`
-- ✅ Good: `**REQUIRED BACKGROUND:** You MUST understand superpowers:systematic-debugging`
+- ✅ Good: `**REQUIRED BACKGROUND:** You MUST understand matt-pocock:diagnosing-bugs`
 - ❌ Bad: `See skills/engineering/tdd` (unclear if required)
 - ❌ Bad: `@skills/matt-pocock/tdd/SKILL.md` (force-loads, burns context)
 

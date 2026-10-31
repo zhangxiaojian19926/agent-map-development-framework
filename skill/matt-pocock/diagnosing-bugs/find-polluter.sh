@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Derived from obra/superpowers systematic-debugging (MIT, copyright
+# Jesse Vincent), pinned at 5bf4e78011075bcfc0dc295f0724994cd123ee71.
+# See THIRD_PARTY_NOTICES.md.
 # Bisection script to find which test creates unwanted files/state
 # Usage: ./find-polluter.sh <file_or_dir_to_check> <test_pattern>
 # Example: ./find-polluter.sh '.git' 'src/**/*.test.ts'

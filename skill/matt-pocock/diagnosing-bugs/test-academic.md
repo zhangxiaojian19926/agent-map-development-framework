@@ -1,6 +1,11 @@
+> **Local adaptation.** Derived from `obra/superpowers`
+> `systematic-debugging` (MIT, copyright Jesse Vincent), pinned at
+> `5bf4e78011075bcfc0dc295f0724994cd123ee71`. The upstream skill was
+> retired when this group was introduced; see `THIRD_PARTY_NOTICES.md`.
+
 # Academic Test: Systematic Debugging Skill
 
-You have access to the systematic debugging skill at skills/debugging/systematic-debugging
+You have access to the systematic debugging skill at matt-pocock:diagnosing-bugs
 
 Read the skill and answer these questions based SOLELY on what the skill says:
 

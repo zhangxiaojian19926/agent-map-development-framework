@@ -6,7 +6,12 @@ Source: https://github.com/obra/superpowers
 License: MIT, copyright Jesse Vincent; full notice in skill/super-powers/LICENSE.
 This distribution carries a local skill snapshot and its supporting files, not a claim of byte-for-byte equivalence to a tagged upstream release.
 Upstream license checked at 5bf4e78011075bcfc0dc295f0724994cd123ee71. Distributed file hashes are pinned in framework-manifest.json.
-The `test-driven-development` skill was retired in favour of the merged `matt-pocock/tdd` skill. Its compliance material (Iron Law, rationalization table, red flags, completion checklist) and its test-quality reference survive as declared local adaptations inside that skill, each carrying its own source header. The remaining superpowers skills carry local edits limited to skill references and this framework's directory and authorization rules; `skill/super-powers/systematic-debugging/CREATION-LOG.md` is kept as upstream history and was not edited.
+Two upstream skills were retired in favour of merged skills that carry their material forward as declared local adaptations:
+
+- `test-driven-development` → `matt-pocock/tdd`. Its compliance material (Iron Law, rationalization table, red flags, completion checklist) and its test-quality reference survive inside that skill, each carrying its own source header.
+- `systematic-debugging` → `matt-pocock/diagnosing-bugs`. Its discipline material, three technique references, validation scenarios and creation history survive inside that skill.
+
+The remaining superpowers skills carry local edits limited to skill references and this framework's directory and authorization rules. Upstream creation histories are kept as upstream history and were not edited.
 
 ## OpenSpec skills
 
@@ -28,7 +33,7 @@ Source: https://github.com/mattpocock/skills
 License: MIT, copyright Matt Pocock; notice in skill/matt-pocock/LICENSE.
 This distribution carries reference and workflow skills and their supporting files, not a claim of byte-for-byte equivalence to a tagged upstream release.
 Upstream license checked at a496f5513d4a4cf889bc48e189e579f4b0bdf6aa. Distributed file hashes are pinned in framework-manifest.json.
-`writing-for-agents`, `codebase-design` and the three upstream files of `tdd` are unmodified upstream copies. Two files inside `tdd` are declared local adaptations that carry superpowers-derived material plus this framework's own seam and refactor rules: `discipline.md` and `test-quality.md`. Each carries its own source header. The upstream `agents/openai.yaml` files that distinguish user-invoked from model-invoked skills are not included; that invocation-form mechanism is handled separately.
+`writing-for-agents`, `codebase-design`, the three upstream files of `tdd` and the two upstream files of `diagnosing-bugs` are unmodified upstream copies. Declared local adaptations that carry superpowers-derived material plus this framework's own rules live inside those two skills: `tdd/discipline.md` and `tdd/test-quality.md` carry the testing compliance and quality layers; `diagnosing-bugs/discipline.md`, its three technique references, four validation scenarios, the creation history and the two scripts carry the debugging layer, with this framework's environment-failure and evidence-binding rules added to the discipline file. Each carries its own source header. The upstream `agents/openai.yaml` files that distinguish user-invoked from model-invoked skills are not included; that invocation-form mechanism is handled separately.
 
 ## Boundaries
 

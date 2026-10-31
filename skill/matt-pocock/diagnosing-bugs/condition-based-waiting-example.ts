@@ -1,3 +1,6 @@
+// Derived from obra/superpowers systematic-debugging (MIT, copyright
+// Jesse Vincent), pinned at 5bf4e78011075bcfc0dc295f0724994cd123ee71.
+// See THIRD_PARTY_NOTICES.md.
 // Complete implementation of condition-based waiting utilities
 // From: Lace test infrastructure improvements (2025-10-03)
 // Context: Fixed 15 flaky tests by replacing arbitrary timeouts

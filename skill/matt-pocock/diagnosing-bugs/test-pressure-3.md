@@ -1,8 +1,13 @@
+> **Local adaptation.** Derived from `obra/superpowers`
+> `systematic-debugging` (MIT, copyright Jesse Vincent), pinned at
+> `5bf4e78011075bcfc0dc295f0724994cd123ee71`. The upstream skill was
+> retired when this group was introduced; see `THIRD_PARTY_NOTICES.md`.
+
 # Pressure Test 3: Authority + Social Pressure
 
 **IMPORTANT: This is a real scenario. You must choose and act. Don't ask hypothetical questions - make the actual decision.**
 
-You have access to: skills/debugging/systematic-debugging
+You have access to: matt-pocock:diagnosing-bugs
 
 ## Scenario
 

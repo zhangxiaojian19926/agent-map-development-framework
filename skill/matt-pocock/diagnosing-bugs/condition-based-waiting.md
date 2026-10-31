@@ -1,3 +1,8 @@
+> **Local adaptation.** Derived from `obra/superpowers`
+> `systematic-debugging` (MIT, copyright Jesse Vincent), pinned at
+> `5bf4e78011075bcfc0dc295f0724994cd123ee71`. The upstream skill was
+> retired when this group was introduced; see `THIRD_PARTY_NOTICES.md`.
+
 # Condition-Based Waiting
 
 ## Overview

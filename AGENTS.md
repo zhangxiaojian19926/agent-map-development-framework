@@ -26,7 +26,7 @@
 |---|---|
 | 查询、解释、审计 | 路由 → 只读探索 → 事实、推断、未验证项与来源;不修改文件 |
 | 纯文档、链接修正 | 路由 → 确认范围 → 精确修改 → 链接/内容/diff 校验;不制造代码 RED |
-| 恢复既有规格的修复 | 路由 → systematic-debugging → 有效 RED → 最小修复 → 评审/回归;关联已有 change |
+| 恢复既有规格的修复 | 路由 → 调试诊断 → 有效 RED → 最小修复 → 评审/回归;关联已有 change |
 | 新行为、接口、验收、跨模块设计 | 下表完整流程,审批只覆盖已确认的范围 |
 | 知识摄入 | 公共知识路由 → 明确内容/全部目标授权 → 按目标 schema 摄入及验证 |
 | 设备、部署、发布 | 对应流程 + 本项目操作约束 + 本次具体目标授权 |
@@ -41,7 +41,7 @@ OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设�
 
 | 顺序 | 使用技能 | 必须交接的结果 |
 |---|---|---|
-| 1. DISCOVERY | openspec-explore; superpowers:brainstorming; 故障先 systematic-debugging | 目标、范围、模块、兼容性、验证环境、方案与待确认项 |
+| 1. DISCOVERY | openspec-explore; superpowers:brainstorming; 故障先 matt-pocock:diagnosing-bugs | 目标、范围、模块、兼容性、验证环境、方案与待确认项 |
 | 2. SPEC | openspec-propose / openspec-update-change | 稳定 Req/Scenario、真实 schema 校验、用户认可 |
 | 3. PLAN | superpowers:writing-plans | 关联规格的微步骤、文件/模块、测试、依赖、集成与恢复计划;计划获批 |
 | 4. WORKSPACE | 需隔离时 using-git-worktrees; 顺序 executing-plans | 各仓库基线、正确工作区、最小环境检查;委派需授权 |
@@ -59,7 +59,7 @@ OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设�
 
 ## 3. 异常与交付
 
-- 实现失败:systematic-debugging 复现和验证根因,再回当前任务。
+- 实现失败:matt-pocock:diagnosing-bugs 复现并验证根因,再回当前任务。
 - 需求/场景改变:openspec-update-change → 校验/确认 → writing-plans 更新;不能为通过测试降低规格。
 - 环境故障:INFRA_ERROR,不是 RED;缺少关键决定仅停止依赖它的工作。
 - 新模块:按公共协作规则先只读发现,再按授权登记;发现不等于获准执行、建库或安装。

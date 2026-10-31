@@ -1,3 +1,8 @@
+> Upstream creation history, kept as-is from `obra/superpowers`
+> `systematic-debugging` (MIT, copyright Jesse Vincent), pinned at
+> `5bf4e78011075bcfc0dc295f0724994cd123ee71`. It documents how the
+> upstream skill was extracted, not this framework's history.
+
 # Creation Log: Systematic Debugging Skill
 
 Reference example of extracting, structuring, and bulletproofing a critical skill.
@@ -104,7 +109,7 @@ Bulletproof skill that:
 ## Usage Example
 
 When encountering a bug:
-1. Load skill: skills/debugging/systematic-debugging
+1. Load skill: matt-pocock:diagnosing-bugs
 2. Read overview (10 sec) - reminded of mandate
 3. Follow Phase 1 checklist - forced investigation
 4. If tempted to skip - see anti-pattern, stop
