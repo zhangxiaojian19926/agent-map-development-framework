@@ -12,6 +12,7 @@
 | `docs/framework/` | 跨项目公共规则 | 是 |
 | `docs/project-intake.md`、`docs/bootstrap.md`、`docs/integrations.md` | 现行协议、高级 CLI 与集成参考 | 是 |
 | `docs/maintainer/` | 公共壳维护者说明 | 否 |
+| `docs/plans/` | 公共壳的实施计划与切片文档 | 否 |
 | `docs/archive/` | 历史计划、验收与证据索引 | 否 |
 | `skill/` | 随包发布的工作流与支持资源 | 是 |
 | `templates/` | 未配置的项目与模块模板 | 是 |
@@ -34,7 +35,7 @@
 | `docs/integrations.md` | 不变 | 保留集成参考 |
 | 使用者目录与开发指南 | `docs/guide/` | 新增并链接到 README/BOOTSTRAP |
 | 维护者布局、验证、发布说明 | `docs/maintainer/` | 新增，不分发到业务项目 |
-| `docs/superpowers/plans/` | `docs/archive/plans/` | 已迁移并修正链接；新计划仍按技能约定写入原位置，完成后再归档 |
+| `docs/superpowers/plans/` | `docs/archive/plans/` | 已迁移并修正链接；新计划改写入 `docs/plans/`，完成后归档到 `docs/archive/plans/` |
 | `docs/acceptance.md` | `docs/archive/acceptance.md` | 已保留历史内容并修正链接 |
 | `docs/verification/` | `docs/archive/verification/` | 已保留历史证据并修正链接；新验证按现行指南归置 |
 | 活跃 OpenSpec change | 原位 | 不作为历史资料移动 |

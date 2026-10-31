@@ -115,8 +115,8 @@ class GenerationTests(unittest.TestCase):
             )
             forbidden = (
                 'docs/maintainer/repository-layout.md', 'docs/archive/README.md',
-                'docs/acceptance.md', 'docs/verification/bootstrap-0.2.0.md',
-                'docs/superpowers/plans', 'tests', '.github', 'CHANGELOG.md',
+                'docs/acceptance.md', 'docs/archive/verification/bootstrap-0.2.0.md',
+                'docs/plans', 'tests', '.github', 'CHANGELOG.md',
             )
             for rel in required:
                 self.assertTrue((root / '.agent-framework' / rel).is_file(), rel)

@@ -112,4 +112,4 @@ The upstream method's two-section report stands. This framework adds:
 ## Further reading in this group
 
 - [SKILL.md](SKILL.md) — the two-axis method, the smell baseline, the sub-agent briefs
-- [../../super-powers/requesting-code-review/code-reviewer.md](../../super-powers/requesting-code-review/code-reviewer.md) — the single-reviewer dispatch template used for per-task reviews
+- [../../superpowers/requesting-code-review/code-reviewer.md](../../superpowers/requesting-code-review/code-reviewer.md) — the single-reviewer dispatch template used for per-task reviews

@@ -1,8 +1,10 @@
 name: Release framework
 on:
   schedule:
-    # Monday 02:00 UTC, which is 10:00 in Asia/Shanghai.
-    - cron: '0 2 * * 1'
+    # Monday 02:17 UTC, which is 10:17 in Asia/Shanghai.
+    # GitHub recommends avoiding the top of the hour: scheduled workflows are
+    # delayed during the load peak, and the only earlier run landed 5.5 hours late.
+    - cron: '17 2 * * 1'
   workflow_dispatch:
     inputs:
       bump:

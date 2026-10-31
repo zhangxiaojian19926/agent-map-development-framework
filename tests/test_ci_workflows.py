@@ -49,7 +49,10 @@ class CiWorkflowTests(unittest.TestCase):
         self.assertIn("PYTHONDONTWRITEBYTECODE: '1'\n", self.validate)
 
     def test_release_triggers_permissions_and_concurrency(self):
-        self.assertIn("cron: '0 2 * * 1'\n", self.release)
+        self.assertIn("cron: '17 2 * * 1'\n", self.release)
+        # Scheduled workflows are delayed during the load peak at the top of the
+        # hour, so the release must not be scheduled on the hour.
+        self.assertNotIn("cron: '0 ", self.release)
         self.assertIn('workflow_dispatch:\n    inputs:\n      bump:\n', self.release)
         self.assertIn('options: [patch, minor, major]\n', self.release)
         self.assertIn('default: patch\n', self.release)

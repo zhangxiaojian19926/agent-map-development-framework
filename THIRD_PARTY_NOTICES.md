@@ -3,7 +3,7 @@
 ## Superpowers
 
 Source: https://github.com/obra/superpowers
-License: MIT, copyright Jesse Vincent; full notice in skill/super-powers/LICENSE.
+License: MIT, copyright Jesse Vincent; full notice in skill/superpowers/LICENSE.
 This distribution carries a local skill snapshot and its supporting files, not a claim of byte-for-byte equivalence to a tagged upstream release.
 Upstream license checked at 5bf4e78011075bcfc0dc295f0724994cd123ee71. Distributed file hashes are pinned in framework-manifest.json.
 Two upstream skills were retired in favour of merged skills that carry their material forward as declared local adaptations:

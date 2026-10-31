@@ -43,22 +43,23 @@ spec-format change.
 
 ### Navigation
 
-**The `superpowers:` skill prefix does not match the `super-powers/`
+**The `superpowers:` skill prefix did not match the `super-powers/`
 directory.**
 Evidence: a search for the retired `test-driven-development` skill by
 directory name and by invocation prefix returned different things, and the
 prefix was mistaken for a broken path reference before the framework's own
 convention was found in `AGENTS.md`.
-Action: **scheduled** — see the path and naming cleanup change. The two
-remaining upstream groups are `super-powers/` (prefix `superpowers:`) and
-`openspec/` (prefix `openspec-`), so the mismatch is one directory name
-away from being consistent.
+Action: **done.** The group was renamed to `skill/superpowers/`, so the
+directory now matches the invocation prefix. The `openspec/` group already
+matched its prefix.
 
 **The plan location still carries a retired skill's namespace.**
-Evidence: `docs/superpowers/plans/` remains the stated plan convention after
-the plan skill moved to another group, and the directory no longer exists in
-the tree.
-Action: **decision needed.** See the path and naming cleanup change.
+Evidence: `docs/superpowers/plans/` remained the stated plan convention after
+the plan skill moved to another group, and the directory no longer existed
+in the tree.
+Action: **done.** The convention is now `docs/plans/`, the leftover empty
+directory was removed, and the runtime payload excludes the new location so
+plan documents still never reach a target project.
 
 ### Tool economy
 

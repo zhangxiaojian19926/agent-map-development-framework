@@ -18,7 +18,7 @@ RUNTIME_REQUIRED_FILES = RUNTIME_ROOT_FILES + RUNTIME_DOC_FILES + (
     'skill/llm-wiki/SKILL.md', 'templates/PROJECT-START.md', 'templates/runtime-README.md',
     'tools/framework', 'tools/framework_core/cli.py',
 )
-RUNTIME_EXCLUDED_DOCS = ('docs/archive/', 'docs/maintainer/', 'docs/superpowers/', 'docs/verification/')
+RUNTIME_EXCLUDED_DOCS = ('docs/archive/', 'docs/maintainer/', 'docs/plans/', 'docs/verification/')
 
 
 def runtime_markdown(rel, text):
