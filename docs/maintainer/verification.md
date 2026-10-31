@@ -22,18 +22,15 @@ git diff --check <base>...HEAD
 
 ### 提交前的固定顺序
 
-```text
-改动文件
-  → python3 tools/update-manifest
-  → python3 tools/check-framework
-  → 全量单元测试
-  → 提交
-  → git diff --check HEAD^ HEAD
+```bash
+python3 tools/pre-commit-check              # 刷新清单、分发检查、全量单测、暂存区空白检查
+git commit ...
+python3 tools/pre-commit-check --committed  # 复查 CI 将要检查的提交范围
 ```
 
-清单是分发文件与指纹的单源，任何文件内容改动后都必须重跑 `tools/update-manifest`，否则 `tools/check-framework` 会以指纹不匹配失败。
+`tools/pre-commit-check` 按这个顺序执行：`tools/update-manifest` → `tools/check-framework` → 全量单元测试 → `git diff --cached --check`。清单是分发文件与指纹的单源，任何文件内容改动后都必须重跑 `tools/update-manifest`，否则 `tools/check-framework` 会以指纹不匹配失败。`--read-only` 只做检查不改清单；`--skip-tests` 跳过单测。
 
-提交之后那一步不能省：提交前的 `git diff --check` 查的是工作树与暂存区，不是 CI 将要检查的提交范围。CI 检查的是 `github.event.before..HEAD`，本地要复现同一段才作数。顺序里任何一步之后再改文件，都要从 `tools/update-manifest` 重新开始。
+提交之后那一步不能省：提交前的 `git diff --check` 查的是工作树与暂存区，不是 CI 将要检查的提交范围。CI 检查的是 `github.event.before..HEAD`，`--committed` 复查的是 `HEAD^..HEAD`，两者才是同一段。顺序里任何一步之后再改文件，都要从清单刷新重新开始。
 
 ## 目录治理专项
 
