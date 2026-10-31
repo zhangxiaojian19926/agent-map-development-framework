@@ -12,6 +12,7 @@
 - 新增公开市场研究交接：接收当前 Agent 按用户授权整理的结构化研究请求，绑定研究 ID、公开来源 URL、访问日期、声明内容哈希、事实、推断和局限；工具本身不联网、不抓网页，也不证明外部事实真实性。
 - 新增发布渠道适配：把 READY 候选转换为具体渠道可复核的本地产物，首版支持 `github-release` 渠道，固定 `publish=NOT_RUN` 与 `execution=NOT_RUN`，不执行任何远端访问、Git 操作或真实发布。
 - `doctor` 和自动 `reverse` 增加显式 `--summary` 中文摘要，统一展示结果、当前流程产物、条件性未生成、未执行与限制、提交与本机状态、下一步六部分；默认 JSON、既有退出码、授权和文件写入保持兼容。
+- 补齐规格库缺失的 8 个能力规格：`project-bootstrap`、`agent-project-maps`、`module-lifecycle`、`project-readiness`、`codegraph-maintenance`、`project-intake`、`named-module-acquisition`、`host-neutral-onboarding`。它们的实现早已存在并在用，但因两个旧 change 从未归档（归档门禁需要本环境拿不到的真实宿主与跨宿主证据），规格库长期低估了工程壳自身能力。两个旧 change 继续保留在活跃区、不归档，未勾选任务仍是未验证部分的唯一权威记录；决定与审计证据见维护者对账记录。
 - 引入 mattpocock/skills 的两个参考技能：面向 agent 的文档写作参考（context pointer 措辞、context load 与 cognitive load 双预算、渐进披露、co-location、leading word、negation 失效、no-op 指令识别）和模块内部接口设计参考（module、interface、seam、adapter、depth、leverage、locality 的用词，依赖分类、seam 纪律和“替换而非叠加”的测试策略）。两者是上游 MIT 原文副本，未做本地改写，随包分发并按来源段登记，不产生执行义务。技能入口从 23 增至 25。
 - CI 门禁补齐规格校验：固定版本安装 OpenSpec CLI，分别校验活动 change 与正式规格、校验归档 change 的任务是否全部完成，并在本次改动范围内检查空白错误；发布流水线在打 tag 前跑同一套检查。PDF 产物标记为二进制，避免被当作文本 diff 而误报空白问题。
 - 修复 Python 3.9 下 tar 解包不兼容，保持与 3.9 兼容的 tar stub。

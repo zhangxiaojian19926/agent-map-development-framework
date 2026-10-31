@@ -1,11 +1,11 @@
 # 旧 OpenSpec change 证据对账
 
-> 维护者对账记录，不改变旧 change 的任务状态，也不是同步、归档或发布结论。对账日期：2026-10-26。
+> 维护者对账记录，不改变旧 change 的任务状态，也不是同步、归档或发布结论。对账日期：2026-10-26，规格库补齐与归档决定：2026-10-31（见文末）。
 
 ## 对账口径
 
 - 旧任务是否完成只由其最终工作树、适用环境和专属场景证据决定；本目录整理变更的测试不能替代旧任务验收。
-- 本次只读核对两个旧 change 的任务文件、历史验收和已有提交/CI 记录；没有勾选旧任务，没有执行规格同步或归档。
+- 2026-10-26 的对账只读核对两个旧 change 的任务文件、历史验收和已有提交/CI 记录；没有勾选旧任务，没有执行规格同步或归档。2026-10-31 按文末决定补齐了这 8 个能力的规格同步，两个 change 仍不归档、任务状态未改写。
 - 历史计划已迁至 `docs/archive/plans/`，历史验收已迁至 `docs/archive/`。旧任务正文中的原路径是历史记录，不再作为现行导航入口。
 - 可核实的公共提交为 `84a5caae73e4cb60f773245127e0d1a37693bda6`（`fix: harden project initialization checks`）。CI run `40249970950` 在该提交上完成 Ubuntu 与 macOS 的 `tools/check-framework` 和完整单元测试，结论均为 success；它不证明真实宿主、私有认证、设备、部署或当前未提交工作树。
 
@@ -49,3 +49,35 @@
 2. 真实非 Codex、跨宿主恢复、私有认证、设备或部署没有证据时继续标记 NOT_RUN，不以“代码存在”代替。
 3. 全部适用门禁完成后，先走规格同步并核对，再按正常归档流程处理；归档前取得用户明确授权。
 4. 本次目录变更未摄入任何知识内容，也未对旧 change 做状态改写。
+
+## 2026-10-31 规格库补齐与归档决定
+
+### 审计发现
+
+2026-10-31 对全部活跃 change 与规格库做交叉核对，发现**规格库缺失 8 个能力**，而它们的实现都已存在且在用：
+
+| 能力 | 声明来源 | 实现证据 |
+|---|---|---|
+| `project-bootstrap` | add-project-bootstrap-and-maps | `skill/project-bootstrap/SKILL.md`、`BOOTSTRAP.md` |
+| `agent-project-maps` | add-project-bootstrap-and-maps | `tools/framework_core/maps.py`、`map` 子命令 |
+| `module-lifecycle` | add-project-bootstrap-and-maps | `docs/guide/module-lifecycle.md` |
+| `project-readiness` | add-project-bootstrap-and-maps | `tools/framework_core/readiness.py`、doctor 分层状态 |
+| `codegraph-maintenance` | add-project-bootstrap-and-maps | `tools/framework_core/adapters.py`、`refresh --index` |
+| `project-intake` | agent-led-project-intake | `tools/framework_core/intake.py`、`intake` 子命令 |
+| `named-module-acquisition` | agent-led-project-intake | `tools/framework_core/acquisition.py`、模块 clone/add |
+| `host-neutral-onboarding` | agent-led-project-intake | `docs/project-intake.md`、BOOTSTRAP 通用入口 |
+
+缺失原因是这两个 change 从未归档：归档门禁要求真实宿主与跨宿主恢复证据，本环境无法提供，于是规格库长期只反映 2026-10-26 之后新增的能力。规格库因此**低估了工程壳自身的能力**——只读规格的人会以为初始化、关系地图、模块获取这些核心能力不存在。
+
+### 决定
+
+1. **同步这 8 个能力规格到 `openspec/specs/`**，走规格同步流程，不绕过 change。规格同步与归档是两个独立操作：同步声明“这些是正式能力规格”，归档声明“实现已完成并留有证据”。
+2. **两个 change 继续留在 `openspec/changes/`，不归档。** 未勾选任务仍缺真实宿主、跨宿主恢复、私有认证与远端 CI 证据，按本文件上方门禁第 2、3 条，这些门禁在本环境无法完成，因此不满足归档条件。
+3. **未勾选任务仍是未验证部分的唯一权威记录。** 规格库记录要求，不记录实现完成度；完成度只看 change 的任务与验证证据。
+
+### 后续影响
+
+- `openspec validate --all --strict` 覆盖 20 个能力规格与 2 个活跃 change，全部通过。
+- 新增的 CI 门禁 `openspec validate --archived` 会拒绝任何带未完成任务归档的 change，为上述决定提供机器校验。
+- 若将来取得真实宿主与跨宿主证据，先按正常流程重验适用场景并逐项记录，再同步核对，最后归档；在此之前两个 change 的状态保持未完成。
+
