@@ -12,7 +12,8 @@
   "sources": [
     {
       "repo": "Fission-AI/OpenSpec",
-      "sha": "db2309783547a14e150dbcbfc19120e4028446c3"
+      "sha": "db2309783547a14e150dbcbfc19120e4028446c3",
+      "cli_version": "1.13.2"
     },
     {
       "repo": "obra/superpowers",
@@ -25,12 +26,13 @@
   ],
   "provenance": "Upstream references establish license/source provenance, not exact-version equivalence of locally imported skill files. See THIRD_PARTY_NOTICES.md.",
   "files": {
-    ".github/workflows/release.yml": "52780f17f06956bb9884af0d1fa7f179ee4dab7fc6e55590660ce9e702e79b45",
-    ".github/workflows/validate.yml": "bc148e4ef7356d64e4638a777f5cf0485098e5bdc9910ebc7cb7c9a9292d4737",
+    ".gitattributes": "1bdedcec222cbe9d95aab5a4106c5fea2efba540d6d988afb9bd1149bc9ddb54",
+    ".github/workflows/release.yml": "37d8a292576bcc604bd1d9ec2302623386d19536015a8ba5a8b5896a3893f1f5",
+    ".github/workflows/validate.yml": "6cd13b6ea2e53c118fd36c7ece8508719801127b60a4b072f4fb50991708fe8b",
     ".gitignore": "d80b710933a11eb4cc767e984ff829302f20fc7b923f42005109faef99b7a7aa",
     "AGENTS.md": "6c67400769e16aacf39cab33b2fe4042a1cc5a049c19d9ac28de20b3273e32ba",
     "BOOTSTRAP.md": "3e4ab81df7223f7716a5b0f7a932fc4cc06b5610f011e4298596426a9776ffe9",
-    "CHANGELOG.md": "1e40ae522573a4af632ea48d79e24350d7f9f85790d29ddabf0bbb828293b585",
+    "CHANGELOG.md": "b1db4130adbf7ae3165d51db9d731c79421beca452a04e61ead853e3ae01c4d1",
     "LICENSE": "7a80c75b97010400a48b27d0a9e81a42196f999696aee38cadf3bd14475c2ed7",
     "README.md": "b9d042fc0627ff462cd892ae7b74fa4de3e2e2de19c26549d87890faef635c99",
     "THIRD_PARTY_NOTICES.md": "c826fbaa6a661c30413dafe7977cb259475cdb28dfc00af0b25c2432a16755fc",
@@ -56,7 +58,7 @@
     "docs/maintainer/legacy-change-status.md": "28f7a2515badd973e942baa5fc2d18ab962680c1773dd6c8e52ab1b3527e42cd",
     "docs/maintainer/release.md": "d363ee781621c063fe87617bd95689ca4500491c816dadd07afcf7f2a612ae54",
     "docs/maintainer/repository-layout.md": "2e9d1873c07e38bd20f030e2fc82ce78e1052039167b578cf0afd3ab4ccf1b1b",
-    "docs/maintainer/verification.md": "32795632546c7b99d899c359d2769c947180916841402127eee53710c2602ee8",
+    "docs/maintainer/verification.md": "105e089dcf12400319a6489f050af09b550670d90c4040b88fcc32dc1b89bc73",
     "docs/onboarding.md": "5aec69c207d98cab1ea9433625f4d0c8189aa76db6976eb6cc67cec7cd7255b0",
     "docs/project-intake.md": "2042263b21f684f1be995d357f8560f394c8f1603b7c5d441c035f606a1ce1b3",
     "docs/verification/2026-10-30-illustrated-guide.md": "a047484e544aa4ca0e2317d68b029e76f0eeaa2e00d45cb1efd4b92b811192d6",
@@ -267,7 +269,7 @@
     "tests/test_bootstrap_modules.py": "6f8ffd5553fb8774bbae53ed2dc291021034921ad07cbb5684c7ab27b15586e0",
     "tests/test_bootstrap_readiness.py": "dd61d6d0480847c4793bb547ffc7054621516277d19234ea4fd9ea6cde1bcf21",
     "tests/test_bootstrap_storage.py": "8289ba7809a0c1d5e4e53153100bde00da9783b5dedfca4478200542bfb323b7",
-    "tests/test_ci_workflows.py": "9387e87c99c1d70ec69d1bad88ef9a26a4d9377282041c1246e3f6ad8b0ca5ee",
+    "tests/test_ci_workflows.py": "9c1bc980d6c17852c9a2ed35ccfbc907e301c252d7cbe3825b777c380e6faaeb",
     "tests/test_completion_summary.py": "b034c191ff8a9ea2bc794b2826f50e82777062e984ffdf00393faa0fd6ca2eb8",
     "tests/test_delivery_release_candidate.py": "a39f5e70a05d58362d8aff6d841d89efedbb031867e7ccf0408fa09cdb28ceeb",
     "tests/test_device_contract.py": "a5af8b29894038d819c4216187832001019cb073597fe4924b13262a338af3a9",
@@ -294,7 +296,7 @@
     "tests/test_reverse_planner.py": "482effc737b8c1763d4714a020a288bda4e689494e00201c5ddc93b964558365",
     "tests/test_reverse_v2.py": "20c82e6e5cca073e85d0e7448e8ad264fa3f5fbadea51a53ecb3812b712516c4",
     "tests/test_verified_feature_parity.py": "d60f09ac12eaa276b74108941cdba55badd6725a1b1b167c83abac0b97cb946b",
-    "tools/check-framework": "bd4915c871c8df71170d3bd39383331e3596133d878c22ee55185116897b80b8",
+    "tools/check-framework": "c3faa692f98056d39e1fb83e4f5de870067463ef1f5d1cd4a09564fbc9ec66bf",
     "tools/framework": "6b89e66b6e5a5000744faea51c7c68a2b2c6e106ac7c5e85074a33b9d509629e",
     "tools/framework_core/__init__.py": "5e36854a87d1b82c0a573657a8079a22b75bfe70a99c3fee8a8dbc58ccc3cefc",
     "tools/framework_core/acquisition.py": "49133b9c7328080466ab179ff1ed9509a998b16a3ace049d0e4158677b57dc3e",

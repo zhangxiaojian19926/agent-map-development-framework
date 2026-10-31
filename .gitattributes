@@ -1,0 +1,5 @@
+# Binary artifacts must not be diffed as text.
+# The illustrated guide PDF has no NUL bytes in its first block, so git's own
+# binary detection misses it and `git diff --check` reports false whitespace
+# errors inside its content.
+*.pdf binary

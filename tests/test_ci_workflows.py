@@ -1,4 +1,6 @@
 from pathlib import Path
+import json
+import re
 import unittest
 
 
@@ -10,6 +12,12 @@ class CiWorkflowTests(unittest.TestCase):
     def setUpClass(cls):
         cls.validate = (ROOT / '.github/workflows/validate.yml').read_text(encoding='utf-8')
         cls.release = (ROOT / '.github/workflows/release.yml').read_text(encoding='utf-8')
+        cls.manifest = json.loads((ROOT / 'framework-manifest.json').read_text(encoding='utf-8'))
+
+    def pinned_cli_version(self, workflow):
+        match = re.search(r'npm install --global @fission-ai/openspec@(\d+\.\d+\.\d+)\n', workflow)
+        self.assertIsNotNone(match, 'the OpenSpec CLI must be installed with a pinned version')
+        return match.group(1)
 
     def test_validate_uses_supported_action_versions(self):
         self.assertIn('- uses: actions/checkout@v7\n', self.validate)
@@ -95,6 +103,54 @@ class CiWorkflowTests(unittest.TestCase):
         ):
             with self.subTest(command=command):
                 self.assertIn(command, self.release)
+
+    def test_workflows_install_a_pinned_openspec_cli(self):
+        for name, workflow in (('validate', self.validate), ('release', self.release)):
+            with self.subTest(workflow=name):
+                self.assertIn('- uses: actions/setup-node@v7\n', workflow)
+                self.assertIn("node-version: '22'\n", workflow)
+                self.assertNotIn('openspec@latest', workflow)
+                self.assertNotIn('npm install --global @fission-ai/openspec\n', workflow)
+
+    def test_pinned_cli_version_matches_the_manifest_source(self):
+        source = next(s for s in self.manifest['sources'] if s['repo'] == 'Fission-AI/OpenSpec')
+        expected = source.get('cli_version')
+        self.assertIsNotNone(expected, 'the OpenSpec source must record the CLI version')
+        self.assertEqual(self.pinned_cli_version(self.validate), expected)
+        self.assertEqual(self.pinned_cli_version(self.release), expected)
+
+    def test_validate_runs_both_spec_gates_after_the_cli_install(self):
+        install = self.validate.index('npm install --global @fission-ai/openspec@')
+        active = self.validate.index('openspec validate --all --strict --no-interactive')
+        archived = self.validate.index('openspec validate --archived --no-interactive')
+        self.assertLess(install, active)
+        self.assertLess(active, archived)
+
+    def test_release_validates_specs_before_preparing_and_publishing(self):
+        install = self.release.index('npm install --global @fission-ai/openspec@')
+        active = self.release.index('openspec validate --all --strict --no-interactive')
+        archived = self.release.index('openspec validate --archived --no-interactive')
+        prepare = self.release.index('- name: Prepare version, changelog, and manifest\n')
+        publish = self.release.index('- name: Tag and publish the GitHub release\n')
+        self.assertLess(install, active)
+        self.assertLess(active, archived)
+        self.assertLess(archived, prepare)
+        self.assertLess(prepare, publish)
+
+    def test_whitespace_check_resolves_an_explicit_base(self):
+        for name, workflow in (('validate', self.validate), ('release', self.release)):
+            with self.subTest(workflow=name):
+                self.assertIn('- name: Check whitespace errors in this change\n', workflow)
+                self.assertIn('git diff --check "$BASE" HEAD\n', workflow)
+        self.assertIn('github.event.pull_request.base.sha', self.validate)
+        self.assertIn('github.event.before', self.validate)
+
+    def test_binary_artifacts_are_marked_for_diff_checks(self):
+        attributes = (ROOT / '.gitattributes').read_text(encoding='utf-8')
+        self.assertIn('*.pdf binary\n', attributes)
+        self.assertIn('.gitattributes', self.manifest['files'])
+        pdfs = [name for name in self.manifest['files'] if name.endswith('.pdf')]
+        self.assertTrue(pdfs, 'the distribution is expected to contain a PDF artifact')
 
 
 if __name__ == '__main__':
