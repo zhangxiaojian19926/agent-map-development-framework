@@ -180,5 +180,6 @@ git diff --check <base>...HEAD
 | 9 | 指南教学层：模型速查、全景与学习顺序、主线走查、读后自检、状态词表校验 | `6f86f66` |
 | 10 | 使用者项目收口检查的规划（`2026-11-01-project-closure-check`，停在 SPEC 阶段） | `57d007b` |
 | 11 | 技能全部接上落点，指南补「每条工作流用到的技能」表 | `92e4c1c` |
+| 12 | 本地改编层可达化：登记 + 指针 + 双向核对；移除 using-superpowers 入口；统一委派技能归属 | `deffeb1` |
 
 证据索引：[归档的 change](../../openspec/changes/archive/)与[复盘记录](retro-findings.md)。
