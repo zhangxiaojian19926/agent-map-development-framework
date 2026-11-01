@@ -41,7 +41,7 @@ OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设�
 
 | 顺序 | 使用技能 | 必须交接的结果 |
 |---|---|---|
-| 1. DISCOVERY | openspec-explore; superpowers:brainstorming; 故障先 matt-pocock:diagnosing-bugs | 目标、范围、模块、兼容性、验证环境、方案与待确认项 |
+| 1. DISCOVERY | openspec-explore; superpowers:brainstorming; 故障先 matt-pocock:diagnosing-bugs; 多个独立失败可并行分解时 superpowers:dispatching-parallel-agents | 目标、范围、模块、兼容性、验证环境、方案与待确认项 |
 | 2. SPEC | openspec-propose / openspec-update-change | 稳定 Req/Scenario、真实 schema 校验、用户认可 |
 | 3. PLAN | matt-pocock:to-tickets | 垂直切片、阻塞边、Req/Scenario 关联、文件/模块、测试、集成与恢复;计划获批 |
 | 4. WORKSPACE | 需隔离时 using-git-worktrees; 顺序 executing-plans | 各仓库基线、正确工作区、最小环境检查;委派需授权 |
@@ -51,10 +51,10 @@ OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设�
 | 8. VERIFY | verification-before-completion | 最终工作树/产物的新鲜证据;适用局部与集成场景分别验证 |
 | 9. INTEGRATE | finishing-a-development-branch | 用户选择合并/PR/保留等;不擅自提交、推送、部署或操作设备 |
 | 10. ARCHIVE | openspec-sync-specs → openspec-archive-change | 同步核对后归档,未完成/无证据不得宣称完整归档 |
-| 11. KNOWLEDGE | 已选知识库技能,按公共知识规则 | 每次问题解决即询问是否摄入,无需等发布;获明确授权才写入 |
+| 11. KNOWLEDGE | llm-wiki,按公共知识规则 | 每次问题解决即询问是否摄入,无需等发布;获明确授权才写入 |
 
 表中未写前缀的 Superpowers 技能同属 superpowers。未安装、不可调用或参数不支持时报告,不伪造执行。
-除阶段路由表外还有三个按需取用的参考技能,不构成必做步骤:编写或修改技能、AGENTS.md 及任何被指针引用的文档时用 `matt-pocock:writing-for-agents`;设计模块接口、决定 seam 位置或判断可测试性时用 `matt-pocock:codebase-design`;用户要求复盘会话时用 `matt-pocock:retro`。它们是参考材料,不产生新的授权、状态或完成判据。
+除阶段路由表外还有五个按需取用的参考技能,不构成必做步骤:编写或修改任何 Agent 读取的文档(技能、AGENTS.md 及任何被指针引用的文档)时用 `matt-pocock:writing-for-agents`;新建一个技能时另用 `superpowers:writing-skills` 走"先看它失败"的验证流程;设计模块接口、决定 seam 位置或判断可测试性时用 `matt-pocock:codebase-design`;讨论领域术语、锐化含糊用词或用具体场景压测概念边界时用 `matt-pocock:domain-modeling`;用户要求复盘会话时用 `matt-pocock:retro`。它们是参考材料,不产生新的授权、状态或完成判据。
 设计讨论中若干互相独立的开放决策可一次问完整个前沿,依赖未决答案的问题留到下一轮,需要环境事实时自己查。
 技能选择与缺失处理、权限冲突见 [技能约束](docs/framework/skill-policy.md)。当前用户指令和已有明确授权优先,阶段切换不重复索取相同授权。
 

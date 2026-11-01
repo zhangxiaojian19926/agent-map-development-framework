@@ -253,6 +253,32 @@ CLI 常见退出码：0 表示当前命令完成，2 表示输入错误，3 表�
 | 14 | 公共工程壳验证与 CI | 验证公共壳自身的分发、文档与行为契约 | 改动公共壳时 | 六道门禁 + CI 结果 |
 | 15 | 公共工程壳版本发布 | 发布公共壳自身的新版本 | 公共壳有 Unreleased 内容 | 版本提交 + tag + GitHub Release |
 
+### 每条工作流用到的技能
+
+多数工作流不靠技能，靠 CLI 与流程契约；技能集中在工作流 2。
+
+| # | 工作流 | 用到的技能 |
+|---|---|---|
+| 1 | 工程初始化 | `project-bootstrap`（唯一入口）；失败诊断加 `matt-pocock:diagnosing-bugs` |
+| 2 | 日常开发 | **唯一技能密集的一条**，见下 |
+| 3 | 模块生命周期 | `matt-pocock:codebase-design`、`matt-pocock:domain-modeling`（按需参考） |
+| 4 | 公共壳升级 | 无阶段技能；纯 CLI 与冲突裁决，可加 `matt-pocock:code-review` 做前后评审 |
+| 5 | 知识检索与回流 | `llm-wiki`（唯一入口） |
+| 6 | 逆向观察 | `reverse-engineer` |
+| 7 | 产品行为观察 | `reverse-engineer` |
+| 8 | 产品设计交接 | `reverse-engineer` 加 `superpowers:brainstorming` |
+| 9 | 证据驱动功能差距追踪 | `matt-pocock:code-review`（按需参考） |
+| 10 | 公开市场研究交接 | 无；纯工具 |
+| 11 | 发布候选检查 | 无；纯工具 |
+| 12 | 发布渠道适配 | 无；纯工具 |
+| 13 | 构建产物登记 | 无；纯工具 |
+| 14 | 公共工程壳验证与 CI | 改技能或写文档时用 `superpowers:writing-skills` 与 `matt-pocock:writing-for-agents`；排障时用 `matt-pocock:diagnosing-bugs` |
+| 15 | 公共工程壳版本发布 | `superpowers:verification-before-completion` |
+
+工作流 2 的路径 D（新行为）会走完整链条：探索 → 设计 → 规格 → 计划 → 隔离与执行 → 实施 → 评审 → 验证 → 集成 → 归档 → 知识回流。链条上每个阶段对应哪些技能，见工程壳根目录的 [AGENTS.md 阶段路由表](../../AGENTS.md) 与[完整开发流程](../framework/development-workflow.md)。
+
+其余 14 条工作流里，只有工作流 1、5、6、7、8、14、15 站着一个技能，工作流 9、10、11、12、13 连技能都不需要——它们是工具加流程契约，不是方法。
+
 ## 学习顺序
 
 **只想把自己的项目跑起来（约 1 天）**
