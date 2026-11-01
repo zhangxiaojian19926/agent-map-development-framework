@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+"""Report unfinished work in a project that adopted the public shell.
+
+The shell's own checks protect the shell. A project that installed the
+public package gets the tools and the documents but no way to find out that
+its finished changes were never synced into the spec store, that its
+relationship map no longer matches its source, or that the project was
+never fully taken in. Four real projects were in exactly that state.
+
+This check reports four kinds of debt:
+
+  1. a change whose tasks are complete but whose capability specs are not
+     synced into openspec/specs/
+  2. a change whose specs are synced but which is still active
+  3. map evidence that no longer matches the source it points at
+  4. dimensions in which the project was not fully taken in
+
+It is read-only. It reports; it never moves, writes or syncs anything.
+
+By default the exit status is success even when there is debt: a project
+that has just adopted the shell is always behind, and failing on that would
+block the very first task. Pass --strict to fail when there is debt, which
+is what a continuous integration job wants.
+
+Usage:
+  tools/check-project                  human readable report
+  tools/check-project --strict         exit non-zero when there is debt
+  tools/check-project --json           machine readable report
+"""
+import argparse
+import json
+from pathlib import Path
+import sys
+
+from framework_core.closure import initialization_problems, map_evidence_problems, outstanding_changes
+
+
+def collect(root):
+    """Return every kind of debt this project carries."""
+    return {
+        'outstanding_changes': outstanding_changes(root),
+        'map_evidence_problems': map_evidence_problems(root),
+        'initialization_problems': initialization_problems(root),
+    }
+
+
+def report_text(report):
+    lines = []
+    for item in report['outstanding_changes']:
+        lines.append('DEBT change %s (%s tasks) %s: %s'
+                     % (item['change'], item['tasks'], item['problem'], item['detail']))
+    for item in report['map_evidence_problems']:
+        lines.append('DEBT map evidence %s: %s' % (item['kind'], item['detail']))
+    for item in report['initialization_problems']:
+        lines.append('DEBT %s is %s: %s' % (item['dimension'], item['status'], item['detail']))
+    if not lines:
+        lines.append('PASS: no unfinished change, no stale map evidence, project fully taken in')
+    lines.append('')
+    lines.append('  Sync the missing capabilities, then archive the change with the normal archive flow.')
+    lines.append('  Rebuild the relationship map and reaccept the project documents when the source moved.')
+    return '\n'.join(lines)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument('--root', default=str(Path(__file__).resolve().parents[1]))
+    parser.add_argument('--strict', action='store_true', help='exit non-zero when there is debt')
+    parser.add_argument('--json', action='store_true', help='machine readable output')
+    args = parser.parse_args(argv)
+
+    root = Path(args.root).resolve()
+    report = collect(root)
+    debt = any(report[section] for section in ('outstanding_changes', 'map_evidence_problems',
+                                               'initialization_problems'))
+
+    if args.json:
+        print(json.dumps({'status': 'DEBT' if debt else 'PASS', 'strict': bool(args.strict),
+                          **report}, ensure_ascii=False, indent=2))
+    else:
+        print(report_text(report))
+    return 1 if (debt and args.strict) else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

@@ -1,0 +1,61 @@
+# 使用者项目的持续集成模板（可选片段）
+#
+# 这是一份**模板**，不是自动安装的东西。公共壳升级到你项目时不会写入或改写
+# 你的持续集成配置；要不要用、用在哪条流水线，由你决定。
+#
+# 用法：复制到你的项目下 .github/workflows/ 下，按注释改掉标了「按项目改」的行。
+#
+# 它跑三件事：
+#   1. 欠账检查——完成的 change 同步了吗、归档了吗、地图还新鲜吗
+#   2. 规格校验——正式规格与活跃 change 的结构是否成立
+#   3. 你自己的测试——按项目改
+
+name: Check project closure
+
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+concurrency:
+  group: closure-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  closure:
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.9'
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Install the pinned OpenSpec CLI
+        run: npm install --global @fission-ai/openspec@1.13.2
+
+      - name: Report unfinished work in this project
+        run: python3 .agent-framework/tools/check-project --root . --strict
+
+      - name: Validate the active changes and the main specs
+        run: openspec validate --all --strict --no-interactive
+
+      - name: Run the project tests
+        # 按项目改：换成你的测试入口。例如
+        #   python3 -m unittest discover -s tests -v
+        #   pytest -q
+        run: python3 -m unittest discover -s tests -v
+
+# 说明：
+# - `check-project --strict` 在有欠账时失败。默认模式只报告不失败，适合本地用；
+#   持续集成里用 --strict，把"做完了没收口"变成流水线上的红灯。
+# - `openspec validate --all --strict` 需要项目里有 openspec/ 目录；没有就把这一步删掉。
+# - 公共壳升级不会改写这份文件；框架自己的版本变化时，看公共壳的发布说明再决定要不要跟。

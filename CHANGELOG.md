@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- 欠账检查送达使用者项目：欠账判定下沉到 `tools/framework_core/closure.py`（随运行时载荷分发），`tools/check-changes` 改为调用它且输出与退出码不变；新增 `tools/check-project`，使用者项目装上公共包就能跑出四类欠账——未同步规格的 change、未归档的 change、失效的地图证据、未完成的初始化。默认只报告退出 0，`--strict` 才失败，避免刚接入的项目被历史欠账卡住。另附 `templates/project-ci.yml` 持续集成模板，可选片段，不自动写入用户已有配置。
+- 新增 `docs/maintainer/optimization-log.md`：记录每一轮优化的起因、改动、验证证据与结论，与 roadmap 的分工是"roadmap 写还没做的，这份写做完了的"。
+
 - **本框架自己的技能改编层第一次真正可达。** 6 个技能、7 个规则文件、1010 行的本地改编规则此前在分发包里却零指针——`AGENTS.md` 不提、`skill-policy.md` 不提、能力规格也不提，上游 `SKILL.md` 更不可能引用框架自己加的文件。结果是规格说"SHALL 保留"，而"保留"的内容在执行时不存在：seam 预确认、切片写入 change 的任务清单、两轴评审的规格来源、`INFRA_ERROR` 不是 RED，全都没被读到。现在每个带本地层的技能在阶段路由表或参考技能段里标出要一并读取的文件名，新增 `skill/local-layers.json` 登记必读层，分发结构检查双向核对"登记项存在"与"登记项被活文档提及"。
 - 移除 `superpowers:using-superpowers` 的技能入口：它的职能已由阶段路由表与 `skill-policy.md` 覆盖，"哪怕 1% 可能适用就必须调用"的要求与框架"只加载本任务需要的技能"冲突。它的 `references/` 保留——上游 `executing-plans` 与 `writing-skills` 引用着那些平台适配文件。
 - `superpowers:subagent-driven-development` 保留并加本地改编层：上游的任务级评审是 `matt-pocock:code-review` 两轴评审的第二套实现，implementer 还自行提交。改编层让框架的评审与集成契约占上风——评审走框架的两轴方法，implementer 不自行提交——并行实施的能力保留，两套完成判据不并存。

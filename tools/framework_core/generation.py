@@ -16,7 +16,7 @@ RUNTIME_DOC_FILES = ('docs/project-intake.md', 'docs/bootstrap.md', 'docs/integr
 RUNTIME_DIRECTORIES = ('skill/', 'templates/', 'tools/framework_core/', 'docs/framework/', 'docs/guide/')
 RUNTIME_REQUIRED_FILES = RUNTIME_ROOT_FILES + RUNTIME_DOC_FILES + (
     'skill/llm-wiki/SKILL.md', 'templates/PROJECT-START.md', 'templates/runtime-README.md',
-    'tools/framework', 'tools/framework_core/cli.py',
+    'tools/framework', 'tools/framework_core/cli.py', 'tools/check-project',
 )
 RUNTIME_EXCLUDED_DOCS = ('docs/archive/', 'docs/maintainer/', 'docs/plans/', 'docs/verification/')
 
@@ -48,7 +48,7 @@ def generation_changes(root, config, distribution, prepare=False):
         if rel.endswith('.pdf'):
             continue
         if not (rel.startswith(RUNTIME_DIRECTORIES) or
-                rel in RUNTIME_ROOT_FILES + RUNTIME_DOC_FILES + ('tools/framework',)):
+                rel in RUNTIME_ROOT_FILES + RUNTIME_DOC_FILES + ('tools/framework', 'tools/check-project')):
             continue
         path = safe_path(distribution, rel)
         data = path.read_bytes()

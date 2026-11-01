@@ -164,7 +164,7 @@ GATE_SHAPES = (
 SETUP_SHAPES = (re.compile(r"^\s*(?:npm|pip|brew)\s+install\b", re.MULTILINE),)
 # Documents that record what happened rather than what is true now. A change
 # body quotes the value it replaces, so changes are history in both states.
-HISTORICAL_FILES = ("CHANGELOG.md",)
+HISTORICAL_FILES = ("CHANGELOG.md", "docs/maintainer/optimization-log.md")
 HISTORICAL_PREFIXES = ("docs/archive/", "openspec/changes/")
 # A UTC time only reads as a release schedule in a document that talks about one.
 SCHEDULE_CONTEXT = ("release.yml", "每周一", "定时发布")

@@ -1,13 +1,14 @@
 # 后续工作安排
 
 > 维护者计划。每项写明是什么、为什么、怎么做、做完怎么算闭环。
-> 不收录已完成的工作；历史证据见[归档](../archive/)。
+> 不收录已完成的工作；历史证据见[归档](../archive/)与[优化记录](optimization-log.md)。
 
 ## 怎么用这份计划
 
 - **一批一个 OpenSpec change**，走完整闭环：建 change → 实施 → 六道门禁 → 同步规格 → 归档 → 提交推送 → CI 双平台绿。
 - **按价值排序，不按依赖排序**。只有真正被阻塞的项才往后放。
 - **闭环判据是门禁通过，不是"看起来做完了"**。判据不明确的项，先把判据写清楚再动手。
+- **做完了的写进[优化记录](optimization-log.md)**，那里记起因、改动、验证证据和结论。
 
 每批的六道门禁：
 
@@ -28,15 +29,17 @@ git diff --check <base>...HEAD
 
 **是什么**：拿一个真实的业务项目跑一遍完整接入——`BOOTSTRAP.md` 的通用入口、模块下载、关系地图、资料生成、规格与实现、评审、验证、交付。
 
-**为什么**：**这份计划最初写错了前提。** 当时写的是"所有证据都来自它自己和自己造的合成样例，没有一项在真实项目上跑过"。2026-11-01 复查后确认不对：工作区里有三个真实项目接过公共壳——`61.videohao-generator`（207 个源文件、101 个测试文件，5 个 change、69 个已完成任务）、`23.auto_cut`（1 个 change、7 个已完成任务）、`prntscr-web`（逆向项目，6 份真实逆向分析）。`docs/guide/from-zero-to-one.md` 的图文版验证记录也早于这次复查。
+**为什么**：**这份计划最初写错了前提。** 当时写的是"所有证据都来自它自己和自己造的合成样例，没有一项在真实项目上跑过"。2026-11-01 复查后确认不对：工作区里有四个真实项目接过公共壳——`61.videohao-generator`（207 个源文件、101 个测试文件，5 个 change、69 个已完成任务）、`23.auto_cut`（1 个 change、7 个已完成任务）、`prntscr-web`（逆向项目，6 份真实逆向分析）、`64.onzon`（Swift/iOS，3 个模块、13 个源文件）。`docs/guide/from-zero-to-one.md` 的图文版验证记录也早于这次复查。
 
-**但没有一个走完闭环**，这才是真问题：三个项目的 `openspec/specs/` 与 `openspec/changes/archive/` 全空，doctor 一律报 `initialization=PARTIAL` 与 `handoff=READY_FOR_PLANNING`。videohao 还有 43 项改动从未提交，两个 change 目录从未进 git。**"做"发生了，"收"没发生。**框架的成熟度不能靠技能数量量，只能靠真实项目里闭环的数量。
+**但没有一个走完闭环**，这才是真问题：videohao 与 auto_cut 的 `openspec/specs/` 与 `openspec/changes/archive/` 全空，doctor 一律报 `initialization=PARTIAL` 与 `handoff=READY_FOR_PLANNING`。onzon 也一样——它的 `documentation` 因仓库新增了工程壳自身而变成 `STALE`。videohao 还有 43 项改动从未提交，两个 change 目录从未进 git。**"做"发生了，"收"没发生。**框架的成熟度不能靠技能数量量，只能靠真实项目里闭环的数量。
 
 **怎么做**：
 1. 你提供一个真实项目（仓库地址或本地路径）与模块划分——或者授权直接用 `61.videohao-generator` 收口。
 2. 用当前 `main` 做一次完整接入，过程产物落在项目里，不污染本仓库。
 3. 按 `docs/guide/from-zero-to-one.md` 的 15 条工作流走一遍真实任务，而不是走初始化。
 4. 走完把规格同步进 `openspec/specs/`、把 change 归档，让 doctor 不再报 PARTIAL。
+
+**工具已经就位**：2026-11-01 交付的 `tools/check-project` 随公共包分发，使用者项目装上就能自己跑出欠账清单。缺的是**在真实项目上真的走一遍收口**——那一步要写目标仓库，步骤与实测现状见 [`docs/plans/2026-11-01-project-closure-check.md`](../plans/2026-11-01-project-closure-check.md)。
 
 **闭环判据**：真实项目完成一次新行为（规格 → 计划 → 实现 → 评审 → 验证 → 集成），**并且**规格已同步、change 已归档、doctor 不再报未完成状态；接入过程中的问题被逐条记为 change 或修复。
 
