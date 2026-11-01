@@ -23,7 +23,9 @@
 | `.github/` | 公共壳 CI 与发布 | 否 |
 | `framework-manifest.json` | 分发文件与指纹单源 | 是 |
 
-稳定路径 `skill/`、`tools/framework_core/` 和 `docs/framework/` 不因命名偏好迁移。所有文件仍须登记到 `framework-manifest.json`；复制到目标项目不等于需要进入该项目的业务仓库根目录。
+稳定路径 `skill/`、`tools/framework_core/` 和 `docs/framework/` 不因命名偏好迁移。
+
+后续工作安排见 [roadmap](roadmap.md)；本轮复盘产生的候选与状态见 [复盘记录](retro-findings.md)。所有文件仍须登记到 `framework-manifest.json`；复制到目标项目不等于需要进入该项目的业务仓库根目录。
 
 ## 文档迁移对照
 
