@@ -200,5 +200,54 @@ class DocContractTests(unittest.TestCase):
         self.assertIn('verification workflow section not found', errors[0])
 
 
+class StatusVocabularyTests(unittest.TestCase):
+    def make_root(self, files):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for rel, text in files.items():
+            path = root / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding='utf-8')
+        return root
+
+    def marked(self, body):
+        return (checker.DICTIONARY_START + '\n' + body + '\n' + checker.DICTIONARY_END + '\n')
+
+    def test_the_shipped_guides_state_only_real_status_codes(self):
+        import json
+        files = list(json.loads((ROOT / 'framework-manifest.json').read_text(encoding='utf-8'))['files'])
+        self.assertEqual(checker.status_dictionary_errors(ROOT, files), [])
+
+    def test_an_invented_status_code_is_reported(self):
+        files = {
+            'docs/guide/from-zero-to-one.md': self.marked('| `MADE_UP_STATE` | 编造的状态 |\n'),
+            'docs/guide/framework-model.md': self.marked('| `READY` | 就绪 |\n'),
+            'tools/framework_core/ready.py': "STATUS = 'READY'\n",
+        }
+        root = self.make_root(files)
+        errors = checker.status_dictionary_errors(root, list(files))
+        self.assertEqual(len(errors), 1)
+        self.assertIn('MADE_UP_STATE', errors[0])
+
+    def test_an_unmarked_status_table_is_reported(self):
+        files = {
+            'docs/guide/from-zero-to-one.md': '| `READY` | 就绪 |\n',
+            'docs/guide/framework-model.md': self.marked('| `READY` | 就绪 |\n'),
+            'tools/framework_core/ready.py': "STATUS = 'READY'\n",
+        }
+        root = self.make_root(files)
+        errors = checker.status_dictionary_errors(root, list(files))
+        self.assertEqual(len(errors), 1)
+        self.assertIn('not marked for checking', errors[0])
+
+    def test_a_missing_guide_is_reported(self):
+        files = {'tools/framework_core/ready.py': "STATUS = 'READY'\n"}
+        root = self.make_root(files)
+        errors = checker.status_dictionary_errors(root, list(files))
+        self.assertEqual(len(errors), 2)
+        self.assertTrue(all('missing' in error for error in errors))
+
+
 if __name__ == '__main__':
     unittest.main()

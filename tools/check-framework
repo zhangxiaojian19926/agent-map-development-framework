@@ -143,9 +143,14 @@ def _paragraph_error(root, rel, start, lines):
 
 WORKFLOW_CONTRACT = "docs/framework/development-workflow.md"
 GUIDE = "docs/guide/from-zero-to-one.md"
+STATUS_GUIDE = "docs/guide/framework-model.md"
 VALIDATE_WORKFLOW = ".github/workflows/validate.yml"
 RELEASE_WORKFLOW = ".github/workflows/release.yml"
 BEIJING_UTC_OFFSET_HOURS = 8
+# The state vocabulary the guides state is checked against the shipped code.
+DICTIONARY_START = "<!-- status-dictionary:start -->"
+DICTIONARY_END = "<!-- status-dictionary:end -->"
+STATUS_TOKEN = re.compile(r"`([A-Z][A-Z0-9_]*(?:/[A-Z]+)?)`")
 
 # Gate shapes recognised inside a CI workflow. The canonical name comes from the
 # matched text, so a gate added to CI is picked up without editing this table.
@@ -339,6 +344,39 @@ def doc_contract_errors(root, files):
     return errors
 
 
+def status_dictionary_errors(root, expected):
+    """Every status code the guides state must exist in the shipped code."""
+    errors = []
+    corpus = []
+    for rel in expected:
+        if not (rel.endswith(".py") or rel.endswith("SKILL.md")):
+            continue
+        if not rel.startswith(("tools/", "skill/")):
+            continue
+        try:
+            corpus.append((root / rel).read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError):
+            continue
+    blob = "\n".join(corpus)
+    for rel in (GUIDE, STATUS_GUIDE):
+        path = root / rel
+        if not path.is_file():
+            errors.append("status dictionary source missing: " + rel)
+            continue
+        text = path.read_text(encoding="utf-8")
+        if DICTIONARY_START not in text or DICTIONARY_END not in text:
+            errors.append(rel + ": status table is not marked for checking")
+            continue
+        body = text.split(DICTIONARY_START, 1)[1].split(DICTIONARY_END, 1)[0]
+        codes = sorted(set(STATUS_TOKEN.findall(body)))
+        if not codes:
+            errors.append(rel + ": status table states no status code")
+        for code in codes:
+            if code not in blob:
+                errors.append("%s: documents status %s which the shipped code never emits" % (rel, code))
+    return errors
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     manifest = json.loads((root / MANIFEST).read_text(encoding="utf-8"))
@@ -375,11 +413,12 @@ def main():
         errors.append("skill entrypoint count does not match manifest: " + str(len(skills)))
     errors.extend(invocation_errors(root, expected))
     errors.extend(doc_contract_errors(root, expected))
+    errors.extend(status_dictionary_errors(root, expected))
     if errors:
         for error in errors:
             print("FAIL: " + error, file=sys.stderr)
         return 1
-    print("PASS: %d inventoried files, %d skills; hashes, links, syntax, invocation forms and document contract"
+    print("PASS: %d inventoried files, %d skills; hashes, links, syntax, invocation forms, document contract and status vocabulary"
           % (len(expected), len(skills)))
     return 0
 
