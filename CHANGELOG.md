@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **本框架自己的技能改编层第一次真正可达。** 6 个技能、7 个规则文件、1010 行的本地改编规则此前在分发包里却零指针——`AGENTS.md` 不提、`skill-policy.md` 不提、能力规格也不提，上游 `SKILL.md` 更不可能引用框架自己加的文件。结果是规格说"SHALL 保留"，而"保留"的内容在执行时不存在：seam 预确认、切片写入 change 的任务清单、两轴评审的规格来源、`INFRA_ERROR` 不是 RED，全都没被读到。现在每个带本地层的技能在阶段路由表或参考技能段里标出要一并读取的文件名，新增 `skill/local-layers.json` 登记必读层，分发结构检查双向核对"登记项存在"与"登记项被活文档提及"。
+- 移除 `superpowers:using-superpowers` 的技能入口：它的职能已由阶段路由表与 `skill-policy.md` 覆盖，"哪怕 1% 可能适用就必须调用"的要求与框架"只加载本任务需要的技能"冲突。它的 `references/` 保留——上游 `executing-plans` 与 `writing-skills` 引用着那些平台适配文件。
+- `superpowers:subagent-driven-development` 保留并加本地改编层：上游的任务级评审是 `matt-pocock:code-review` 两轴评审的第二套实现，implementer 还自行提交。改编层让框架的评审与集成契约占上风——评审走框架的两轴方法，implementer 不自行提交——并行实施的能力保留，两套完成判据不并存。
+- `superpowers:dispatching-parallel-agents` 的阶段归属在 `AGENTS.md` 与流程契约之间统一到 WORKSPACE；`llm-wiki` 在流程契约的知识回流步骤里点名。
+- 分发结构检查新增两项：每个在包内的技能必须在活文档有落点，同一技能在两处契约里的阶段归属必须一致。工具同时改为从文件系统推导技能分组计数，移除技能不再留下手写数字。
+
 - 技能全部接上落点：阶段路由表补 `superpowers:dispatching-parallel-agents`（多个独立失败可并行分解时）、KNOWLEDGE 阶段点名 `llm-wiki`，参考技能段补 `matt-pocock:domain-modeling`（讨论领域术语与概念边界时）与 `superpowers:writing-skills`（新建技能时走"先看它失败"的验证流程）。此前 6 个技能在包内、能被调用，却没有任何触发条件——模型调用型技能的描述常驻上下文，等于每回合白付预算。对外指南第二部分新增「每条工作流用到的技能」表，读者不必翻 AGENTS.md 就能知道每条工作流的技能构成。
 - `superpowers:using-superpowers` 与 `superpowers:subagent-driven-development` 建议按先例从分发包移除，理由与代价记入维护者 roadmap；本批不移除，因为移除会改变分发内容需单独确认。实施阶段的并行委派因此仍无落点，这个缺口同样已登记。
 

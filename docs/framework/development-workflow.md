@@ -126,7 +126,7 @@ openspec instructions apply --change <change-id> --json
 2. 有 OpenSpec change 时检查任务证据与产物状态,用 `openspec-sync-specs` 同步需要的 delta specs,核对合并结果,再用 `openspec-archive-change` 归档。
 3. 同步与归档顺序执行,不在同步未结束时移动 change。使用实际返回的 changeRoot/planningHome,不要拼接猜测路径。
 4. 未完成任务或缺证据不能以“全部完成”归档;用户若明确选择保留未完成状态,如实报告。
-5. 每次问题解决后按 [知识回流](knowledge-policy.md) 主动询问是否摄入;已有本次明确授权则执行。无需等发布归档才询问。
+5. 每次问题解决后按 [知识回流](knowledge-policy.md) 主动询问是否摄入,获授权后用 `llm-wiki` 写入;已有本次明确授权则执行。无需等发布归档才询问。
 6. 最终分别报告实现、适用验证、集成/归档与知识摄入状态。知识回流待确认不阻塞已完成修复的交付。
 
 完整行为变更路线:

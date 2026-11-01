@@ -124,22 +124,21 @@ git diff --check <base>...HEAD
 
 ---
 
-## 8. 两个待移除技能与实施阶段的并行委派缺口
+## 8. 技能路由的核对方法（本轮教训）
 
-**是什么**：两件事，都需要你拍板。
+**是什么**：判断一个技能"有没有落点"，必须扫**全部活文档**，不能只扫常驻的那一份。
 
-**一、建议按先例移除两个技能**
-- `superpowers:using-superpowers`——它的职能是"任何回应之前先查技能表"，而框架已用阶段路由表加 `skill-policy.md` 取代这一层；它"哪怕 1% 可能适用就必须调用"的要求与框架"只加载本任务需要的技能"实质冲突。
-- `superpowers:subagent-driven-development`——它的 task reviewer 是"规格符合性 + 代码质量"两轴，与 REVIEW 阶段的 `matt-pocock:code-review` 同一判据两套实现；implementer 自行提交与"提交权在 INTEGRATE 阶段由用户选"冲突。框架已有先例：被取代的三个上游技能已从包里彻底移除。
+**为什么**：2026-11-01 上一轮基于只扫 `AGENTS.md` 的不完整扫描，得出"6 个技能没有落点"，并建议移除 `superpowers:subagent-driven-development`。全量扫描活文档后结论完全不同：
 
-**二、实施阶段仍无并行委派落点**
-`executing-plans` 是顺序执行，`subagent-driven-development` 不接，`dispatching-parallel-agents` 只管排障阶段的并行分解。`skill-policy.md` 写着"并行子任务仅在宿主支持且当前指令授权时执行"，但执行细则只有排障那一条。
+- `superpowers:subagent-driven-development` 与 `superpowers:dispatching-parallel-agents` 在 `docs/framework/development-workflow.md` 第 6 节早已有委派落点，只是不在 `AGENTS.md` 的路由表里。
+- 真正无落点的只有 `superpowers:using-superpowers` 一个。
+- `superpowers:dispatching-parallel-agents` 是**两处归属不同**（路由表写 DISCOVERY、流程契约写 WORKSPACE），不是没落点。
 
-**为什么**：模型调用型技能的描述常驻上下文，每个回合都付预算。留在包里又不点名的技能，是纯开销。
+**已经改正**：`using-superpowers` 的技能入口已移除，`references/` 保留（上游 `executing-plans` 与 `writing-skills` 引用着那些平台适配文件）；`dispatching-parallel-agents` 的归属统一到 WORKSPACE；`subagent-driven-development` 保留，并加了本地改编层，让框架的评审与提交契约占上风，不再引入第二套评审实现。
 
-**怎么做**：确认后从分发移除这两个技能，同步更新清单与技能计数。若要补实施阶段的并行委派，应写本地改编层（评审走 `matt-pocock:code-review`、提交走 INTEGRATE 阶段），而不是引入第二套评审机制。
+**怎么防复发**：`tools/check-framework` 现在会核对每个在包内的技能是否在活文档里有落点，以及同一技能在两处契约里的阶段归属是否一致。归属不一致会被报出。
 
-**闭环判据**：两个技能的去留写进本文件；分发清单的技能计数与实际入口数一致。
+**闭环判据**：核对工具进 CI 且差异为零。
 
 ---
 

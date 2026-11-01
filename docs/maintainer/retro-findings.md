@@ -103,9 +103,13 @@ conversation.**
 Evidence: its description is "Use when starting any conversation", which
 costs permanent context and competes for attention at the moment a
 task-scoped skill would be more useful.
-Action: **scheduled** — the invocation form change reworks how skills are
-discovered; that is the natural place to decide whether this one stays
-model-invoked.
+Action: **done** — the skill entry point was removed on 2026-11-01. The
+framework's stage routing table and `docs/framework/skill-policy.md` already
+cover when a skill is reached, and the upstream rule that a skill must be
+invoked whenever there is even a 1% chance conflicts with the framework's own
+instruction to load only what the task needs. Its `references/` directory is
+kept: `executing-plans` and `writing-skills` are upstream files that link to
+those platform adapters, and removing them would break those links.
 
 **A candidate with no evidence was dropped.** The upstream method asks for
 no-op instructions in steering files. The framework's `AGENTS.md` and

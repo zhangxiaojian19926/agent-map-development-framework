@@ -15,6 +15,12 @@ loader.exec_module(checker)
 path = root / 'framework-manifest.json'
 manifest = json.loads(path.read_text())
 manifest['files'] = checker.inventory(root)
-manifest['skills']['project_bootstrap'] = int((root / 'skill/project-bootstrap/SKILL.md').exists())
+# Skill counts follow the filesystem; a removed entry point must not leave a
+# hand-maintained number behind.
+groups = {}
+for group in sorted((root / 'skill').iterdir()):
+    if group.is_dir():
+        groups[group.name.replace('-', '_')] = sum(1 for _ in group.rglob('SKILL.md'))
+manifest['skills'] = groups
 path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
-print('Updated', len(manifest['files']), 'fingerprints; inspect the diff.')
+print('Updated', len(manifest['files']), 'fingerprints and', len(groups), 'skill groups; inspect the diff.')

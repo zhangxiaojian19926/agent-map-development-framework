@@ -1,5 +1,6 @@
 import importlib.machinery
 import importlib.util
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -247,6 +248,81 @@ class StatusVocabularyTests(unittest.TestCase):
         errors = checker.status_dictionary_errors(root, list(files))
         self.assertEqual(len(errors), 2)
         self.assertTrue(all('missing' in error for error in errors))
+
+
+class SkillRoutingTests(unittest.TestCase):
+    def make_root(self, files):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for rel, text in files.items():
+            path = root / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding='utf-8')
+        return root
+
+    def manifest_files(self):
+        import json
+        return list(json.loads((ROOT / 'framework-manifest.json').read_text(encoding='utf-8'))['files'])
+
+    def routing_sources(self):
+        """Every live document the routing check reads; empty ones are legitimate in a fixture."""
+        return {rel: '' for rel in checker.SKILL_ROUTING_DOCS}
+
+    def test_every_shipped_skill_has_a_landing(self):
+        self.assertEqual(checker.skill_routing_errors(ROOT, self.manifest_files()), [])
+
+    def test_a_skill_without_a_landing_is_reported(self):
+        files = self.routing_sources()
+        files.update({
+            'AGENTS.md': '| 1. DISCOVERY | openspec-explore | 结果 |\n',
+            'docs/framework/development-workflow.md': '## 3. DISCOVERY — x\n\n**技能**:`openspec-explore`。\n',
+            'skill/openspec/openspec-explore/SKILL.md': '---\nname: openspec-explore\n---\n',
+            'skill/orphan/lonely/SKILL.md': '---\nname: lonely\n---\n',
+        })
+        root = self.make_root(files)
+        errors = checker.skill_routing_errors(root, list(files))
+        self.assertEqual(len(errors), 1)
+        self.assertIn('lonely', errors[0])
+
+    def test_a_skill_routed_to_two_stages_is_reported(self):
+        files = self.routing_sources()
+        files.update({
+            'AGENTS.md': '| 1. DISCOVERY | openspec-explore | 结果 |\n| 4. WORKSPACE | openspec-explore | 结果 |\n',
+            'docs/framework/development-workflow.md': '## 6. WORKSPACE — x\n\n**技能**:`openspec-explore`。\n',
+            'skill/openspec/openspec-explore/SKILL.md': '---\nname: openspec-explore\n---\n',
+        })
+        root = self.make_root(files)
+        errors = checker.skill_routing_errors(root, list(files))
+        self.assertEqual(len(errors), 1)
+        self.assertIn('DISCOVERY', errors[0])
+        self.assertIn('WORKSPACE', errors[0])
+
+    def test_the_shipped_local_layers_are_reachable(self):
+        self.assertEqual(checker.local_layer_errors(ROOT, self.manifest_files()), [])
+
+    def test_a_local_layer_pointing_at_a_missing_file_is_reported(self):
+        files = {
+            'AGENTS.md': '| 6. IMPLEMENT | tdd（并读其同目录 discipline.md） | 结果 |\n',
+            'skill/local-layers.json': json.dumps({'tdd': ['discipline.md']}),
+            'skill/matt-pocock/tdd/SKILL.md': '---\nname: tdd\n---\n',
+        }
+        root = self.make_root(files)
+        errors = checker.local_layer_errors(root, list(files))
+        self.assertEqual(len(errors), 1)
+        self.assertIn('does not exist', errors[0])
+
+    def test_a_local_layer_without_a_pointer_is_reported(self):
+        files = {
+            'AGENTS.md': '| 6. IMPLEMENT | tdd | 结果 |\n',
+            'skill/local-layers.json': json.dumps({'tdd': ['discipline.md']}),
+            'skill/matt-pocock/tdd/SKILL.md': '---\nname: tdd\n---\n',
+            'skill/matt-pocock/tdd/discipline.md': '# 规则\n',
+        }
+        root = self.make_root(files)
+        errors = checker.local_layer_errors(root, list(files))
+        self.assertEqual(len(errors), 1)
+        self.assertIn('no live document points the agent at it', errors[0])
 
 
 if __name__ == '__main__':

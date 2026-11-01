@@ -1,0 +1,9 @@
+{
+  "code-review": ["framework-rules.md"],
+  "diagnosing-bugs": ["discipline.md"],
+  "domain-modeling": ["framework-rules.md"],
+  "retro": ["framework-rules.md"],
+  "subagent-driven-development": ["framework-rules.md"],
+  "tdd": ["discipline.md"],
+  "to-tickets": ["plan-format.md"]
+}

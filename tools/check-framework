@@ -377,6 +377,118 @@ def status_dictionary_errors(root, expected):
     return errors
 
 
+SKILL_ROUTING_DOCS = ('AGENTS.md', 'docs/framework/development-workflow.md',
+                       'docs/framework/skill-policy.md', 'docs/guide/from-zero-to-one.md',
+                       'docs/guide/framework-model.md')
+CONTRACT_DOC = 'docs/framework/development-workflow.md'
+LOCAL_LAYER_REGISTRY = 'skill/local-layers.json'
+
+
+def _skill_names(expected):
+    """Return the skill entrypoint names shipped in the distribution."""
+    return sorted(rel.split('/')[-2] for rel in expected if rel.endswith('/SKILL.md'))
+
+
+def _skill_pattern(name):
+    """Match a skill name with or without a group prefix, never inside a longer name."""
+    return r'(?<![\w-])(?:[\w-]+:)?' + re.escape(name) + r'(?![\w-])'
+
+
+def _mentioned_skills(text, names):
+    return {name for name in names if re.search(_skill_pattern(name), text)}
+
+
+def _agents_routing(root, names):
+    """Map stage name to the skills the AGENTS.md routing table assigns to it."""
+    text = (root / 'AGENTS.md').read_text(encoding='utf-8')
+    table = {}
+    for line in text.splitlines():
+        match = re.match(r'\|\s*\d+\.\s*([A-Z][A-Z ]*?)\s*\|([^|]*)\|', line)
+        if not match:
+            continue
+        for name in _mentioned_skills(match.group(2), names):
+            table.setdefault(name, set()).add(match.group(1).strip())
+    return table
+
+
+def _contract_stages(root, names):
+    """Map skill name to the stages the development workflow contract assigns to it."""
+    text = (root / CONTRACT_DOC).read_text(encoding='utf-8')
+    stages = {}
+    for section in re.split(r'\n## ', text):
+        head = section.split('\n', 1)[0].lstrip('#').strip()
+        match = re.match(r'\d+\.\s+([A-Z][A-Z/ ]*?)\s*(?:—|–|-|$)', head)
+        if not match:
+            continue
+        body = section.split('\n', 1)[1] if '\n' in section else ''
+        for name in _mentioned_skills(body, names):
+            for stage in [part.strip() for part in match.group(1).split('/')]:
+                stages.setdefault(name, set()).add(stage)
+    return stages
+
+
+def skill_routing_errors(root, expected):
+    """Every shipped skill needs a landing place, and the two contracts must agree."""
+    names = _skill_names(expected)
+    errors = []
+    mentioned = set()
+    for rel in SKILL_ROUTING_DOCS:
+        path = root / rel
+        if not path.is_file():
+            errors.append("skill routing source missing: " + rel)
+            continue
+        mentioned |= _mentioned_skills(path.read_text(encoding='utf-8'), names)
+    for name in names:
+        if name not in mentioned:
+            errors.append("skill %s ships in the package but no live document routes it" % name)
+    agents = _agents_routing(root, names)
+    contract = _contract_stages(root, names)
+    for name in sorted(set(agents) & set(contract)):
+        extra = agents[name] - contract[name]
+        if extra:
+            errors.append("skill %s is routed to %s by AGENTS.md but %s routes it only to %s"
+                          % (name, ', '.join(sorted(extra)), CONTRACT_DOC,
+                             ', '.join(sorted(contract[name]))))
+    return errors
+
+
+def local_layer_errors(root, expected):
+    """Registered local layers must exist, and the agent must be pointed at them."""
+    path = root / LOCAL_LAYER_REGISTRY
+    if not path.is_file():
+        return ["local layer registry missing: " + LOCAL_LAYER_REGISTRY]
+    try:
+        registry = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError:
+        return ["local layer registry is not valid JSON: " + LOCAL_LAYER_REGISTRY]
+    if not isinstance(registry, dict):
+        return ["local layer registry must map a skill name to its layer files"]
+    directories = {}
+    for rel in expected:
+        if rel.endswith('/SKILL.md'):
+            directories.setdefault(rel.split('/')[-2], []).append(rel.rsplit('/', 1)[0])
+    lines = []
+    for rel in SKILL_ROUTING_DOCS:
+        document = root / rel
+        if document.is_file():
+            lines.extend(document.read_text(encoding='utf-8').splitlines())
+    errors = []
+    for skill, files in sorted(registry.items()):
+        if skill not in directories:
+            errors.append("local layer registry names %s which is not a shipped skill" % skill)
+            continue
+        if not isinstance(files, list) or not files:
+            errors.append("local layer registry lists no file for %s" % skill)
+            continue
+        for name in files:
+            if not any((root / directory / name).is_file() for directory in directories[skill]):
+                errors.append("local layer %s/%s is registered but does not exist" % (skill, name))
+            if not any(re.search(_skill_pattern(skill), line) and name in line for line in lines):
+                errors.append("local layer %s/%s is registered but no live document points the agent at it"
+                              % (skill, name))
+    return errors
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     manifest = json.loads((root / MANIFEST).read_text(encoding="utf-8"))
@@ -414,11 +526,13 @@ def main():
     errors.extend(invocation_errors(root, expected))
     errors.extend(doc_contract_errors(root, expected))
     errors.extend(status_dictionary_errors(root, expected))
+    errors.extend(skill_routing_errors(root, expected))
+    errors.extend(local_layer_errors(root, expected))
     if errors:
         for error in errors:
             print("FAIL: " + error, file=sys.stderr)
         return 1
-    print("PASS: %d inventoried files, %d skills; hashes, links, syntax, invocation forms, document contract and status vocabulary"
+    print("PASS: %d inventoried files, %d skills; hashes, links, syntax, invocation forms, document contract, status vocabulary, skill routing and local layers"
           % (len(expected), len(skills)))
     return 0
 
