@@ -14,6 +14,7 @@
 - `doctor` 和自动 `reverse` 增加显式 `--summary` 中文摘要，统一展示结果、当前流程产物、条件性未生成、未执行与限制、提交与本机状态、下一步六部分；默认 JSON、既有退出码、授权和文件写入保持兼容。
 - 补齐规格库缺失的 8 个能力规格：`project-bootstrap`、`agent-project-maps`、`module-lifecycle`、`project-readiness`、`codegraph-maintenance`、`project-intake`、`named-module-acquisition`、`host-neutral-onboarding`。它们的实现早已存在并在用，但因两个旧 change 从未归档（归档门禁需要本环境拿不到的真实宿主与跨宿主证据），规格库长期低估了工程壳自身能力。两个旧 change 继续保留在活跃区、不归档，未勾选任务仍是未验证部分的唯一权威记录；决定与审计证据见维护者对账记录。
 - 新增维护者后续工作安排 `docs/maintainer/roadmap.md`：把剩余工作按价值排成七批，逐项写明是什么、为什么、怎么做、做完怎么算闭环，并单列需要环境或授权才能做的事与明确不做的事。
+- 修正五处文档漂移：流程契约的完整行为变更路线摘要行漏了实现阶段的 `REGRESSION` 步（2026-09-25 首次提交即存在）；对外指南工作流 14 漏列新增的 `openspec validate --archived` 与 `check-changes` 两道门禁；`docs/guide/from-zero-to-one.md`、`docs/maintainer/release.md` 与 `README.md` 三处都写着改动前的定时发布时刻 02:00 UTC，实际调度已是 02:17 UTC。`tools/check-framework` 新增文档契约检查：实现阶段摘要行须覆盖分节声明的全部步骤、指南工作流 14 须列出 CI 实际运行的全部门禁、所有陈述发布调度时刻的活文档须与调度表达式一致（记录历史的变更日志与归档文档不参与判定）。期望值从实现阶段分节、CI 的 `run` 步骤与调度表达式推导，加门禁或改调度后检查自动跟随；CI 里出现检查不认识的步骤形态时报出，不当作"没有门禁"放过。
 - 新增只读检查 `tools/check-changes`：报出任务已全部完成却仍留在活动区的 change，区分能力规格未同步与已同步未归档两种欠账。接入本地提交前检查、每次推送与拉取请求的校验、以及发布打 tag 前。
 - 分发结构检查新增 markdown 强调符配平校验：按段落统计 `**` 数量，奇数即失败，避免跨行加粗被误报。
 - 路径与命名对齐：技能组目录 `skill/super-powers/` 改名为 `skill/superpowers/`，与调用前缀一致；计划文档位置约定改为 `docs/plans/`，并同步更新运行时排除清单、目录归属表、测试夹具与技能内的示例路径，清理磁盘残留空目录与已失效的排除项；发布工作流 cron 由 `0 2 * * 1` 改为 `17 2 * * 1`，避开整点调度高峰。

@@ -11,7 +11,7 @@
 
 ## 自动发布
 
-`.github/workflows/release.yml` 在每周一 02:00 UTC（北京时间 10:00）运行，也可手动选择 patch、minor 或 major。工作流先运行公共检查和测试；Unreleased 有内容时准备版本、提交清单与变更说明、打 tag 并创建 GitHub Release，没有内容则跳过。
+`.github/workflows/release.yml` 在每周一 02:17 UTC（北京时间 10:17）运行，也可手动选择 patch、minor 或 major。工作流先运行公共检查和测试；Unreleased 有内容时准备版本、提交清单与变更说明、打 tag 并创建 GitHub Release，没有内容则跳过。
 
 发布工作流只维护公共工程壳，不发布业务项目，不执行真实宿主、设备或业务部署验收。
 

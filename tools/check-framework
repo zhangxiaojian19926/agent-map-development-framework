@@ -141,6 +141,204 @@ def _paragraph_error(root, rel, start, lines):
     return []
 
 
+WORKFLOW_CONTRACT = "docs/framework/development-workflow.md"
+GUIDE = "docs/guide/from-zero-to-one.md"
+VALIDATE_WORKFLOW = ".github/workflows/validate.yml"
+RELEASE_WORKFLOW = ".github/workflows/release.yml"
+BEIJING_UTC_OFFSET_HOURS = 8
+
+# Gate shapes recognised inside a CI workflow. The canonical name comes from the
+# matched text, so a gate added to CI is picked up without editing this table.
+GATE_SHAPES = (
+    (re.compile(r"tools/(check-[A-Za-z0-9._-]+)"), r"\1"),
+    (re.compile(r"openspec\s+validate\s+(--[a-z-]+)"), r"openspec validate \1"),
+    (re.compile(r"\bunittest\b"), "unittest"),
+    (re.compile(r"git\s+diff\s+--check"), "git diff --check"),
+)
+# Steps that prepare the runner instead of gating the change.
+SETUP_SHAPES = (re.compile(r"^\s*(?:npm|pip|brew)\s+install\b", re.MULTILINE),)
+# Documents that record what happened rather than what is true now. A change
+# body quotes the value it replaces, so changes are history in both states.
+HISTORICAL_FILES = ("CHANGELOG.md",)
+HISTORICAL_PREFIXES = ("docs/archive/", "openspec/changes/")
+# A UTC time only reads as a release schedule in a document that talks about one.
+SCHEDULE_CONTEXT = ("release.yml", "每周一", "定时发布")
+UTC_TIME = re.compile(r"(\d{1,2}:\d{2})\s*UTC")
+LOCAL_TIME = re.compile(r"北京时间[^0-9]{0,6}(\d{1,2}:\d{2})")
+
+
+def _read_text(root, rel):
+    path = root / rel
+    if not path.is_file():
+        return None
+    return path.read_text(encoding="utf-8")
+
+
+def _section(text, prefix):
+    """Return the body of the first level-2 section whose heading starts with prefix."""
+    body = []
+    inside = False
+    for line in text.splitlines():
+        if line.startswith("## "):
+            if inside:
+                break
+            inside = line[3:].strip().startswith(prefix)
+            continue
+        if inside:
+            body.append(line)
+    return "\n".join(body) if inside else None
+
+
+def _run_blocks(text):
+    """Return the shell body of every `run:` step in a workflow file."""
+    blocks = []
+    lines = text.splitlines()
+    index = 0
+    while index < len(lines):
+        match = re.match(r"^(\s*)(-\s+)?run:\s*(.*)$", lines[index])
+        if not match:
+            index += 1
+            continue
+        indent = len(match.group(1)) + len(match.group(2) or "")
+        inline = match.group(3).strip()
+        if inline and inline not in ("|", ">", "|-", ">-", "|+", ">+"):
+            blocks.append(inline)
+            index += 1
+            continue
+        index += 1
+        body = []
+        while index < len(lines):
+            line = lines[index]
+            if not line.strip():
+                index += 1
+                continue
+            if len(line) - len(line.lstrip()) <= indent:
+                break
+            body.append(line.strip())
+            index += 1
+        blocks.append("\n".join(body))
+    return blocks
+
+
+def _ci_gates(text):
+    """Return the gates a workflow runs in CI order, and the steps that are neither."""
+    gates = []
+    unknown = []
+    for block in _run_blocks(text):
+        names = []
+        for pattern, template in GATE_SHAPES:
+            for match in pattern.finditer(block):
+                name = match.expand(template)
+                if name not in names:
+                    names.append(name)
+        if names:
+            gates.extend(names)
+        elif not any(pattern.search(block) for pattern in SETUP_SHAPES):
+            unknown.append(block)
+    return gates, unknown
+
+
+def _summary_step_errors(contract):
+    """Check that the behaviour summary lists every step the implementation section declares."""
+    body = _section(contract, "8. IMPLEMENT")
+    if body is None:
+        return ["workflow contract: implementation section not found"]
+    steps = re.findall(r"^\s*\d+\.\s+([A-Z_]+):", body, re.MULTILINE)
+    summary = None
+    for line in contract.splitlines():
+        if "TASK_SELECTED" in line and "→" in line:
+            summary = line
+            break
+    if summary is None:
+        return ["workflow contract: behaviour summary line not found"]
+    declared = set(re.findall(r"[A-Z][A-Z_]+", summary))
+    missing = [step for step in steps if step not in declared]
+    if missing:
+        return ["workflow contract: behaviour summary omits %s" % ", ".join(missing)]
+    return []
+
+
+def _guide_gate_errors(guide, validate):
+    """Check that the guide lists every gate CI runs."""
+    gates, unknown = _ci_gates(validate)
+    errors = []
+    for block in unknown:
+        head = block.splitlines()[0] if block.splitlines() else block
+        errors.append("validate workflow: unrecognised step, teach the checker its shape: " + head)
+    body = _section(guide, "工作流 14")
+    if body is None:
+        errors.append("guide: verification workflow section not found")
+        return errors
+    for name in gates:
+        if name not in body:
+            errors.append("guide: verification workflow omits the gate " + name)
+    return errors
+
+
+def _schedule_time_errors(root, files, release):
+    """Check that every live document states the scheduled release time CI actually uses."""
+    expression = None
+    for line in release.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            continue
+        match = re.search(r"cron:\s*['\"]([^'\"]+)['\"]", stripped) or re.search(r"cron:\s*([^\s#]+)", stripped)
+        if match:
+            expression = match.group(1)
+            break
+    if expression is None:
+        return []
+    fields = expression.split()
+    if len(fields) < 2 or not fields[0].isdigit() or not fields[1].isdigit():
+        return ["release workflow: unsupported cron expression " + expression]
+    minute, hour = int(fields[0]), int(fields[1])
+    utc = "%02d:%02d" % (hour, minute)
+    local = "%02d:%02d" % ((hour + BEIJING_UTC_OFFSET_HOURS) % 24, minute)
+    errors = []
+    for rel in _live_markdown(root, files):
+        text = (root / rel).read_text(encoding="utf-8")
+        if any(word in text for word in SCHEDULE_CONTEXT):
+            for match in UTC_TIME.finditer(text):
+                if match.group(1) != utc:
+                    errors.append("%s: states %s UTC, the release workflow runs at %s UTC"
+                                  % (rel, match.group(1), utc))
+        for match in LOCAL_TIME.finditer(text):
+            if match.group(1) != local:
+                errors.append("%s: states Beijing time %s, the release workflow runs at %s"
+                              % (rel, match.group(1), local))
+    return errors
+
+
+def _live_markdown(root, files):
+    """Return the distribution markdown files that describe the current state."""
+    live = []
+    for rel in sorted(files):
+        if not rel.endswith(".md"):
+            continue
+        if rel in HISTORICAL_FILES or rel.startswith(HISTORICAL_PREFIXES):
+            continue
+        if (root / rel).is_file():
+            live.append(rel)
+    return live
+
+
+def doc_contract_errors(root, files):
+    """Check that the workflow contract, the public guide and CI describe the same work."""
+    sources = {
+        WORKFLOW_CONTRACT: _read_text(root, WORKFLOW_CONTRACT),
+        GUIDE: _read_text(root, GUIDE),
+        VALIDATE_WORKFLOW: _read_text(root, VALIDATE_WORKFLOW),
+        RELEASE_WORKFLOW: _read_text(root, RELEASE_WORKFLOW),
+    }
+    missing = [rel for rel, text in sources.items() if text is None]
+    if missing:
+        return ["document contract check needs: " + ", ".join(sorted(missing))]
+    errors = _summary_step_errors(sources[WORKFLOW_CONTRACT])
+    errors.extend(_guide_gate_errors(sources[GUIDE], sources[VALIDATE_WORKFLOW]))
+    errors.extend(_schedule_time_errors(root, files, sources[RELEASE_WORKFLOW]))
+    return errors
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     manifest = json.loads((root / MANIFEST).read_text(encoding="utf-8"))
@@ -176,11 +374,13 @@ def main():
     if len(skills) != sum(manifest['skills'].values()):
         errors.append("skill entrypoint count does not match manifest: " + str(len(skills)))
     errors.extend(invocation_errors(root, expected))
+    errors.extend(doc_contract_errors(root, expected))
     if errors:
         for error in errors:
             print("FAIL: " + error, file=sys.stderr)
         return 1
-    print("PASS: %d inventoried files, %d skills; hashes, links, syntax and invocation forms" % (len(expected), len(skills)))
+    print("PASS: %d inventoried files, %d skills; hashes, links, syntax, invocation forms and document contract"
+          % (len(expected), len(skills)))
     return 0
 
 if __name__ == "__main__":

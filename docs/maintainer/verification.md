@@ -21,6 +21,10 @@ git diff --check <base>...HEAD
 
 `git diff --check` 需要显式给出比较基点，否则在干净工作树上等于空检查。推送用 `github.event.before`，拉取请求用 `github.event.pull_request.base.sha`，都没有时退回 `HEAD^`。
 
+`tools/check-framework` 除了分发完整性，还检查**文档契约**：流程契约文件的实现阶段摘要行必须覆盖该文件分节声明的全部步骤；`docs/guide/from-zero-to-one.md` 工作流 14 必须列出 CI 实际运行的全部门禁；所有陈述发布调度时刻的活文档必须与 `.github/workflows/release.yml` 的调度表达式一致——不止指南，`docs/maintainer/release.md` 与 `README.md` 同样在判定范围内。记录历史的 `CHANGELOG.md` 与归档目录不参与时刻判定，它们记的是当时的事实。
+
+期望值全部从事实源推导——分节步骤、CI 里的 `run` 步骤、调度表达式——不是维护者手写的清单，所以加门禁或改调度后检查会自己跟着变。CI 里出现检查不认识的步骤形态时，检查会报出来而不是把它当成"没有门禁"放过。
+
 清单新增或内容变化后运行 `python3 tools/update-manifest`，再核对指纹 diff。文档任务验证真实相对链接、内容归属和规则一致性；行为变化必须先获得有效 RED，再完成 GREEN 和受影响回归。
 
 ### 提交前的固定顺序

@@ -1014,8 +1014,10 @@ docs/delivery/<request-id>-channel.md
 
 ```text
 公共壳变更 → 有效 RED/GREEN 与关联回归 → 更新分发清单
-→ check-framework → 全量 unittest → OpenSpec 严格校验
-→ git diff --check → 最终 diff 审查 → 提交推送
+→ python3 tools/check-framework → 全量 unittest
+→ openspec validate --all --strict → openspec validate --archived
+→ python3 tools/check-changes → git diff --check
+→ 最终 diff 审查 → 提交推送
 → GitHub Actions 双平台检查
 ```
 
@@ -1027,8 +1029,10 @@ docs/delivery/<request-id>-channel.md
 2. 更新并审查 framework-manifest.json；
 3. 运行 python3 tools/check-framework；
 4. 运行全量 unittest；
-5. 执行 OpenSpec 严格校验和 git diff --check；
-6. 审查最终 diff、文件归属和未验证边界。
+5. 运行 openspec validate --all --strict 与 openspec validate --archived；
+6. 运行 python3 tools/check-changes；
+7. 运行 git diff --check；
+8. 审查最终 diff、文件归属和未验证边界。
 先不要提交、推送或发布；失败时定位根因并重跑适用检查。
 ```
 
@@ -1059,7 +1063,7 @@ CI 只证明覆盖范围，不证明真实宿主、私有认证、设备或生�
 → 发布提交 → vX.Y.Z tag → 公共壳 GitHub Release → 发布后核对
 ```
 
-定时为每周一 02:00 UTC，即北京时间 10:00。手动运行可选择 patch、minor 或 major。
+定时为每周一 02:17 UTC，即北京时间 10:17。手动运行可选择 patch、minor 或 major。
 
 **发布前提示词：**
 
