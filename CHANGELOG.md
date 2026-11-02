@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.2 — 2026-11-02
+
 - 欠账检查送达使用者项目：欠账判定下沉到 `tools/framework_core/closure.py`（随运行时载荷分发），`tools/check-changes` 改为调用它且输出与退出码不变；新增 `tools/check-project`，使用者项目装上公共包就能跑出四类欠账——未同步规格的 change、未归档的 change、失效的地图证据、未完成的初始化。默认只报告退出 0，`--strict` 才失败，避免刚接入的项目被历史欠账卡住。另附 `templates/project-ci.yml` 持续集成模板，可选片段，不自动写入用户已有配置。
 - 新增 `docs/maintainer/optimization-log.md`：记录每一轮优化的起因、改动、验证证据与结论，与 roadmap 的分工是"roadmap 写还没做的，这份写做完了的"。
 
