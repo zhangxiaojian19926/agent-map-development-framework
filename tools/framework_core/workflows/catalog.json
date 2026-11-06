@@ -1,0 +1,413 @@
+{
+  "schema": "workflow-catalog/v1",
+  "source": "docs/guide/from-zero-to-one.md#15-条一览",
+  "flows": [
+    {
+      "id": "flow-01",
+      "row": 1,
+      "name": "工程初始化",
+      "scope": "把一句需求、已有工程或多模块仓库变成可继续开发的工程结构",
+      "enters_when": "项目第一次接入",
+      "outputs": "docs/project/ 全套 + framework-project.json + 关系地图",
+      "roles": [
+        "business"
+      ],
+      "always_in_roles": [],
+      "main_for": [
+        "uninitialized_project"
+      ],
+      "condition": "目标工程还没有 framework-project.json",
+      "intent_gate": null,
+      "entries": [
+        "framework init",
+        "framework intake",
+        "framework prepare",
+        "framework map",
+        "framework accept-docs",
+        "framework doctor"
+      ],
+      "skills": [
+        "project-bootstrap"
+      ]
+    },
+    {
+      "id": "flow-02",
+      "row": 2,
+      "name": "日常开发",
+      "scope": "把一个明确需求变成经过实现、评审、验证的改动",
+      "enters_when": "任何一个具体改动",
+      "outputs": "OpenSpec change + 实现 + 验证证据",
+      "roles": [
+        "business",
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [
+        "read_only_audit",
+        "pure_doc",
+        "spec_fix",
+        "new_behavior"
+      ],
+      "condition": null,
+      "intent_gate": null,
+      "entries": [
+        "framework flow --request",
+        "openspec change",
+        "framework doctor"
+      ],
+      "skills": []
+    },
+    {
+      "id": "flow-03",
+      "row": 3,
+      "name": "模块生命周期",
+      "scope": "管住模块的增删移动与对外边界",
+      "enters_when": "模块结构变了",
+      "outputs": "模块资料 + 地图更新",
+      "roles": [
+        "business",
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [],
+      "condition": "模块新增、删除、移动，或对外职责改变",
+      "intent_gate": null,
+      "entries": [
+        "framework module add",
+        "framework module clone",
+        "framework module sync",
+        "framework map"
+      ],
+      "skills": [
+        "matt-pocock:codebase-design",
+        "matt-pocock:domain-modeling"
+      ]
+    },
+    {
+      "id": "flow-04",
+      "row": 4,
+      "name": "公共壳升级",
+      "scope": "把新版公共壳安全装进业务项目，不覆盖人工内容",
+      "enters_when": "公共壳出新版",
+      "outputs": "受管文件更新 + 冲突报告",
+      "roles": [
+        "business"
+      ],
+      "always_in_roles": [],
+      "main_for": [],
+      "condition": "公共壳发布了新版本，业务项目要跟进",
+      "intent_gate": null,
+      "entries": [
+        "只读预览归属",
+        "独立升级 change",
+        "更新 .agent-framework 和受管入口"
+      ],
+      "skills": []
+    },
+    {
+      "id": "flow-05",
+      "row": 5,
+      "name": "知识检索与回流",
+      "scope": "把已验证且可复用的经验沉淀成知识",
+      "enters_when": "问题解决后，或写新代码前",
+      "outputs": "knowledge/project/ 页面 + 索引 + 日志",
+      "roles": [
+        "business",
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [
+        "knowledge_ingestion"
+      ],
+      "condition": "问题解决后，或写新代码前",
+      "intent_gate": null,
+      "entries": [
+        "llm-wiki"
+      ],
+      "skills": [
+        "llm-wiki"
+      ]
+    },
+    {
+      "id": "flow-06",
+      "row": 6,
+      "name": "逆向观察",
+      "scope": "从本地目标或网页取得可复核的观察证据",
+      "enters_when": "需要看一个还不了解的目标",
+      "outputs": "docs/project/reverse/<id>.md + 私有证据",
+      "roles": [
+        "business",
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [],
+      "condition": "需要看一个还不了解的目标",
+      "intent_gate": "reverse_requested",
+      "entries": [
+        "framework reverse"
+      ],
+      "skills": [
+        "reverse-engineer"
+      ]
+    },
+    {
+      "id": "flow-07",
+      "row": 7,
+      "name": "产品行为观察",
+      "scope": "把观察整理成有证据层级的产品视图",
+      "enters_when": "逆向之后，或直接喂入产品观察",
+      "outputs": "私有 product-recon.json",
+      "roles": [
+        "business",
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [],
+      "condition": "逆向之后，或直接喂入产品观察",
+      "intent_gate": "reverse_requested",
+      "entries": [
+        "framework reverse --request"
+      ],
+      "skills": [
+        "reverse-engineer"
+      ]
+    },
+    {
+      "id": "flow-08",
+      "row": 8,
+      "name": "产品设计交接",
+      "scope": "把产品视图转成待确认的设计草案",
+      "enters_when": "需要把观察接进开发流程",
+      "outputs": "docs/project/design-input.md（待批准）",
+      "roles": [
+        "business",
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [],
+      "condition": "需要把观察接进开发流程",
+      "intent_gate": "reverse_requested",
+      "entries": [
+        "framework reverse --design-handoff"
+      ],
+      "skills": [
+        "reverse-engineer",
+        "superpowers:brainstorming"
+      ]
+    },
+    {
+      "id": "flow-09",
+      "row": 9,
+      "name": "已验证功能差距追踪",
+      "scope": "对照规格与证据，报告还差什么",
+      "enters_when": "规格已批准、实现之后",
+      "outputs": "docs/verification/<change>-parity.md",
+      "roles": [
+        "business",
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [],
+      "condition": "规格已批准、实现之后",
+      "intent_gate": null,
+      "entries": [
+        "framework parity --request"
+      ],
+      "skills": [
+        "matt-pocock:code-review"
+      ]
+    },
+    {
+      "id": "flow-10",
+      "row": 10,
+      "name": "公开市场研究交接",
+      "scope": "把外部事实带进流程并保留来源",
+      "enters_when": "需要市场或竞品事实",
+      "outputs": "docs/project/market-research/<id>.md",
+      "roles": [
+        "business",
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [],
+      "condition": "需要市场或竞品事实",
+      "intent_gate": null,
+      "entries": [
+        "framework research --request"
+      ],
+      "skills": []
+    },
+    {
+      "id": "flow-11",
+      "row": 11,
+      "name": "发布候选检查",
+      "scope": "判断 dist/ 产物够不够格进入发布准备",
+      "enters_when": "构建与验证完成后",
+      "outputs": "docs/delivery/<id>-candidate.md",
+      "roles": [
+        "business",
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [
+        "device_release"
+      ],
+      "condition": "构建与验证完成后",
+      "intent_gate": null,
+      "entries": [
+        "framework candidate --request"
+      ],
+      "skills": []
+    },
+    {
+      "id": "flow-12",
+      "row": 12,
+      "name": "发布渠道适配",
+      "scope": "为具体渠道准备可复核的发布材料",
+      "enters_when": "候选 READY 之后",
+      "outputs": "dist/delivery/<request-id>/ + 渠道报告",
+      "roles": [
+        "business",
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [
+        "device_release"
+      ],
+      "condition": "候选 READY 之后",
+      "intent_gate": null,
+      "entries": [
+        "framework channel --request"
+      ],
+      "skills": []
+    },
+    {
+      "id": "flow-13",
+      "row": 13,
+      "name": "构建产物登记",
+      "scope": "登记产物哈希与来源",
+      "enters_when": "产出 dist/ 时",
+      "outputs": ".framework/local-state/package-manifest.json",
+      "roles": [
+        "business",
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [
+        "device_release"
+      ],
+      "condition": "产出 dist/ 时，是工作流 11 的前置",
+      "intent_gate": null,
+      "entries": [
+        "framework package"
+      ],
+      "skills": []
+    },
+    {
+      "id": "flow-14",
+      "row": 14,
+      "name": "公共工程壳验证与 CI",
+      "scope": "验证公共壳自身的分发、文档与行为契约",
+      "enters_when": "改动公共壳时",
+      "outputs": "六道门禁 + CI 结果",
+      "roles": [
+        "shell"
+      ],
+      "always_in_roles": [
+        "shell"
+      ],
+      "main_for": [],
+      "condition": "改动公共壳时",
+      "intent_gate": null,
+      "entries": [
+        "tools/check-framework",
+        "tools/check-changes",
+        "tools/pre-commit-check",
+        "openspec validate --all --strict"
+      ],
+      "skills": [
+        "superpowers:writing-skills",
+        "matt-pocock:writing-for-agents",
+        "matt-pocock:diagnosing-bugs"
+      ]
+    },
+    {
+      "id": "flow-15",
+      "row": 15,
+      "name": "公共工程壳版本发布",
+      "scope": "发布公共壳自身的新版本",
+      "enters_when": "公共壳有 Unreleased 内容",
+      "outputs": "版本提交 + tag + GitHub Release",
+      "roles": [
+        "shell"
+      ],
+      "always_in_roles": [],
+      "main_for": [],
+      "condition": "公共壳有 Unreleased 内容",
+      "intent_gate": null,
+      "entries": [
+        "tools/prepare-release",
+        "只读发布条件检查"
+      ],
+      "skills": [
+        "superpowers:verification-before-completion"
+      ]
+    }
+  ],
+  "development_routes": [
+    {
+      "route": "read_only_audit",
+      "name": "查询、解释、审计",
+      "path": "只读探索 → 事实/推断/限制",
+      "evidence": "不修改文件，给出来源",
+      "next_actions": [
+        "只读读取目标目录的规则与现状，给出事实、推断与限制"
+      ]
+    },
+    {
+      "route": "pure_doc",
+      "name": "纯文档",
+      "path": "确认范围 → 精确修改 → 链接和 diff 校验",
+      "evidence": "不制造代码 RED",
+      "next_actions": [
+        "确认改动范围后精确修改，并校验链接与 diff"
+      ]
+    },
+    {
+      "route": "spec_fix",
+      "name": "既有规格缺陷",
+      "path": "调试复现 → 有效 RED → 最小修复 → 回归",
+      "evidence": "关联原 change 和实际测试",
+      "next_actions": [
+        "先复现并写出有效 RED，再最小修复并跑回归",
+        "把结果关联到原 change 与实际测试"
+      ]
+    },
+    {
+      "route": "new_behavior",
+      "name": "新行为或接口",
+      "path": "DISCOVERY → SPEC → PLAN → APPLY → TDD → REVIEW → VERIFY",
+      "evidence": "已批准场景、实现和适用验证",
+      "next_actions": [
+        "按 DISCOVERY → SPEC → PLAN → APPLY → TDD → REVIEW → VERIFY 推进",
+        "实现前用 flow check 核验批准"
+      ]
+    }
+  ],
+  "catalog_scope": {
+    "knowledge_ingestion": {
+      "flows": [
+        "flow-05"
+      ],
+      "reason": "知识摄入属于工作流 5，不在日常开发四类内"
+    },
+    "device_release": {
+      "flows": [
+        "flow-13",
+        "flow-11",
+        "flow-12"
+      ],
+      "reason": "构建产物登记、发布候选检查与发布渠道适配属于发布链，不在日常开发四类内"
+    }
+  }
+}

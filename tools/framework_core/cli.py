@@ -16,7 +16,7 @@ from .hooks import mark_dirty
 
 def parser():
     p = argparse.ArgumentParser(description='Project-scoped development framework')
-    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'map', 'analyze-request', 'accept-analysis', 'analysis-batch', 'accept-batch', 'finalize-analysis', 'accept-docs', 'doctor', 'resume', 'refresh', 'module', 'event', 'reverse', 'research', 'parity', 'candidate', 'channel', 'package'])
+    p.add_argument('action', choices=['init', 'new', 'prepare', 'intake', 'map', 'analyze-request', 'accept-analysis', 'analysis-batch', 'accept-batch', 'finalize-analysis', 'accept-docs', 'doctor', 'resume', 'refresh', 'module', 'event', 'reverse', 'research', 'parity', 'candidate', 'channel', 'package', 'flow', 'host'])
     p.add_argument('operation', nargs='?', choices=['clone', 'add', 'sync'])
     p.add_argument('--target', required=True)
     p.add_argument('--config')
@@ -38,6 +38,7 @@ def parser():
     p.add_argument('--reason', default='git-event')
     p.add_argument('--scope', help='Reverse scope JSON: id, target, sha256, question, action')
     p.add_argument('--request', help='Human startup input; current agent supplies the path')
+    p.add_argument('--event', action='store_true', help='Read a native host event from standard input')
     p.add_argument('--product-recon', help='Optional product-recon-draft/v1 JSON for automatic reverse')
     p.add_argument('--design-handoff', help='Existing automatic reverse ID for product design handoff')
     p.add_argument('--staging', help='Private launch directory outside target and framework')
@@ -63,6 +64,72 @@ def main(argv=None):
     try:
         safe_path(root, '.')
         root = root.resolve()
+        if args.action == 'host':
+            unsupported = (args.operation, args.config, args.project_id, args.agent, args.summary,
+                           args.index, args.hooks, args.openspec, args.path, args.id, args.url, args.ref,
+                           args.run_id, args.scope, args.product_recon, args.design_handoff, args.staging,
+                           args.result, args.session_id, args.batch_id, args.ssh_agent, args.yes)
+            if args.approve or args.protocol != 'v1' or set(args.allow) - {'write', 'hooks'}:
+                raise ValueError('HOST_NOT_SUPPORTED: use standalone host --request or --event')
+            from .hosts.base import (apply_host, coverage, handle_event, preview_host,
+                                record_coverage, verify_host)
+            if args.event:
+                event = json.loads(sys.stdin.read() or '{}')
+                payload, code = handle_event(root, event)
+                return output(payload, code)
+            if not args.request:
+                raise ValueError('HOST_NOT_SUPPORTED: host needs --request or --event')
+            request_path = Path(args.request)
+            if request_path.is_symlink() or not request_path.is_file() or request_path.stat().st_size > 1024 * 1024:
+                raise ValueError('INVALID_REQUEST_FILE')
+            request = json.loads(request_path.read_text(encoding='utf-8'))
+            if request.get('schema') != 'host-request/v1':
+                raise ValueError('INVALID_REQUEST: schema must be host-request/v1')
+            operation = request.get('operation')
+            host_id = request.get('host')
+            if operation == 'preview':
+                return output(preview_host(root, host_id))
+            if operation == 'apply':
+                if not args.dry_run and 'write' not in set(args.allow):
+                    return output({'status': 'CONSENT_REQUIRED', 'required': ['write', 'hooks']}, 3)
+                return output(apply_host(root, host_id, set(args.allow)))
+            if operation == 'verify':
+                return output(verify_host(root, host_id))
+            if operation == 'coverage':
+                return output(coverage(root, host_id))
+            if operation == 'record':
+                if not args.dry_run and 'write' not in set(args.allow):
+                    return output({'status': 'CONSENT_REQUIRED', 'required': ['write', 'hooks']}, 3)
+                return output(record_coverage(root, host_id, request.get('classes'), set(args.allow)))
+            raise ValueError('INVALID_REQUEST: operation must be preview, apply, verify, coverage or record')
+        if args.action == 'flow':
+            unsupported = (args.operation, args.config, args.project_id, args.agent, args.summary,
+                           args.index, args.hooks, args.openspec, args.path, args.id, args.url, args.ref,
+                           args.run_id, args.scope, args.product_recon, args.design_handoff, args.staging,
+                           args.result, args.session_id, args.batch_id, args.ssh_agent, args.yes)
+            if (not args.request or any(unsupported) or args.approve or args.protocol != 'v1'
+                    or set(args.allow) - {'write'}):
+                raise ValueError('FLOW_NOT_SUPPORTED: use standalone flow --request with optional --dry-run or --allow write')
+            request_path = Path(args.request)
+            if request_path.is_symlink() or not request_path.is_file() or request_path.stat().st_size > 1024 * 1024:
+                raise ValueError('INVALID_REQUEST_FILE')
+            request = json.loads(request_path.read_text(encoding='utf-8'))
+            operation = request.get('operation')
+            if operation == 'route':
+                from .workflows.catalog import route
+                return output(route(root, request))
+            if operation == 'check':
+                from .workflows.engine import check
+                return output(check(root, request))
+            if operation == 'record':
+                if not args.dry_run and 'write' not in set(args.allow):
+                    return output({'status': 'CONSENT_REQUIRED', 'required': ['write']}, 3)
+                from .workflows.records import commit
+                return output(commit(root, request, dry_run=args.dry_run))
+            if operation == 'report':
+                from .workflows.records import report
+                return output(report(root, request))
+            raise ValueError('INVALID_REQUEST: operation must be route, check, record or report')
         if args.action == 'research':
             unsupported = (args.operation, args.config, args.project_id, args.agent, args.summary,
                            args.index, args.hooks, args.openspec, args.path, args.id, args.url, args.ref,

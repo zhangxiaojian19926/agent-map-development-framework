@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "write_file|replace|edit|run_shell_command|read_file|glob|grep|search_file_content|list_directory",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .agent-framework/tools/framework host --event --target ."
+          }
+        ]
+      }
+    ]
+  }
+}

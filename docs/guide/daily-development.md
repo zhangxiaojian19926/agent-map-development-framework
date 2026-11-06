@@ -11,13 +11,43 @@
 
 ## 按任务分流
 
-| 任务 | 路径 | 完成证据 |
-|---|---|---|
-| 查询、解释、审计 | 只读探索 → 事实/推断/限制 | 不修改文件，给出来源 |
-| 纯文档 | 确认范围 → 精确修改 → 链接和 diff 校验 | 不制造代码 RED |
-| 既有规格缺陷 | 调试复现 → 有效 RED → 最小修复 → 回归 | 关联原 change 和实际测试 |
-| 新行为或接口 | DISCOVERY → SPEC → PLAN → APPLY → TDD → REVIEW → VERIFY | 已批准场景、实现和适用验证 |
-| 知识摄入 | 查询 → 明确内容与目标授权 → 摄入和校验 | 真实知识页、索引和日志 |
+| 任务 | 路由 | 路径 | 完成证据 |
+|---|---|---|---|
+| 查询、解释、审计 | `read_only_audit` | 只读探索 → 事实/推断/限制 | 不修改文件，给出来源 |
+| 纯文档 | `pure_doc` | 确认范围 → 精确修改 → 链接和 diff 校验 | 不制造代码 RED |
+| 既有规格缺陷 | `spec_fix` | 调试复现 → 有效 RED → 最小修复 → 回归 | 关联原 change 和实际测试 |
+| 新行为或接口 | `new_behavior` | DISCOVERY → SPEC → PLAN → APPLY → TDD → REVIEW → VERIFY | 已批准场景、实现和适用验证 |
+| 知识摄入 | 工作流目录 `flow-05` | 查询 → 明确内容与目标授权 → 摄入和校验 | 真实知识页、索引和日志 |
+
+## 任务路由与批准核验
+
+`flow` 动作只读输出分流结果，不写任何文件：
+
+```bash
+python3 tools/framework flow --target . --request path/to/workflow-request.json
+```
+
+请求用 `schema=workflow-request/v1`，`operation=route` 携带 `task_category` 与 `intent`。输出分主流程、条件流程、不适用与待确认四类，每条结果注明教程《从零到一玩转工程壳》第「15 条一览」表的行号。日常开发另有上表的四类分流，依据是实际行为与验收影响，不依据请求自述；知识摄入、设备与发布由工作流目录承接。
+
+实现新行为前用 `operation=check` 核验批准：
+
+```bash
+python3 tools/framework flow --target . --request path/to/check-request.json
+```
+
+请求带 `change` 与 `action`（`edit_source`、`implement` 需要有效批准；`edit_spec`、`edit_plan` 等草稿编辑不需要）。批准是审批人用受信私钥签署的载荷，绑定规格与计划的当前指纹、项目与 change。
+
+信任来源是**固定系统路径** `/etc/framework/workflow-trust.allowed_signers`，不由请求或环境变量决定。该文件与其所在目录必须对当前用户不可写——否则判定为 `NOT_VERIFIED` 并阻断：信任来源能被改写，就等于代理可以自己签一份批准。配置一次即可：
+
+```bash
+sudo mkdir -p /etc/framework
+sudo install -m 0444 -o root approver.pub /etc/framework/workflow-trust.allowed_signers
+sudo chmod 0555 /etc/framework
+```
+
+签名私钥必须不在代理可读范围内（离线签名，或带口令且口令不进入代理上下文）。这一条系统无法机械校验，报告会显式声明，请自行确认。
+
+判定为 `NEEDS_DESIGN_APPROVAL`、`STALE`、`NOT_AUTHORIZED` 或 `NOT_VERIFIED` 时不实施；宿主原生权限仍然独立生效。
 
 ## 可选：公开市场研究交接
 

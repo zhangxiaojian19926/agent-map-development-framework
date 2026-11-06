@@ -1,0 +1,39 @@
+{
+  "codex": {
+    "host": "codex",
+    "status": "NOT_RUN",
+    "project_hook_carrier": ".codex/hooks.json（与 Claude Code 同构，本机另一工程已在用）",
+    "blocker": "本机为 ChatGPT 账号登录（auth_mode=chatgpt），模型全部被拒",
+    "errors": [
+      "The 'gpt-6.1-sol' model is not supported when using Codex with a ChatGPT account.",
+      "The 'gpt-5-codex' model is not supported when using Codex with a ChatGPT account.",
+      "The 'gpt-5.1-codex' model is not supported when using Codex with a ChatGPT account.",
+      "The 'gpt-5.2-codex' model is not supported when using Codex with a ChatGPT account."
+    ]
+  },
+  "gemini": {
+    "host": "gemini",
+    "status": "NOT_RUN",
+    "project_hook_carrier": ".gemini/settings.json → BeforeTool（gemini hooks migrate --from-claude 实测可生成，matcher 会被翻译成 Gemini 工具名）",
+    "blocker": "本机 Gemini 账号未配置可用项目",
+    "errors": [
+      "throwIneligibleOrProjectIdError"
+    ]
+  },
+  "grok": {
+    "host": "grok",
+    "status": "NOT_RUN",
+    "project_hook_carrier": "未探明（只见用户级 ~/.grok/hooks/*.json；探针目录显示 Project trusted: no，Config Sources 的 Project 项为 none）",
+    "blocker": "非交互形态 420 秒超时；headless 需要 Grok WebSocket relay，本机不可用",
+    "errors": [
+      "TIMEOUT after 420s"
+    ]
+  },
+  "qwen-code": {
+    "host": "qwen-code",
+    "status": "NOT_RUN",
+    "project_hook_carrier": "未安装，无从探测",
+    "blocker": "本机未安装 Qwen Code CLI",
+    "errors": []
+  }
+}
