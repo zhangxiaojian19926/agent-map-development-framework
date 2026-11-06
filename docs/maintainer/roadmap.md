@@ -185,5 +185,6 @@ git diff --check <base>...HEAD
 | 11 | 技能全部接上落点，指南补「每条工作流用到的技能」表 | `92e4c1c` |
 | 12 | 本地改编层可达化：登记 + 指针 + 双向核对；移除 using-superpowers 入口；统一委派技能归属 | `deffeb1` |
 | 13 | 收口检查送达使用者项目：`framework_core/closure.py` + `tools/check-project` + CI 模板 | `3a1d072` |
+| 14 | 原生工作流门禁：十五条目录 + 只读路由 + 批准核验 + 任务记录 + Claude Code / Qwen Code 两个宿主适配；原生验收实测出信任锚点可被代理改写，据此加 WF-08 | `6d18fa1` |
 
 证据索引：[归档的 change](../../openspec/changes/archive/)与[复盘记录](retro-findings.md)。
