@@ -15,6 +15,20 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
 from framework_core import cli
 
 NAMESPACE = 'framework-workflow-approval/v1'
+CLAUDE_FILES = [
+    '.claude/agents/uap-challenger.md',
+    '.claude/agents/uap-investigator.md',
+    '.claude/agents/uap-verifier.md',
+    '.claude/settings.json',
+]
+WRITE_TOOLS = ('Write', 'Edit', 'MultiEdit')
+
+
+def agent_tools(text):
+    for line in text.splitlines():
+        if line.startswith('tools:'):
+            return [item.strip() for item in line.split(':', 1)[1].split(',')]
+    return []
 
 
 def write_json(path, value):
@@ -110,7 +124,7 @@ class HostInstallTest(HostCase):
                                      str(self.request_file('preview'))])
         self.assertEqual(code, 0)
         self.assertEqual(report['status'], 'READY')
-        self.assertEqual(report['files'], ['.claude/settings.json'])
+        self.assertEqual(report['files'], CLAUDE_FILES)
         self.assertEqual(report['conflicts'], [])
 
     def test_apply_installs_the_hook_and_records_the_host(self):
@@ -119,6 +133,12 @@ class HostInstallTest(HostCase):
         self.assertEqual(code, 0)
         self.assertEqual(report['status'], 'UPDATED')
         self.assertTrue((self.root / '.claude/settings.json').is_file())
+        for rel in CLAUDE_FILES:
+            self.assertTrue((self.root / rel).is_file(), rel)
+        self.assertFalse((self.root / 'CODEBUDDY.md').exists())
+        for name in ('uap-challenger.md', 'uap-investigator.md', 'uap-verifier.md'):
+            tools = agent_tools((self.root / '.claude/agents' / name).read_text(encoding='utf-8'))
+            self.assertFalse(set(WRITE_TOOLS) & set(tools), name)
         state = json.loads((self.root / '.framework/local-state/hosts.json').read_text(encoding='utf-8'))
         self.assertEqual(state['host'], 'claude-code')
 
@@ -139,10 +159,14 @@ class HostInstallTest(HostCase):
 
     def test_apply_host_refuses_without_the_grant(self):
         """WF-05：安装宿主适配需要 write 与 hooks 两项能力。"""
-        from framework_core.hosts.base import apply_host
+        from framework_core.hosts.base import apply_host, load_adapter
+        self.assertTrue(load_adapter('claude-code').requires_hooks)
         result = apply_host(self.root, 'claude-code', set())
         self.assertEqual(result['status'], 'CONSENT_REQUIRED')
         self.assertEqual(result['required'], ['write', 'hooks'])
+        write_only = apply_host(self.root, 'claude-code', {'write'})
+        self.assertEqual(write_only['status'], 'CONSENT_REQUIRED')
+        self.assertEqual(write_only['required'], ['write', 'hooks'])
         self.assertFalse((self.root / '.claude/settings.json').exists())
 
 

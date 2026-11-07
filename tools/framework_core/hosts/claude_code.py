@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from ..storage import fingerprint, safe_path
-from .base import Adapter
+from .base import Adapter, shared_agent_files
 
 DISTRIBUTION = Path(__file__).resolve().parents[3]
 TEMPLATE_DIR = 'templates/host/claude-code'
@@ -26,6 +26,7 @@ class ClaudeCodeAdapter(Adapter):
         for path in sorted(directory.glob('*')):
             if path.is_file():
                 files['.claude/' + path.name] = path.read_text(encoding='utf-8')
+        files.update(shared_agent_files('.claude'))
         return files
 
     def preview(self, root):

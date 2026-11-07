@@ -8,7 +8,7 @@
 2. 把输入与 [BOOTSTRAP.md](BOOTSTRAP.md) 的位置给具备文件/执行能力的 Coding Agent，说：“初始化工程”。
 3. Agent 自行预览并按名称下载。有白名单源码时才建立关系地图；全新需求先留下设计草案。同时建立空知识库 `knowledge/project/`（alias `project`）。用户无需选择 init/new、填写 JSON/hash 或执行脚本。
 4. Agent 运行 `doctor` 并留下开发交接。只有 `initialization=COMPLETE` 才是完整初始化。新工程尚未确认设计时交付草案和待确认项。基础接入不批准业务实施，也不写入知识内容。
-5. 初始化后按 [项目布局](docs/guide/project-layout.md) 管理目录，按 [日常开发指南](docs/guide/daily-development.md) 接续。任何能读写文件并执行 Python 的 Coding Agent 都用同一入口。
+5. 初始化后按 [项目布局](docs/guide/project-layout.md) 管理目录，按 [日常开发指南](docs/guide/daily-development.md) 接续。项目根 `AGENTS.md` 的托管段带有 [主 Agent 人格](docs/framework/agent-persona.md)；开发过程仍走阶段表。任何能读写文件并执行 Python 的 Coding Agent 都用同一入口。
 
 ## 开发公共工程壳
 
@@ -29,6 +29,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 | [测试与交付](docs/guide/testing-and-delivery.md) | 测试分层、证据矩阵和完成门禁 |
 | [框架升级](docs/guide/framework-upgrade.md) | 公共包升级、人工内容保护和回滚 |
 | [公共开发流程](docs/framework/development-workflow.md) | OpenSpec/Superpowers 全周期规则 |
+| [主 Agent 人格](docs/framework/agent-persona.md) | 托管段注入的结果与证据协议；不是新技能 |
 | [初始化](BOOTSTRAP.md) | 当前 Agent 的唯一初始化步骤 |
 | [集成](docs/integrations.md) | 技能入口及外部工具边界 |
 | [维护者指南](docs/maintainer/repository-layout.md) | 公共壳布局、验证和发布 |
@@ -40,11 +41,12 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 包含 6 个 OpenSpec 技能、10 个 Superpowers 技能、llm-wiki、project-bootstrap、reverse-engineer 和 matt-pocock 的测试驱动、调试诊断、切片分解、两轴评审、会话复盘、领域建模、写作与接口设计参考技能及所需支持文件。版本和文件指纹见 [发布清单](framework-manifest.json)。
 
 包含确定性的工程接入 CLI、模块登记、可选 CodeGraph 索引、由当前 Agent 提交证据的关系地图、空知识库壳和只读诊断。逆向工具不在初始化时安装；版本见 [逆向工具](docs/framework/reverse-tools.md)。OpenSpec CLI、Node、模型、Git、业务测试环境、设备及部署工具不随包附带，也不会自动安装。
+托管段注入 Universal Agent Protocol v4.0（来源钉在提示词仓库 `7099de8`）。Claude Code 与 CodeBuddy 另装三个只读子代理 `uap-investigator`、`uap-challenger`、`uap-verifier`；相对该来源，前两个去掉 `Bash`，verifier 保留。不写 `CODEBUDDY.md`。其余宿主本期只得到人格。
 不提供全局 watcher 或全局 Git hook；一键初始化不等于自动完成未批准的产品需求。
 知识脚本是准备/检索/结构检查辅助：PREPARED 或 PLAN_ONLY 不代表语义知识摄入已完成。
 
 不包含任何实际业务工程、个人知识库、设备配置、凭据、历史会话或原项目提交历史。
-本版本验证的是发布结构、脚本行为和受控场景；不声称所有宿主、真实设备或生产环境已通过验收。
+本版本验证的是发布结构、脚本行为、受控场景，以及人格注入与宿主安装的文件门禁；不声称跨模型效果、真实项目闭环、知识回流或所有宿主、真实设备、生产环境已通过验收。
 
 ## 使用与维护
 

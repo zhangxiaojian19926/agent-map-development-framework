@@ -71,8 +71,8 @@ def main(argv=None):
                            args.result, args.session_id, args.batch_id, args.ssh_agent, args.yes)
             if args.approve or args.protocol != 'v1' or set(args.allow) - {'write', 'hooks'}:
                 raise ValueError('HOST_NOT_SUPPORTED: use standalone host --request or --event')
-            from .hosts.base import (apply_host, coverage, handle_event, preview_host,
-                                record_coverage, verify_host)
+            from .hosts.base import (apply_host, coverage, handle_event, load_adapter,
+                                preview_host, record_coverage, verify_host)
             if args.event:
                 event = json.loads(sys.stdin.read() or '{}')
                 payload, code = handle_event(root, event)
@@ -90,8 +90,10 @@ def main(argv=None):
             if operation == 'preview':
                 return output(preview_host(root, host_id))
             if operation == 'apply':
-                if not args.dry_run and 'write' not in set(args.allow):
-                    return output({'status': 'CONSENT_REQUIRED', 'required': ['write', 'hooks']}, 3)
+                adapter = load_adapter(host_id)
+                required = ['write', 'hooks'] if adapter.requires_hooks else ['write']
+                if not args.dry_run and not set(required) <= set(args.allow):
+                    return output({'status': 'CONSENT_REQUIRED', 'required': required}, 3)
                 return output(apply_host(root, host_id, set(args.allow)))
             if operation == 'verify':
                 return output(verify_host(root, host_id))

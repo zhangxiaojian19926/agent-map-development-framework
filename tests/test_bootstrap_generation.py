@@ -8,6 +8,15 @@ import unittest
 from test_bootstrap_config import invoke
 from framework_core.generation import generation_changes
 
+REPO = Path(__file__).resolve().parents[1]
+PERSONA_BEGIN, PERSONA_END = '<!-- AGENT_PERSONA_START -->', '<!-- AGENT_PERSONA_END -->'
+ENTRY_BEGIN, ENTRY_END = '<!-- FRAMEWORK_ENTRY_START -->', '<!-- FRAMEWORK_ENTRY_END -->'
+SELF_EDIT_BAN = '不得修改 `FRAMEWORK_ENTRY` 托管段'
+
+
+def persona_source():
+    return (REPO / 'docs/framework/agent-persona.md').read_text(encoding='utf-8').strip()
+
 
 class GenerationTests(unittest.TestCase):
     def prepare(self, root):
@@ -190,7 +199,33 @@ class GenerationTests(unittest.TestCase):
             (root/'AGENTS.md').write_text(original)
             result = invoke('prepare', '--target', root, '--project-id', 'demo', '--agent', 'current', '--yes', '--allow', 'write')
             self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertIn('RULE_CONFLICT', result.stdout + result.stderr)
             self.assertEqual((root/'AGENTS.md').read_text(), original)
+
+    def test_framework_agents_persona_matches_source(self):
+        text = (REPO / 'AGENTS.md').read_text(encoding='utf-8')
+        self.assertIn(PERSONA_BEGIN, text)
+        self.assertIn(PERSONA_END, text)
+        body = text[text.index(PERSONA_BEGIN) + len(PERSONA_BEGIN):text.index(PERSONA_END)].strip()
+        self.assertEqual(body, persona_source())
+        self.assertIn('| 1. DISCOVERY |', text[text.index(PERSONA_END):])
+
+    def test_prepare_managed_block_includes_persona_and_forbids_self_edit(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d) / 'new'
+            self.prepare(root)
+            text = (root / 'AGENTS.md').read_text(encoding='utf-8')
+            self.assertIn(ENTRY_BEGIN, text)
+            self.assertIn(ENTRY_END, text)
+            block = text[text.index(ENTRY_BEGIN):text.index(ENTRY_END) + len(ENTRY_END)]
+            source = persona_source()
+            self.assertIn(source, block)
+            self.assertIn(SELF_EDIT_BAN, block)
+            self.assertIn('Read [public workflow](.agent-framework/AGENTS.md)', block)
+            runtime = (root / '.agent-framework/AGENTS.md').read_text(encoding='utf-8')
+            self.assertTrue(runtime.lstrip().startswith(PERSONA_BEGIN))
+            self.assertIn(source, runtime)
+            self.assertIn('| 1. DISCOVERY |', runtime)
 
     def test_prepare_existing_loose_sources_are_not_treated_as_empty(self):
         with tempfile.TemporaryDirectory() as d:

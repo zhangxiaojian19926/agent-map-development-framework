@@ -10,10 +10,12 @@ from ..storage import apply_files, fingerprint, owned_changes, safe_path
 from ..workflows.engine import check
 from ..workflows.records import find_task
 
-ADAPTERS = {'claude-code': 'claude_code', 'qwen-code': 'qwen_code'}
+ADAPTERS = {'claude-code': 'claude_code', 'qwen-code': 'qwen_code', 'codebuddy': 'codebuddy'}
 FAULT_CLASSES = ('shell', 'unknown_tool', 'hook_timeout', 'hook_crash', 'hook_disabled')
 HOST_STATE = '.framework/local-state/hosts.json'
 HOST_REQUEST_SCHEMA = 'host-request/v1'
+SHARED_AGENT_DIR = 'templates/host/agents'
+SHARED_AGENTS = ('uap-challenger.md', 'uap-investigator.md', 'uap-verifier.md')
 
 
 def load_adapter(host_id):
@@ -45,6 +47,21 @@ def _axes(flow, host):
     }
 
 
+def shared_agent_files(host_dir):
+    """The three shared subagents copied under host_dir/agents/."""
+    from pathlib import Path
+    directory = Path(__file__).resolve().parents[3] / SHARED_AGENT_DIR
+    if not directory.is_dir():
+        raise ValueError('HOST_TEMPLATE_MISSING: ' + SHARED_AGENT_DIR)
+    files = {}
+    for name in SHARED_AGENTS:
+        path = directory / name
+        if not path.is_file():
+            raise ValueError('HOST_TEMPLATE_MISSING: ' + SHARED_AGENT_DIR + '/' + name)
+        files[host_dir + '/agents/' + name] = path.read_text(encoding='utf-8')
+    return files
+
+
 class Adapter:
     """What every host adapter must provide."""
 
@@ -52,6 +69,7 @@ class Adapter:
     label = ''
     write_tools = ()
     read_tools = ()
+    requires_hooks = True
 
     def tool_action(self, tool):
         """The shared action for a native tool name, or None when not covered."""
@@ -125,9 +143,10 @@ def preview_host(root, host_id):
 
 def apply_host(root, host_id, grants):
     """Install the project-level files under the current write grant."""
-    if not {'write', 'hooks'} <= set(grants):
-        return {'status': 'CONSENT_REQUIRED', 'required': ['write', 'hooks']}
     adapter = load_adapter(host_id)
+    required = ['write', 'hooks'] if adapter.requires_hooks else ['write']
+    if not set(required) <= set(grants):
+        return {'status': 'CONSENT_REQUIRED', 'required': required}
     preview = adapter.preview(root)
     if preview['conflicts']:
         return {'status': 'CONFLICT', 'host': host_id, 'conflicts': preview['conflicts'],

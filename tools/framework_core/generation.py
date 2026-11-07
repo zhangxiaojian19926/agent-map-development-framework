@@ -65,7 +65,8 @@ def generation_changes(root, config, distribution, prepare=False):
             outputs['.agent-framework/' + rel] = text
     outputs['.agent-framework/README.md'] = runtime_readme
     outputs['.agent-framework/framework-manifest.json'] = encoded(manifest)
-    agent = ('# Project development entry\n\n'
+    agent = persona_text(distribution) + '\n' + (
+             '# Project development entry\n\n'
              'Read [public workflow](.agent-framework/AGENTS.md), then '
              '[project overview](docs/project/overview.md), [resources](docs/project/resources.md), '
              'and the selected module entry.\n\n'
@@ -121,6 +122,15 @@ def generation_changes(root, config, distribution, prepare=False):
                 if rel not in outputs:
                     deletions.append(rel)
     return entry_changes + owned_changes(root, outputs, deletions)
+
+
+def persona_text(distribution):
+    """Unique persona body copied into the managed AGENTS entry."""
+    rel = 'docs/framework/agent-persona.md'
+    path = safe_path(distribution, rel)
+    if not path.is_file():
+        raise ValueError('RUNTIME_PAYLOAD_INCOMPLETE: ' + rel)
+    return path.read_text(encoding='utf-8').strip() + '\n'
 
 
 def wiki_helpers(distribution):
