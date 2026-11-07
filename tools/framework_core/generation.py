@@ -22,12 +22,14 @@ RUNTIME_EXCLUDED_DOCS = ('docs/archive/', 'docs/maintainer/', 'docs/plans/', 'do
 
 
 def runtime_markdown(rel, text):
-    """Remove links to maintainer-only content without changing the source distribution."""
+    """Remove links to maintainer-only content and point project docs at the target project."""
     def replace(match):
         label, target = match.group(1), match.group(2).split('#')[0]
         if not target or re.match(r'^[a-zA-Z][\w+.-]*:', target):
             return match.group(0)
         resolved = posixpath.normpath(posixpath.join(posixpath.dirname(rel), unquote(target)))
+        if rel == 'AGENTS.md' and resolved.startswith('templates/project/'):
+            return label + '（项目根 `docs/project/' + posixpath.basename(resolved) + '`）'
         if resolved == 'docs/acceptance.md' or resolved.startswith(RUNTIME_EXCLUDED_DOCS):
             return label
         return match.group(0)

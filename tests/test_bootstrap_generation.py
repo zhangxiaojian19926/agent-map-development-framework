@@ -137,6 +137,16 @@ class GenerationTests(unittest.TestCase):
                 with self.subTest(path=path.relative_to(package).as_posix()):
                     self.assertEqual(checker.link_errors(package, path), [])
 
+    def test_runtime_agents_points_at_project_docs_not_blank_templates(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d) / 'new'
+            self.prepare(root)
+            text = (root / '.agent-framework/AGENTS.md').read_text()
+            self.assertNotIn('templates/project/', text)
+            for name in ('overview', 'resources', 'constraints', 'architecture', 'collaboration'):
+                with self.subTest(doc=name):
+                    self.assertIn('docs/project/' + name + '.md', text)
+
     def test_prepare_without_approved_business_design_or_git(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)/'new'
