@@ -489,6 +489,15 @@ def local_layer_errors(root, expected):
     return errors
 
 
+def router_errors(root):
+    """Fifteen routers, disjoint triggers, and the host roster."""
+    tools = Path(__file__).resolve().parent
+    if str(tools) not in sys.path:
+        sys.path.insert(0, str(tools))
+    from framework_core.workflows.routers import distribution_errors
+    return distribution_errors(root)
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     manifest = json.loads((root / MANIFEST).read_text(encoding="utf-8"))
@@ -528,6 +537,7 @@ def main():
     errors.extend(status_dictionary_errors(root, expected))
     errors.extend(skill_routing_errors(root, expected))
     errors.extend(local_layer_errors(root, expected))
+    errors.extend(router_errors(root))
     if errors:
         for error in errors:
             print("FAIL: " + error, file=sys.stderr)

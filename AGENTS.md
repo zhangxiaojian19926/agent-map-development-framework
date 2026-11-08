@@ -86,11 +86,11 @@
 
 OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设计讨论、实施计划、TDD、调试、评审与完成验证。每个计划步骤关联 Req/Scenario/task ID,不维护竞争的规格或完成状态。已有设计产物优先复用,其他计划用链接关联。真实 schema、产物路径与执行状态以所选规划根的 CLI 结果为准。
 
-以下是阶段路由;具体进入条件、步骤、产物、异常回流和退出门禁见 [完整开发流程](docs/framework/development-workflow.md)。
+以下是阶段路由;具体进入条件、步骤、产物、异常回流和退出门禁见 [完整开发流程](docs/framework/development-workflow.md)。工作流入口是 `skill/flows/flow-01`、`flow-02`、`flow-03`、`flow-04`、`flow-05`、`flow-06`、`flow-07`、`flow-08`、`flow-09`、`flow-10`、`flow-11`、`flow-12`、`flow-13`、`flow-14`、`flow-15`。一条请求只命中其中一个，下一项以该路由正文为准。
 
 | 顺序 | 使用技能 | 必须交接的结果 |
 |---|---|---|
-| 1. DISCOVERY | openspec-explore; superpowers:brainstorming; 故障先 matt-pocock:diagnosing-bugs（并读其同目录 discipline.md） | 目标、范围、模块、兼容性、验证环境、方案与待确认项 |
+| 1. DISCOVERY | openspec-explore; superpowers:brainstorming（并读其同目录 framework-rules.md）; 故障先 matt-pocock:diagnosing-bugs（并读其同目录 discipline.md） | 目标、范围、模块、兼容性、验证环境、方案与待确认项 |
 | 2. SPEC | openspec-propose / openspec-update-change | 稳定 Req/Scenario、真实 schema 校验、用户认可 |
 | 3. PLAN | matt-pocock:to-tickets（并读其同目录 plan-format.md） | 垂直切片、阻塞边、Req/Scenario 关联、文件/模块、测试、集成与恢复;计划获批 |
 | 4. WORKSPACE | 需隔离时 using-git-worktrees; 顺序 executing-plans; 获委派授权时 dispatching-parallel-agents 或 subagent-driven-development（并读其同目录 framework-rules.md） | 各仓库基线、正确工作区、最小环境检查;委派需授权 |

@@ -255,29 +255,29 @@ CLI 常见退出码：0 表示当前命令完成，2 表示输入错误，3 表�
 
 ### 每条工作流用到的技能
 
-多数工作流不靠技能，靠 CLI 与流程契约；技能集中在工作流 2。
+技能列与组合清单一致。工作流 2 的技能最多，顺序和下一项写在 `skill/flows/flow-02` 的正文里。
 
 | # | 工作流 | 用到的技能 |
 |---|---|---|
-| 1 | 工程初始化 | `project-bootstrap`（唯一入口）；失败诊断加 `matt-pocock:diagnosing-bugs` |
-| 2 | 日常开发 | **唯一技能密集的一条**，见下 |
-| 3 | 模块生命周期 | `matt-pocock:codebase-design`、`matt-pocock:domain-modeling`（按需参考） |
-| 4 | 公共壳升级 | 无阶段技能；纯 CLI 与冲突裁决，可加 `matt-pocock:code-review` 做前后评审 |
-| 5 | 知识检索与回流 | `llm-wiki`（唯一入口） |
+| 1 | 工程初始化 | `BOOTSTRAP.md`、`diagnosing-bugs`、`discipline.md`、`project-bootstrap` |
+| 2 | 日常开发 | `brainstorming`、`code-review`、`diagnosing-bugs`、`discipline.md`、`dispatching-parallel-agents`、`executing-plans`、`finishing-a-development-branch`、`framework-rules.md`、`llm-wiki`、`openspec-apply-change`、`openspec-archive-change`、`openspec-explore`、`openspec-propose`、`openspec-sync-specs`、`openspec-update-change`、`plan-format.md`、`receiving-code-review`、`requesting-code-review`、`subagent-driven-development`、`tdd`、`to-tickets`、`using-git-worktrees`、`verification-before-completion`、`writing-for-agents` |
+| 3 | 模块生命周期 | `codebase-design`、`domain-modeling` |
+| 4 | 公共壳升级 | `code-review`、`framework-rules.md` |
+| 5 | 知识检索与回流 | `llm-wiki` |
 | 6 | 逆向观察 | `reverse-engineer` |
 | 7 | 产品行为观察 | `reverse-engineer` |
-| 8 | 产品设计交接 | `reverse-engineer` 加 `superpowers:brainstorming` |
-| 9 | 证据驱动功能差距追踪 | `matt-pocock:code-review`（按需参考） |
-| 10 | 公开市场研究交接 | 无；纯工具 |
-| 11 | 发布候选检查 | 无；纯工具 |
-| 12 | 发布渠道适配 | 无；纯工具 |
-| 13 | 构建产物登记 | 无；纯工具 |
-| 14 | 公共工程壳验证与 CI | 改技能或写文档时用 `superpowers:writing-skills` 与 `matt-pocock:writing-for-agents`；排障时用 `matt-pocock:diagnosing-bugs` |
-| 15 | 公共工程壳版本发布 | `superpowers:verification-before-completion` |
+| 8 | 产品设计交接 | `brainstorming`、`framework-rules.md`、`reverse-engineer` |
+| 9 | 证据驱动功能差距追踪 | `code-review`、`framework-rules.md` |
+| 10 | 公开市场研究交接 | 无 |
+| 11 | 发布候选检查 | 无 |
+| 12 | 发布渠道适配 | 无 |
+| 13 | 构建产物登记 | 无 |
+| 14 | 公共工程壳验证与 CI | `diagnosing-bugs`、`discipline.md`、`writing-for-agents`、`writing-skills` |
+| 15 | 公共工程壳版本发布 | `verification-before-completion` |
 
-工作流 2 的路径 D（新行为）会走完整链条：探索 → 设计 → 规格 → 计划 → 隔离与执行 → 实施 → 评审 → 验证 → 集成 → 归档 → 知识回流。链条上每个阶段对应哪些技能，见工程壳根目录的 [AGENTS.md 阶段路由表](../../AGENTS.md) 与[完整开发流程](../framework/development-workflow.md)。
+工作流 2 的新行为按路由正文一次只读当前步骤：探索或设计、规格、计划、隔离与执行、实施、评审、验证、集成、归档、知识回流。每个已完成步骤的下一项写在同一份正文里。阶段方法见工程壳根目录的 [AGENTS.md 阶段路由表](../../AGENTS.md) 与[完整开发流程](../framework/development-workflow.md)。
 
-其余 14 条工作流里，只有工作流 1、5、6、7、8、14、15 站着一个技能，工作流 9、10、11、12、13 连技能都不需要——它们是工具加流程契约，不是方法。
+工作流 10 至 13 不点名成员技能。其余工作流的技能以表中的组合为准。
 
 其中几个技能带一层**本地改编规则**：框架引入上游技能时保留上游原文字节不变，另写一层承载本框架自己的要求（seam 预确认、切片写入 change 的任务清单、两轴评审的规格来源、`INFRA_ERROR` 不是 RED 等）。这些本地层与上游冲突时以本地为准，阶段路由表里标出了要一并读取的文件名，机制见[框架模型速查](framework-model.md)。
 

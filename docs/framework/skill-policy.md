@@ -5,7 +5,7 @@
 - 工程初始化默认当前 Coding Agent 协调，读取 BOOTSTRAP 通用入口与 project-bootstrap 技能；不要求非Codex安装或调用Codex，不把配置参数准备交给用户。插件发现是便利入口，不是使用框架的强制前置条件。
 
 - 顶层 AGENTS.md 按阶段选择技能;实际调用前读取当前可用版本的完整 SKILL.md 及该任务要求的引用。
-- `skill/matt-pocock/` 里的技能按需读取,不进入阶段必做步骤,不产生授权、状态或完成判据。
+- `flow-02` 点名的 `diagnosing-bugs`、`to-tickets`、`tdd`、`code-review` 是对应路径的必读。`codebase-design`、`domain-modeling`、`writing-for-agents` 按各自条件读取。`retro` 不是自动必读，不进入任何自动组合，也不产生授权、状态或完成判据。
 - 技能有两种调用形态。模型调用型由 Agent 按描述自主触发,描述常驻上下文;用户调用型只在人显式指定时触发,不占用发现面。
 - 形态必须对每个宿主都声明,且两侧不得矛盾。Claude Code 读技能 frontmatter 的 `disable-model-invocation: true`;Codex 读 `agents/openai.yaml` 的 `policy.allow_implicit_invocation: false`。两侧都声明为用户调用型;只声明一侧会让某个宿主能自主触发而另一个不能,阶段路由里点名的技能会静默失效。`tools/check-framework` 校验这一致性。
 - 阶段路由表点名的技能必须是模型调用型:阶段由 Agent 按流程推进,不能等用户显式点名。参考型与编排型技能可以声明为用户调用型,例如 `retro`。

@@ -1,0 +1,122 @@
+{
+  "schema": "host-roster/v1",
+  "hosts": [
+    {
+      "id": "cursor",
+      "region": "international",
+      "discovery_dir": ".cursor/skills",
+      "discovery_evidence": "DOCUMENTED",
+      "hook_path": ".cursor/hooks.json",
+      "hook_evidence": "DOCUMENTED",
+      "capability": "blocking"
+    },
+    {
+      "id": "claude-code",
+      "region": "international",
+      "discovery_dir": null,
+      "discovery_evidence": "CARRIER_UNKNOWN",
+      "hook_path": ".claude/settings.json",
+      "hook_evidence": "RECORDED",
+      "capability": "blocking"
+    },
+    {
+      "id": "codex",
+      "region": "international",
+      "discovery_dir": null,
+      "discovery_evidence": "CARRIER_UNKNOWN",
+      "hook_path": ".codex/hooks.json",
+      "hook_evidence": "RECORDED",
+      "capability": "blocking"
+    },
+    {
+      "id": "gemini-cli",
+      "region": "international",
+      "discovery_dir": null,
+      "discovery_evidence": "CARRIER_UNKNOWN",
+      "hook_path": ".gemini/settings.json",
+      "hook_evidence": "RECORDED",
+      "capability": "blocking"
+    },
+    {
+      "id": "copilot-cli",
+      "region": "international",
+      "discovery_dir": null,
+      "discovery_evidence": "CARRIER_UNKNOWN",
+      "hook_path": null,
+      "hook_evidence": "CARRIER_UNKNOWN",
+      "capability": "advisory"
+    },
+    {
+      "id": "github-copilot",
+      "region": "international",
+      "discovery_dir": null,
+      "discovery_evidence": "CARRIER_UNKNOWN",
+      "hook_path": null,
+      "hook_evidence": "CARRIER_UNKNOWN",
+      "capability": "advisory"
+    },
+    {
+      "id": "windsurf",
+      "region": "international",
+      "discovery_dir": null,
+      "discovery_evidence": "CARRIER_UNKNOWN",
+      "hook_path": null,
+      "hook_evidence": "CARRIER_UNKNOWN",
+      "capability": "advisory"
+    },
+    {
+      "id": "grok",
+      "region": "international",
+      "discovery_dir": null,
+      "discovery_evidence": "CARRIER_UNKNOWN",
+      "hook_path": null,
+      "hook_evidence": "CARRIER_UNKNOWN",
+      "capability": "advisory"
+    },
+    {
+      "id": "qwen-code",
+      "region": "domestic",
+      "discovery_dir": null,
+      "discovery_evidence": "CARRIER_UNKNOWN",
+      "hook_path": ".qwen/settings.json",
+      "hook_evidence": "RECORDED",
+      "capability": "blocking"
+    },
+    {
+      "id": "codebuddy",
+      "region": "domestic",
+      "discovery_dir": null,
+      "discovery_evidence": "CARRIER_UNKNOWN",
+      "hook_path": null,
+      "hook_evidence": "CARRIER_UNKNOWN",
+      "capability": "advisory"
+    },
+    {
+      "id": "trae",
+      "region": "domestic",
+      "discovery_dir": null,
+      "discovery_evidence": "CARRIER_UNKNOWN",
+      "hook_path": null,
+      "hook_evidence": "CARRIER_UNKNOWN",
+      "capability": "advisory"
+    },
+    {
+      "id": "lingma",
+      "region": "domestic",
+      "discovery_dir": null,
+      "discovery_evidence": "CARRIER_UNKNOWN",
+      "hook_path": null,
+      "hook_evidence": "CARRIER_UNKNOWN",
+      "capability": "advisory"
+    },
+    {
+      "id": "deepseek-harness",
+      "region": "domestic",
+      "discovery_dir": ".dsh/skills",
+      "discovery_evidence": "DOCUMENTED",
+      "hook_path": ".dsh/hooks.json",
+      "hook_evidence": "DOCUMENTED",
+      "capability": "advisory"
+    }
+  ]
+}

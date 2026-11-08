@@ -27,6 +27,9 @@
         "framework doctor"
       ],
       "skills": [
+        "BOOTSTRAP.md",
+        "diagnosing-bugs",
+        "discipline.md",
         "project-bootstrap"
       ]
     },
@@ -55,7 +58,32 @@
         "openspec change",
         "framework doctor"
       ],
-      "skills": []
+      "skills": [
+        "brainstorming",
+        "code-review",
+        "diagnosing-bugs",
+        "discipline.md",
+        "dispatching-parallel-agents",
+        "executing-plans",
+        "finishing-a-development-branch",
+        "framework-rules.md",
+        "llm-wiki",
+        "openspec-apply-change",
+        "openspec-archive-change",
+        "openspec-explore",
+        "openspec-propose",
+        "openspec-sync-specs",
+        "openspec-update-change",
+        "plan-format.md",
+        "receiving-code-review",
+        "requesting-code-review",
+        "subagent-driven-development",
+        "tdd",
+        "to-tickets",
+        "using-git-worktrees",
+        "verification-before-completion",
+        "writing-for-agents"
+      ]
     },
     {
       "id": "flow-03",
@@ -79,8 +107,8 @@
         "framework map"
       ],
       "skills": [
-        "matt-pocock:codebase-design",
-        "matt-pocock:domain-modeling"
+        "codebase-design",
+        "domain-modeling"
       ]
     },
     {
@@ -102,7 +130,10 @@
         "独立升级 change",
         "更新 .agent-framework 和受管入口"
       ],
-      "skills": []
+      "skills": [
+        "code-review",
+        "framework-rules.md"
+      ]
     },
     {
       "id": "flow-05",
@@ -191,8 +222,9 @@
         "framework reverse --design-handoff"
       ],
       "skills": [
-        "reverse-engineer",
-        "superpowers:brainstorming"
+        "brainstorming",
+        "framework-rules.md",
+        "reverse-engineer"
       ]
     },
     {
@@ -214,7 +246,8 @@
         "framework parity --request"
       ],
       "skills": [
-        "matt-pocock:code-review"
+        "code-review",
+        "framework-rules.md"
       ]
     },
     {
@@ -326,9 +359,10 @@
         "openspec validate --all --strict"
       ],
       "skills": [
-        "superpowers:writing-skills",
-        "matt-pocock:writing-for-agents",
-        "matt-pocock:diagnosing-bugs"
+        "diagnosing-bugs",
+        "discipline.md",
+        "writing-for-agents",
+        "writing-skills"
       ]
     },
     {
@@ -350,7 +384,7 @@
         "只读发布条件检查"
       ],
       "skills": [
-        "superpowers:verification-before-completion"
+        "verification-before-completion"
       ]
     }
   ],

@@ -1,4 +1,5 @@
 {
+  "brainstorming": ["framework-rules.md"],
   "code-review": ["framework-rules.md"],
   "diagnosing-bugs": ["discipline.md"],
   "domain-modeling": ["framework-rules.md"],

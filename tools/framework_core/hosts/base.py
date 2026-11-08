@@ -10,7 +10,15 @@ from ..storage import apply_files, fingerprint, owned_changes, safe_path
 from ..workflows.engine import check
 from ..workflows.records import find_task
 
-ADAPTERS = {'claude-code': 'claude_code', 'qwen-code': 'qwen_code', 'codebuddy': 'codebuddy'}
+ADAPTERS = {
+    'claude-code': 'claude_code',
+    'qwen-code': 'qwen_code',
+    'codebuddy': 'codebuddy',
+    'cursor': 'projection',
+    'deepseek-harness': 'projection',
+    'codex': 'projection',
+    'gemini-cli': 'projection',
+}
 FAULT_CLASSES = ('shell', 'unknown_tool', 'hook_timeout', 'hook_crash', 'hook_disabled')
 HOST_STATE = '.framework/local-state/hosts.json'
 HOST_REQUEST_SCHEMA = 'host-request/v1'
@@ -18,11 +26,21 @@ SHARED_AGENT_DIR = 'templates/host/agents'
 SHARED_AGENTS = ('uap-challenger.md', 'uap-investigator.md', 'uap-verifier.md')
 
 
+SURFACE = {
+    'cursor': 'CursorAdapter',
+    'deepseek-harness': 'DeepSeekAdapter',
+    'codex': 'CodexAdapter',
+    'gemini-cli': 'GeminiAdapter',
+}
+
+
 def load_adapter(host_id):
     """The adapter for an installed host id."""
     if host_id not in ADAPTERS:
         raise ValueError('UNKNOWN_HOST: ' + str(host_id))
     module = __import__('framework_core.hosts.' + ADAPTERS[host_id], fromlist=['ADAPTER'])
+    if host_id in SURFACE:
+        return getattr(module, SURFACE[host_id])()
     return module.ADAPTER()
 
 
@@ -92,6 +110,20 @@ class Adapter:
         return {'status': 'NOT_VERIFIED', 'files': []}
 
 
+def _annotate_router(verdict, action, event):
+    """Point a blocked business write at the router and the missing step."""
+    if action != 'edit_source' or verdict.get('status') in ('READY', 'NOT_APPLICABLE'):
+        return verdict
+    flow = (event or {}).get('flow') or 'flow-02'
+    if flow not in ['flow-%02d' % number for number in range(1, 16)]:
+        flow = 'flow-02'
+    missing = '批准' if (event or {}).get('current_step') == 'tdd' else 'tdd'
+    updated = dict(verdict)
+    updated['reason'] = (verdict.get('reason') or '') + '。应读取 skill/flows/%s/SKILL.md，缺失步骤：%s' % (flow, missing)
+    updated['covered'] = True
+    return updated
+
+
 def judge_event(root, adapter, event, trust_path=None):
     """Judge one native tool event with the shared engine."""
     event = event or {}
@@ -107,13 +139,14 @@ def judge_event(root, adapter, event, trust_path=None):
         }
     state = find_task(root, event.get('task_ref') or event.get('task_id'))
     if not state:
-        return {
+        verdict = {
             'status': 'NOT_VERIFIED',
             'reason': '没有绑定任务，缺少 change 与批准事实',
             'axes': _axes('NOT_VERIFIED', 'NOT_VERIFIED'),
             'covered': False,
             'tool': tool,
         }
+        return _annotate_router(verdict, action, event)
     request = {
         'schema': 'workflow-request/v1',
         'operation': 'check',
@@ -124,7 +157,7 @@ def judge_event(root, adapter, event, trust_path=None):
     verdict = check(root, request, trust_path=trust_path)
     verdict['covered'] = True
     verdict['tool'] = tool
-    return verdict
+    return _annotate_router(verdict, action, event)
 
 
 def preview_host(root, host_id):
