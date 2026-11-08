@@ -27,9 +27,11 @@
 
 `docs/guide/framework-model.md` 的状态词典相对本次改动前的 `HEAD` 没有新增状态码。`AGENTS.md` 的 `AGENT_PERSONA` 托管段字节与 `HEAD` 一致。
 
-## 尚未做的事
+## 规格落点
 
-delta specs 没有同步进 `openspec/specs/`。本变更没有归档。任务清单勾完只表示安装轴上的检查已经跑过，不表示现场拦截已经验证。
+任务全部勾完之后，CI 的 `tools/check-changes` 要求能力规格进入 `openspec/specs/`，并把变更移入归档。因此 `agent-workflow-routers` 已写入主规格，`skill-routing`、`invocation-forms`、`native-workflow-gates` 已并入原规格，变更目录为 `openspec/changes/archive/2026-11-08-add-agent-workflow-routers/`。
+
+任务清单勾完和规格归档只表示安装轴上的检查已经跑过，不表示现场拦截已经验证。
 
 本仓库 doctor（`python3 tools/framework doctor --target . --summary`）退出码 5：`initialization=PARTIAL`，`documentation=MISSING`，`coverage=MISSING`，`handoff=BLOCKED`，`runtime=NOT_RUN`。这是分发壳当前的接入状态，不是上述宿主的执行轴。
 
