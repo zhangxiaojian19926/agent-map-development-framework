@@ -42,5 +42,5 @@
 - 读取 `tdd`、`code-review` 这些阶段技能是主 Agent 自己干活，不是把八个角色全叫上。
 - doctor 的 `READY`、`PARTIAL`、`BLOCKED` 只描述工程接入。人格里的通过、部分完成、失败、阻断只描述这一次交付。不把后者写进 `docs/guide/framework-model.md` 的状态词典。
 - 任务开始按 `docs/framework/knowledge-policy.md` 做 KB-first。没有注册表就是 `NOT_CONFIGURED`，只读可以继续，不自动建库。
-- 问题解决后询问是否摄入。已经授权就写，并标明 EXTRACTED 或 INFERRED。拒绝、暂缓或未回复不写，也不挡住已完成工作。知识页不是当前规格，冲突就报告。
+- 需求开发完成或问题验证完成后，把对应页面写入初始化知识库，不再逐次询问。结晶、删除、新建知识库、修改注册表和推送仍要单独授权。知识页不是当前规格，冲突就报告。
 - 不得修改 `FRAMEWORK_ENTRY` 托管段。人格、阶段表和子代理只通过评审过的 OpenSpec 变更修改。现有 `RULE_CONFLICT` 继续生效。

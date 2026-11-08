@@ -56,7 +56,10 @@ class RouterContractTests(unittest.TestCase):
         self.assertIn('下一项是 to-tickets 与 plan-format.md，不采用该技能收尾中的直接 apply', text)
         self.assertIn('下一项是 tdd 与 discipline.md', text)
         self.assertIn('不把 subagent-driven-development 或 dispatching-parallel-agents 列为当前步骤必读', text)
-        self.assertIn('不把 llm-wiki 的写入步骤列为必读', text)
+        self.assertIn('规格同步完成后：下一项是把该需求写入初始化知识库', text)
+        self.assertIn('knowledge-receipt.json', text)
+        self.assertIn('回执留下之后，下一项才是 openspec-archive-change', text)
+        self.assertNotIn('归档完成后：下一项是询问是否摄入', text)
         self.assertIn('仍进入规格和 to-tickets', text)
         research = (ROOT / 'skill/flows/flow-10/SKILL.md').read_text(encoding='utf-8')
         self.assertIn('不点名下一个技能', research)
@@ -77,12 +80,15 @@ class RouterContractTests(unittest.TestCase):
         for name in ('diagnosing-bugs', 'to-tickets', 'tdd', 'code-review'):
             self.assertIn(name, text)
 
-    def test_persona_block_and_status_dictionary_stay_put(self):
+    def test_persona_block_matches_source_and_status_dictionary_stays_put(self):
         current = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
-        committed = subprocess.check_output(['git', 'show', 'HEAD:AGENTS.md'], cwd=ROOT, text=True)
+        source = (ROOT / 'docs/framework/agent-persona.md').read_text(encoding='utf-8')
         def block(text):
             return text.split('<!-- AGENT_PERSONA_START -->', 1)[1].split('<!-- AGENT_PERSONA_END -->', 1)[0]
-        self.assertEqual(block(current), block(committed))
+        persona = block(current).strip()
+        self.assertEqual(persona, source.strip())
+        self.assertIn('写入初始化知识库', persona)
+        self.assertNotIn('询问是否摄入', persona)
         guide = (ROOT / 'docs/guide/framework-model.md').read_text(encoding='utf-8')
         old = subprocess.check_output(['git', 'show', 'HEAD:docs/guide/framework-model.md'], cwd=ROOT, text=True)
         marker = '<!-- status-dictionary:start -->'

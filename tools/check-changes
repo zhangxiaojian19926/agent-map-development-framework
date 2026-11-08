@@ -2,8 +2,9 @@
 """Report changes whose tasks are complete but that were never archived.
 
 A change whose every task is checked has finished its work. It still has to
-reach two places: the capability specs it declares have to be synced into
-openspec/specs/, and the change itself has to move into
+reach three places: the capability specs it declares have to be synced into
+openspec/specs/, a knowledge receipt has to match the initialized project
+knowledge base, and the change itself has to move into
 openspec/changes/archive/. When that does not happen, the spec store
 understates what the repository actually contains, and the next reader
 cannot tell a finished capability from an absent one.

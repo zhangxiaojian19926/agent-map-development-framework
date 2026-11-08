@@ -13,8 +13,8 @@ from urllib.parse import unquote
 MANIFEST = "framework-manifest.json"
 SKIP = {".git", "__pycache__", ".DS_Store", ".superpowers"}
 ROOT_FILES = {"AGENTS.md", "BOOTSTRAP.md", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md",
-              "CHANGELOG.md", ".gitignore", ".gitattributes", MANIFEST}
-ROOT_DIRS = {"docs", "skill", "templates", "tests", "tools", ".github", "openspec"}
+              "CHANGELOG.md", ".gitignore", ".gitattributes", "llm-wiki-aliases.json", MANIFEST}
+ROOT_DIRS = {"docs", "skill", "templates", "tests", "tools", ".github", "openspec", "knowledge"}
 
 def inventory(root):
     result = {}

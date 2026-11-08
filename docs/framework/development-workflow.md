@@ -126,8 +126,8 @@ openspec instructions apply --change <change-id> --json
 2. 有 OpenSpec change 时检查任务证据与产物状态,用 `openspec-sync-specs` 同步需要的 delta specs,核对合并结果,再用 `openspec-archive-change` 归档。
 3. 同步与归档顺序执行,不在同步未结束时移动 change。使用实际返回的 changeRoot/planningHome,不要拼接猜测路径。
 4. 未完成任务或缺证据不能以“全部完成”归档;用户若明确选择保留未完成状态,如实报告。
-5. 每次问题解决后按 [知识回流](knowledge-policy.md) 主动询问是否摄入,获授权后用 `llm-wiki` 写入;已有本次明确授权则执行。无需等发布归档才询问。
-6. 最终分别报告实现、适用验证、集成/归档与知识摄入状态。知识回流待确认不阻塞已完成修复的交付。
+5. 规格同步之后、归档之前，按 [知识回流](knowledge-policy.md) 把需求页和适用的问题页写入初始化知识库 alias `project`，并在 change 目录留下 `knowledge-receipt.json`。这两类不再询问是否摄入。回执留下之后才归档。结晶、删除、新建知识库、修改注册表和推送仍单独授权。没有注册表时记 `NOT_CONFIGURED`，不新建库。
+6. 最终分别报告实现、适用验证、集成/归档与知识摄入状态。知识回执欠账留在完成检查里，不回滚已经验证过的修复。
 
 完整行为变更路线:
 ```text
@@ -135,9 +135,9 @@ DISCOVERY → SPEC_VALIDATED → SPEC_APPROVED → PLAN_APPROVED
 → WORKSPACE_READY → APPLY_CONTEXT_LOADED
 → (TASK_SELECTED → RED → GREEN → REFACTOR → REGRESSION → TASK_VERIFIED)*
 → REVIEWED → CHANGE_VERIFIED → INTEGRATED_OR_RETAINED
-→ SPECS_SYNCED → ARCHIVED
+→ SPECS_SYNCED → KNOWLEDGE_RECEIPT → ARCHIVED
 ```
-知识回流在问题闭合时触发,与发布归档分开记录。
+需求页和已验证问题页在归档前写入初始化知识库。其他种类仍单独授权。
 
 ## 13. 通用验证证据
 

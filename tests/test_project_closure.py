@@ -60,9 +60,25 @@ class ProjectClosureTests(unittest.TestCase):
 
     def test_an_unarchived_change_is_reported(self):
         make_change(self.root, 'beta', 3, 0, capability='beta-cap', synced=True)
+        from test_check_changes import install_receipt
+        install_receipt(self.root, 'beta', 'beta-cap')
         findings = self.tool.collect(self.root)['outstanding_changes']
         self.assertEqual(len(findings), 1)
         self.assertIn('archived', findings[0]['problem'])
+
+    def test_a_missing_knowledge_receipt_is_the_same_debt_in_both_modes(self):
+        make_change(self.root, 'kappa', 2, 0, capability='kappa-cap', synced=True)
+        script = ROOT / 'tools' / 'check-project'
+        default = subprocess.run([sys.executable, str(script), '--root', str(self.root), '--json'],
+                                 capture_output=True, text=True)
+        strict = subprocess.run([sys.executable, str(script), '--root', str(self.root), '--strict', '--json'],
+                                capture_output=True, text=True)
+        self.assertEqual(default.returncode, 0)
+        self.assertEqual(strict.returncode, 1)
+        self.assertEqual(json.loads(default.stdout)['outstanding_changes'],
+                         json.loads(strict.stdout)['outstanding_changes'])
+        self.assertIn('NOT_CONFIGURED', json.loads(strict.stdout)['outstanding_changes'][0]['detail'])
+        self.assertFalse((self.root / 'knowledge').exists())
 
     def test_an_unfinished_change_is_not_debt(self):
         make_change(self.root, 'gamma', 1, 2, capability='gamma-cap')

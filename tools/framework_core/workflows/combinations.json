@@ -98,8 +98,8 @@
             "然后点名 code-review 与 framework-rules.md。派发或接收反馈时再点名 [requesting-code-review](../../superpowers/requesting-code-review/SKILL.md) 与 [receiving-code-review](../../superpowers/receiving-code-review/SKILL.md)。",
             "然后点名 [verification-before-completion](../../superpowers/verification-before-completion/SKILL.md)。",
             "然后点名 [finishing-a-development-branch](../../superpowers/finishing-a-development-branch/SKILL.md)。提交、推送和合并等待用户当次选择。",
-            "然后点名 [openspec-sync-specs](../../openspec/openspec-sync-specs/SKILL.md)，再点名 [openspec-archive-change](../../openspec/openspec-archive-change/SKILL.md)。",
-            "尚未授权摄入时只要求询问，不把 llm-wiki 的写入步骤列为必读。授权后才点名 [llm-wiki](../../llm-wiki/SKILL.md) 的写入步骤。"
+            "然后点名 [openspec-sync-specs](../../openspec/openspec-sync-specs/SKILL.md)。",
+            "规格同步之后、归档之前点名 [llm-wiki](../../llm-wiki/SKILL.md) 的写入步骤，把需求页和适用的问题页写入初始化知识库，并留下 knowledge-receipt.json。然后才点名 [openspec-archive-change](../../openspec/openspec-archive-change/SKILL.md)。结晶、删除、新建知识库、修改注册表和推送不在这次写入里。"
           ]
         },
         {
@@ -115,8 +115,8 @@
             "tdd 到达 TASK_VERIFIED 后：下一项是 code-review 与 framework-rules.md。派发或接收反馈时，再把 requesting-code-review 与 receiving-code-review 写为下一项。",
             "评审闭合后：下一项是 verification-before-completion。",
             "验证通过后：下一项是 finishing-a-development-branch。提交、推送和合并仍等待用户当次选择。",
-            "用户选定集成方式后：下一项是 openspec-sync-specs，然后是 openspec-archive-change。",
-            "归档完成后：下一项是询问是否摄入。用户授权后，才把 llm-wiki 的写入步骤写为下一项。"
+            "用户选定集成方式后：下一项是 openspec-sync-specs。",
+            "规格同步完成后：下一项是把该需求写入初始化知识库，并在该 change 含有 verified-problem.json 且 conclusion 为 pass 时写入问题页，然后留下 knowledge-receipt.json。不再询问是否摄入。回执留下之后，下一项才是 openspec-archive-change。"
           ]
         },
         {

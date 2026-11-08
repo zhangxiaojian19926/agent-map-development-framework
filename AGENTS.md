@@ -43,7 +43,7 @@
 - 读取 `tdd`、`code-review` 这些阶段技能是主 Agent 自己干活，不是把八个角色全叫上。
 - doctor 的 `READY`、`PARTIAL`、`BLOCKED` 只描述工程接入。人格里的通过、部分完成、失败、阻断只描述这一次交付。不把后者写进 `docs/guide/framework-model.md` 的状态词典。
 - 任务开始按 `docs/framework/knowledge-policy.md` 做 KB-first。没有注册表就是 `NOT_CONFIGURED`，只读可以继续，不自动建库。
-- 问题解决后询问是否摄入。已经授权就写，并标明 EXTRACTED 或 INFERRED。拒绝、暂缓或未回复不写，也不挡住已完成工作。知识页不是当前规格，冲突就报告。
+- 需求开发完成或问题验证完成后，把对应页面写入初始化知识库，不再逐次询问。结晶、删除、新建知识库、修改注册表和推送仍要单独授权。知识页不是当前规格，冲突就报告。
 - 不得修改 `FRAMEWORK_ENTRY` 托管段。人格、阶段表和子代理只通过评审过的 OpenSpec 变更修改。现有 `RULE_CONFLICT` 继续生效。
 <!-- AGENT_PERSONA_END -->
 
@@ -100,7 +100,7 @@ OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设�
 | 8. VERIFY | verification-before-completion | 最终工作树/产物的新鲜证据;适用局部与集成场景分别验证 |
 | 9. INTEGRATE | finishing-a-development-branch | 用户选择合并/PR/保留等;不擅自提交、推送、部署或操作设备 |
 | 10. ARCHIVE | openspec-sync-specs → openspec-archive-change | 同步核对后归档,未完成/无证据不得宣称完整归档 |
-| 11. KNOWLEDGE | llm-wiki,按公共知识规则 | 每次问题解决即询问是否摄入,无需等发布;获明确授权才写入 |
+| 11. KNOWLEDGE | llm-wiki,按公共知识规则 | 规格同步后把需求页和已验证问题页写入初始化知识库 alias `project`，留下回执后再归档;其他种类仍要本次授权 |
 
 表中未写前缀的 Superpowers 技能同属 superpowers。未安装、不可调用或参数不支持时报告,不伪造执行。
 除阶段路由表外还有五个按需取用的参考技能,不构成必做步骤:编写或修改任何 Agent 读取的文档(技能、AGENTS.md 及任何被指针引用的文档)时用 `matt-pocock:writing-for-agents`;新建一个技能时另用 `superpowers:writing-skills` 走"先看它失败"的验证流程;设计模块接口、决定 seam 位置或判断可测试性时用 `matt-pocock:codebase-design`;讨论领域术语、锐化含糊用词或用具体场景压测概念边界时用 `matt-pocock:domain-modeling`（并读其同目录 framework-rules.md）;用户要求复盘会话时用 `matt-pocock:retro`（并读其同目录 framework-rules.md）。它们是参考材料,不产生新的授权、状态或完成判据。
@@ -115,5 +115,5 @@ OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设�
 - 环境故障:INFRA_ERROR,不是 RED;缺少关键决定仅停止依赖它的工作。
 - 新模块:按公共协作规则先只读发现,再按授权登记;发现不等于获准执行、建库或安装。
 - 每次交付分别说明改动、适用验证、未验证项、集成/归档与知识摄入状态;多模块部分成功分别报告。
-- 每次解决问题后主动询问是否摄入对应模块 KB;已有本次内容和目标的明确授权则执行。拒绝、暂缓或未回复不写,也不阻塞已完成工作的交付。
+- 需求开发完成或问题验证完成后，把需求页和已验证问题页写入初始化知识库，不再逐次询问。其他知识写入、新建库和推送仍要单独授权。没有注册表时记 NOT_CONFIGURED，不新建库。
 - 用户要求复盘时用 `matt-pocock:retro`;该技能只由人显式调用,不主动发起,结果记入维护者复盘记录。

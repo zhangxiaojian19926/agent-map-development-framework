@@ -1,4 +1,5 @@
-"""A completed change must reach the spec store and the archive."""
+"""A completed change must reach the spec store, the knowledge receipt, and the archive."""
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -44,6 +45,39 @@ def make_change(root, name, done, todo, capability=None, synced=False, skip_spec
             encoding='utf-8')
 
 
+def install_receipt(root, name, capability, digest=None, page_kind='requirement',
+                     source_rel=None, problem=None):
+    """Put a project alias, one page, and a receipt into a fixture repository."""
+    source_rel = source_rel or ('openspec/specs/%s/spec.md' % capability)
+    source = root / source_rel
+    if digest is None:
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    (root / 'llm-wiki-aliases.json').write_text(
+        json.dumps({'project': 'knowledge/project'}) + '\n', encoding='utf-8')
+    page_rel = 'knowledge/project/wiki/topics/%s/%s.md' % (
+        'requirements' if page_kind == 'requirement' else 'problems', capability)
+    page = root / page_rel
+    page.parent.mkdir(parents=True, exist_ok=True)
+    page.write_text('source_sha256: %s\n' % digest, encoding='utf-8')
+    if problem is None:
+        problem = {'status': 'not_applicable', 'reason': 'no verified problem'}
+    receipt = {
+        'change': name,
+        'alias': 'project',
+        'pages': [{
+            'path': page_rel,
+            'artifact_kind': page_kind,
+            'source_path': source_rel,
+            'source_sha256': digest,
+        }],
+        'problem': problem,
+    }
+    change = root / 'openspec' / 'changes' / name
+    (change / 'knowledge-receipt.json').write_text(
+        json.dumps(receipt, ensure_ascii=False) + '\n', encoding='utf-8')
+    return receipt
+
+
 class OutstandingChangeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -71,10 +105,99 @@ class OutstandingChangeTests(unittest.TestCase):
             self.assertIn('not synced', findings[0]['problem'])
             self.assertIn('demo-cap', findings[0]['detail'])
 
-    def test_completed_and_synced_change_must_be_archived(self):
+    def test_completed_and_synced_change_without_a_knowledge_base_is_not_configured(self):
         with tempfile.TemporaryDirectory() as base:
             root = Path(base) / 'repo'
             make_change(root, 'done', done=2, todo=0, capability='demo-cap', synced=True)
+            findings = self.tool.find_outstanding(root)
+            self.assertEqual(len(findings), 1)
+            self.assertIn('NOT_CONFIGURED', findings[0]['detail'])
+            self.assertFalse((root / 'knowledge').exists())
+            self.assertFalse((root / 'llm-wiki-aliases.json').exists())
+
+    def test_completed_synced_change_with_a_receipt_must_be_archived(self):
+        with tempfile.TemporaryDirectory() as base:
+            root = Path(base) / 'repo'
+            make_change(root, 'done', done=2, todo=0, capability='demo-cap', synced=True)
+            install_receipt(root, 'done', 'demo-cap')
+            findings = self.tool.find_outstanding(root)
+            self.assertEqual(len(findings), 1)
+            self.assertIn('still active', findings[0]['problem'])
+
+    def test_missing_receipt_is_outstanding_when_the_knowledge_base_exists(self):
+        with tempfile.TemporaryDirectory() as base:
+            root = Path(base) / 'repo'
+            make_change(root, 'done', done=2, todo=0, capability='demo-cap', synced=True)
+            (root / 'llm-wiki-aliases.json').write_text(
+                '{"project": "knowledge/project"}\n', encoding='utf-8')
+            (root / 'knowledge' / 'project').mkdir(parents=True)
+            findings = self.tool.find_outstanding(root)
+            self.assertEqual(len(findings), 1)
+            self.assertIn('knowledge-receipt.json', findings[0]['detail'])
+
+    def test_a_source_hash_mismatch_is_outstanding(self):
+        with tempfile.TemporaryDirectory() as base:
+            root = Path(base) / 'repo'
+            make_change(root, 'done', done=2, todo=0, capability='demo-cap', synced=True)
+            install_receipt(root, 'done', 'demo-cap', digest='0' * 64)
+            findings = self.tool.find_outstanding(root)
+            self.assertEqual(len(findings), 1)
+            self.assertIn('source_sha256', findings[0]['detail'])
+
+    def test_a_verified_problem_requires_a_problem_page(self):
+        with tempfile.TemporaryDirectory() as base:
+            root = Path(base) / 'repo'
+            make_change(root, 'done', done=2, todo=0, capability='demo-cap', synced=True)
+            install_receipt(root, 'done', 'demo-cap')
+            record = {'id': 'p-1', 'conclusion': 'pass', 'evidence': 'unit', 'limits': 'none'}
+            change = root / 'openspec' / 'changes' / 'done'
+            (change / 'verified-problem.json').write_text(json.dumps(record) + '\n', encoding='utf-8')
+            findings = self.tool.find_outstanding(root)
+            self.assertEqual(len(findings), 1)
+            self.assertIn('problem page', findings[0]['detail'])
+
+    def test_a_verified_problem_page_lets_the_change_wait_for_archive(self):
+        with tempfile.TemporaryDirectory() as base:
+            root = Path(base) / 'repo'
+            make_change(root, 'done', done=2, todo=0, capability='demo-cap', synced=True)
+            install_receipt(root, 'done', 'demo-cap')
+            change = root / 'openspec' / 'changes' / 'done'
+            record = {'id': 'p-1', 'conclusion': 'pass', 'evidence': 'unit', 'limits': 'root cause remains'}
+            (change / 'verified-problem.json').write_text(json.dumps(record) + '\n', encoding='utf-8')
+            source_rel = 'openspec/changes/done/verified-problem.json'
+            digest = hashlib.sha256((change / 'verified-problem.json').read_bytes()).hexdigest()
+            page_rel = 'knowledge/project/wiki/topics/problems/p-1.md'
+            page = root / page_rel
+            page.parent.mkdir(parents=True, exist_ok=True)
+            page.write_text('source_sha256: %s\n' % digest, encoding='utf-8')
+            receipt = json.loads((change / 'knowledge-receipt.json').read_text(encoding='utf-8'))
+            receipt['pages'].append({
+                'path': page_rel,
+                'artifact_kind': 'problem',
+                'source_path': source_rel,
+                'source_sha256': digest,
+            })
+            receipt['problem'] = {'status': 'recorded', 'reason': 'verified problem'}
+            (change / 'knowledge-receipt.json').write_text(json.dumps(receipt) + '\n', encoding='utf-8')
+            findings = self.tool.find_outstanding(root)
+            self.assertEqual(len(findings), 1)
+            self.assertIn('still active', findings[0]['problem'])
+
+    def test_without_a_verified_problem_not_applicable_is_accepted(self):
+        with tempfile.TemporaryDirectory() as base:
+            root = Path(base) / 'repo'
+            make_change(root, 'done', done=1, todo=0, skip_specs=True)
+            (root / 'llm-wiki-aliases.json').write_text(
+                '{"project": "knowledge/project"}\n', encoding='utf-8')
+            (root / 'knowledge' / 'project').mkdir(parents=True)
+            receipt = {
+                'change': 'done',
+                'alias': 'project',
+                'pages': [],
+                'problem': {'status': 'not_applicable', 'reason': 'no verified problem'},
+            }
+            change = root / 'openspec' / 'changes' / 'done'
+            (change / 'knowledge-receipt.json').write_text(json.dumps(receipt) + '\n', encoding='utf-8')
             findings = self.tool.find_outstanding(root)
             self.assertEqual(len(findings), 1)
             self.assertIn('still active', findings[0]['problem'])
@@ -88,13 +211,14 @@ class OutstandingChangeTests(unittest.TestCase):
             (root / 'openspec' / 'changes' / 'done').rename(archive / 'done')
             self.assertEqual(self.tool.find_outstanding(root), [])
 
-    def test_skip_specs_change_must_still_be_archived(self):
+    def test_skip_specs_change_without_a_knowledge_base_is_not_configured(self):
         with tempfile.TemporaryDirectory() as base:
             root = Path(base) / 'repo'
             make_change(root, 'done', done=1, todo=0, skip_specs=True)
             findings = self.tool.find_outstanding(root)
             self.assertEqual(len(findings), 1)
-            self.assertIn('still active', findings[0]['problem'])
+            self.assertIn('NOT_CONFIGURED', findings[0]['detail'])
+            self.assertFalse((root / 'knowledge').exists())
 
     def test_tool_exits_non_zero_on_findings(self):
         with tempfile.TemporaryDirectory() as base:

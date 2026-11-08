@@ -1,0 +1,40 @@
+{
+  "change": "add-completion-knowledge-ingest",
+  "alias": "project",
+  "pages": [
+    {
+      "path": "knowledge/project/wiki/topics/requirements/agent-persona.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/agent-persona/spec.md",
+      "source_sha256": "d22bf4518aa7cc1b0a02444ce5f7cf38d5235b073bfac7afb2a3199d46adbea3"
+    },
+    {
+      "path": "knowledge/project/wiki/topics/requirements/agent-workflow-routers.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/agent-workflow-routers/spec.md",
+      "source_sha256": "3df767eb824c31b3a4e2efcdf62d825cbd3e896197ac82d891384a0bd2b4b461"
+    },
+    {
+      "path": "knowledge/project/wiki/topics/requirements/change-lifecycle.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/change-lifecycle/spec.md",
+      "source_sha256": "eb5bb15e4df40c875de0108bec97e8a80dbba8c7c4bc1972928e757424635a60"
+    },
+    {
+      "path": "knowledge/project/wiki/topics/requirements/completion-knowledge-ingest.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/completion-knowledge-ingest/spec.md",
+      "source_sha256": "7b0e91a2e8de63ffebd75ccbf8fda8e4588f767f414c3672f5f8896946d1be87"
+    },
+    {
+      "path": "knowledge/project/wiki/topics/requirements/project-closure-check.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/project-closure-check/spec.md",
+      "source_sha256": "55b254017dcd0bd07072fb41d8dec3f07f57e56f947c27d432d332fc2181cb29"
+    }
+  ],
+  "problem": {
+    "status": "not_applicable",
+    "reason": "本变更是流程变更，不是已验证缺陷，没有 verified-problem.json。"
+  }
+}

@@ -222,6 +222,8 @@ class GenerationTests(unittest.TestCase):
             self.assertIn(source, block)
             self.assertIn(SELF_EDIT_BAN, block)
             self.assertIn('Read [public workflow](.agent-framework/AGENTS.md)', block)
+            self.assertIn('initialized knowledge base', block)
+            self.assertNotIn('ask whether to ingest', block)
             runtime = (root / '.agent-framework/AGENTS.md').read_text(encoding='utf-8')
             self.assertTrue(runtime.lstrip().startswith(PERSONA_BEGIN))
             self.assertIn(source, runtime)

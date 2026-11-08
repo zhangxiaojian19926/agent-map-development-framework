@@ -8,6 +8,7 @@ shell's own check and the project-facing check call the same functions.
 
 Nothing here writes, moves, syncs or merges anything.
 """
+import json
 import re
 from pathlib import Path
 
@@ -43,6 +44,102 @@ def skips_specs(change_dir):
     return meta.is_file() and 'skip_specs' in meta.read_text(encoding='utf-8')
 
 
+def project_knowledge_base(root):
+    """The initialized project KB, or None when the alias is not configured."""
+    root = Path(root)
+    aliases = root / 'llm-wiki-aliases.json'
+    kb = root / 'knowledge' / 'project'
+    if not aliases.is_file() or aliases.is_symlink() or not kb.is_dir() or kb.is_symlink():
+        return None
+    try:
+        data = json.loads(aliases.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(data, dict) or data.get('project') != 'knowledge/project':
+        return None
+    return kb
+
+
+def _page_detail(root, page):
+    if not isinstance(page, dict):
+        return 'knowledge receipt page is not an object'
+    kind = page.get('artifact_kind')
+    source_rel = page.get('source_path')
+    digest = page.get('source_sha256')
+    page_rel = page.get('path')
+    if kind not in ('requirement', 'problem'):
+        return 'knowledge receipt page kind is not requirement or problem'
+    if not isinstance(source_rel, str) or not isinstance(page_rel, str) or not isinstance(digest, str):
+        return 'knowledge receipt page is incomplete'
+    if source_rel.startswith('/') or '..' in Path(source_rel).parts:
+        return 'knowledge receipt source escapes the project'
+    if kind == 'requirement' and not (source_rel.startswith('openspec/specs/') and source_rel.endswith('/spec.md')):
+        return 'requirement source is not a synced spec'
+    if kind == 'problem' and not source_rel.endswith('/verified-problem.json'):
+        return 'problem source is not verified-problem.json'
+    try:
+        source = safe_path(root, source_rel)
+        written = safe_path(root, page_rel)
+    except ValueError:
+        return 'knowledge receipt path is unsafe'
+    if not written.resolve().is_relative_to((root / 'knowledge' / 'project').resolve()):
+        return 'knowledge page is outside the initialized knowledge base'
+    if fingerprint(source) != digest:
+        return 'source_sha256 does not match ' + source_rel
+    if not written.is_file():
+        return 'missing page ' + page_rel
+    if digest not in written.read_text(encoding='utf-8', errors='replace'):
+        return 'page does not record source_sha256'
+    return None
+
+
+def knowledge_receipt_detail(root, change, capabilities):
+    """Why a finished change cannot yet be archived, or None when the receipt holds."""
+    root = Path(root)
+    if project_knowledge_base(root) is None:
+        return 'NOT_CONFIGURED'
+    receipt_path = change / 'knowledge-receipt.json'
+    if not receipt_path.is_file():
+        return 'missing knowledge-receipt.json'
+    try:
+        receipt = json.loads(receipt_path.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError):
+        return 'knowledge receipt is not json'
+    if not isinstance(receipt, dict) or receipt.get('change') != change.name or receipt.get('alias') != 'project':
+        return 'knowledge receipt target is not project'
+    pages = receipt.get('pages')
+    if not isinstance(pages, list):
+        return 'knowledge receipt has no pages'
+    for page in pages:
+        detail = _page_detail(root, page)
+        if detail:
+            return detail
+    if capabilities:
+        sources = {page.get('source_path') for page in pages if page.get('artifact_kind') == 'requirement'}
+        missing = ['openspec/specs/%s/spec.md' % cap for cap in capabilities if 'openspec/specs/%s/spec.md' % cap not in sources]
+        if missing:
+            return 'missing requirement page for ' + ', '.join(missing)
+    record_path = change / 'verified-problem.json'
+    if record_path.is_file():
+        try:
+            record = json.loads(record_path.read_text(encoding='utf-8'))
+        except (OSError, json.JSONDecodeError):
+            return 'verified problem record is not json'
+        if isinstance(record, dict) and record.get('conclusion') == 'pass':
+            expected = 'openspec/changes/%s/verified-problem.json' % change.name
+            matched = any(page.get('artifact_kind') == 'problem' and page.get('source_path') == expected for page in pages)
+            if not matched:
+                return 'missing problem page'
+            marked = receipt.get('problem')
+            if isinstance(marked, dict) and marked.get('status') == 'not_applicable':
+                return 'not_applicable is invalid when a verified problem passed'
+            return None
+    marked = receipt.get('problem')
+    if not isinstance(marked, dict) or marked.get('status') != 'not_applicable' or not marked.get('reason'):
+        return 'problem is not not_applicable'
+    return None
+
+
 def outstanding_changes(root):
     """Complete changes that are still active, with what is missing."""
     root = Path(root)
@@ -66,8 +163,12 @@ def outstanding_changes(root):
             problem = 'capabilities are not synced into openspec/specs/'
             detail = ', '.join(unsynced)
         else:
-            problem = 'is still active and should be archived'
-            detail = 'no delta specs' if skips_specs(change) else 'capabilities synced'
+            detail = knowledge_receipt_detail(root, change, capabilities)
+            if detail:
+                problem = 'knowledge receipt is not acceptable'
+            else:
+                problem = 'is still active and should be archived'
+                detail = 'no delta specs' if skips_specs(change) else 'capabilities synced'
         findings.append({
             'change': change.name,
             'tasks': '%d/%d' % (done, done + todo),

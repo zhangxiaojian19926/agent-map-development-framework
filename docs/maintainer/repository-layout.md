@@ -20,6 +20,8 @@
 | `tools/check-framework`、`tools/update-manifest`、`tools/prepare-release` | 公共壳维护工具 | 否 |
 | `tests/` | 公共壳回归与集成场景 | 否 |
 | `openspec/` | 公共壳自身规格与活跃变更 | 否 |
+| `llm-wiki-aliases.json` | 本仓库项目知识库 alias `project` | 否 |
+| `knowledge/project/` | 本仓库初始化知识库壳与已授权写入的需求页 | 否 |
 | `.github/` | 公共壳 CI 与发布 | 否 |
 | `framework-manifest.json` | 分发文件与指纹单源 | 是 |
 

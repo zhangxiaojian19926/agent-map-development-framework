@@ -66,11 +66,14 @@ staleness:
 |---|---|
 | query / lint / status / graph | 只允许已核实的只读模式;实际会写文件/缓存的模式须按写操作确认 |
 | ingest / batch-ingest / digest 写入 / crystallize / delete | 需用户明确意图 |
-| 已解决问题回流(§11.9) | 主动询问本次内容与目标 KB,确认后写入 |
+| 规格已同步的需求页、`conclusion` 为 `pass` 的问题页 | 直接写入 alias `project`，不逐次询问 |
+| 其他已解决问题回流(§11.9) | 主动询问本次内容与目标 KB,确认后写入 |
 
 **用户要查询 ≠ 授权摄入。要总结 ≠ 授权 crystallize。**
 
-局部 schema 中的“session 结束自动”或“fix 提交触发”只触发摄入询问,不得绕过本次写入确认。用户已明确授权本次内容和目标时直接执行,不重复询问。
+需求开发完成或问题验证完成时，规格同步之后、归档之前，把需求页和适用的问题页写入初始化知识库 alias `project`，并在 change 目录留下 `knowledge-receipt.json`。这两类不再逐次询问。结晶、删除、新建知识库、修改 alias 注册表和推送仍要单独授权。没有注册表时记 `NOT_CONFIGURED`，不新建库。
+
+局部 schema 中的“session 结束自动”或“fix 提交触发”只触发摄入询问,不得绕过本次写入确认，也不得代替上述两类完成写入。用户已明确授权本次内容和目标时直接执行,不重复询问。
 
 ### 11.6 来源/推理分离
 - 从归档规格/发布说明/测试报告提取 → 标 `EXTRACTED`
@@ -105,7 +108,7 @@ OpenSpec archive
 ### 11.9 已解决问题后的模块化知识回流
 
 **触发与确认**:
-- 每次问题达到已验证解决状态,在交付时主动询问是否摄入,不要求先发布或 OpenSpec 归档。同一问题在一次交付中询问一次;拒绝、暂缓或未回复时不写入,不阻塞修复交付。
+- 任务已全部勾完且规格已同步时，已验证问题在归档前写入初始化知识库 alias `project`，不逐次询问。验证记录是 change 内的 `verified-problem.json`，`conclusion` 为 `pass` 才写问题页。没有注册表时记 `NOT_CONFIGURED`，不新建库，该 change 仍是欠账。模块库不在这次自动写入里。欠账留在完成检查里，不回滚已经验证过的修复。其他种类仍按询问处理;拒绝、暂缓或未回复时不写入。
 - 用户接受且已验证有效的临时规避方案可以建议保存,但必须标明“临时规避、根因未消除”。未验证修复、推测、阻塞或纯计划不算已解决;用户另行要求记录时标明真实状态。
 - 一次列明问题标识、涉及模块、全部拟写 KB alias/路径、各自保存内容与验证范围。确认覆盖本次列出的记录及必要的索引、日志等更新;新增目标或扩大内容范围须补充确认。项目空壳已在初始化建立。没有合适的模块库时报告路由缺口，不自动再建一个库。
 
@@ -142,14 +145,14 @@ OpenSpec archive
 
 ### 11.12 工程壳可以摄入的页面
 
-确认一张清单后再写。清单含来源路径、sha256、`artifact_kind` 和目标 alias。相同 sha256 不重复写。拒绝或未回复则不写。页面使用 llm-wiki 的 `templates/engineering-template.md`。
+需求页和已验证问题页在规格同步后直接写入 alias `project`，相同 sha256 不重复写，回执仍要留下。其他种类确认一张清单后再写。清单含来源路径、sha256、`artifact_kind` 和目标 alias。相同 sha256 不重复写。拒绝或未回复则不写。页面使用 llm-wiki 的 `templates/engineering-template.md`。
 
 | artifact_kind | 目录 | 可以列入清单的时机 |
 |---|---|---|
 | design | `wiki/sources/designs/` | 设计或架构已经批准 |
-| requirement | `wiki/topics/requirements/` | OpenSpec 需求与场景已经认可。正在编辑的 change 不收 |
+| requirement | `wiki/topics/requirements/` | 任务已全部勾完且能力规格已同步。归档前写入，不再逐次询问。任务未完成的 change 不收 |
 | plan | `wiki/topics/plans/` | 开发计划已经批准。不收每个任务的打勾 |
-| problem | `wiki/topics/problems/` | 修复已经验证。临时规避必须写明根因未消除 |
+| problem | `wiki/topics/problems/` | `verified-problem.json` 的 `conclusion` 为 `pass`。归档前写入，不再逐次询问。临时规避必须写明根因未消除 |
 | constraint | `wiki/topics/constraints/` | 项目约束和非目标已经确认 |
 | module | `wiki/entities/modules/` | 模块已登记，或对外职责、边界变了 |
 | verification | `wiki/sources/verifications/` | 验证已通过。只写环境、版本、结论和证据位置 |
