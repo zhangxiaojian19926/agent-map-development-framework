@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.3 — 2026-11-09
+
 - 新增 `agent-persona` 能力：把 Universal Agent Protocol v4.0 写入项目根 `AGENTS.md` 的 `FRAMEWORK_ENTRY` 托管段，并放在框架 `AGENTS.md` 开头；阶段表仍在标记之后。来源钉在提示词仓库 `7099de8`，只复制短协议并加壳绑定，不把该仓库做成子模块。Claude Code 与 CodeBuddy 安装同一份三个只读子代理（`uap-investigator`、`uap-challenger`、`uap-verifier`）；相对该来源，investigator 与 challenger 去掉 `Bash`，verifier 保留。不写 `CODEBUDDY.md`，CodeBuddy 不要求 hooks。doctor 状态词典不增加人格验收四态，不新建技能。能力规格已同步进 `openspec/specs/agent-persona/`，change 已归档为 `2026-11-07-add-agent-persona`。本期证明文件、安装、独立 prepare/host 运行时证据和六道门禁；跨模型效果、真实业务项目闭环与知识回流未证明。
 
 - 新增 `native-workflow-gates` 能力：十五条工作流的只读任务路由（流程 ID 与教程「15 条一览」表逐行对应，目录与教程漂移由测试反向核对）、日常开发四类分流、新行为前置条件与 OpenSSH 签名批准核验、私有任务记录与跨会话恢复，以及 Claude Code CLI 与 Qwen Code CLI 两个原生宿主的项目级适配。流程判定、宿主执行与交付资格三轴分别记录，只用已发布状态词典的状态码；本期交付资格为 `NOT_RUN`。原生验收实测到两件事：门禁能拦住 Claude Code 的编辑（会话记录里出现门禁自己的拒绝理由、目标文件哈希不变），但代理被拦后会读随包源码、自建 ssh 密钥准备自签批准——所以信任来源改为固定系统路径 `/etc/framework/workflow-trust.allowed_signers`，且文件与所在目录必须对当前用户不可写，否则判定 `NOT_VERIFIED` 并阻断；签名私钥是否可被代理读取无法机械校验，改为在报告里如实声明。

@@ -1,6 +1,6 @@
 {
   "schema": "agent-map-framework/v1",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "scope": "Reusable framework only; project instances and original Git history excluded",
   "skills": {
     "flows": 15,
@@ -38,7 +38,7 @@
     ".gitignore": "d80b710933a11eb4cc767e984ff829302f20fc7b923f42005109faef99b7a7aa",
     "AGENTS.md": "0a3fd360662039cc7f5bcf946df52eac8aaaf60bb1e9607924ff72cb8ee21ea0",
     "BOOTSTRAP.md": "3e4ab81df7223f7716a5b0f7a932fc4cc06b5610f011e4298596426a9776ffe9",
-    "CHANGELOG.md": "28e841d07e7625c47aaa9e3d740d29f823011a4f9a53b2369925696f6f729b45",
+    "CHANGELOG.md": "9011685685cd066d72b41348ba8875db4ec1bee93289730e80dbdc6d42c4fbc9",
     "LICENSE": "7a80c75b97010400a48b27d0a9e81a42196f999696aee38cadf3bd14475c2ed7",
     "README.md": "7202e3d73292eaeecc9c38a37fb1499c5c7cef517676dafaca1407c831c98636",
     "THIRD_PARTY_NOTICES.md": "619b6866bcbec7324bb56a68b1136843d3bc3b8dd1560024d654c6ad478e1380",
