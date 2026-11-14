@@ -138,3 +138,69 @@ DEBT documentation is STALE: INVALID_EVIDENCE
 - **判断"某个东西有没有落点"必须扫全部活文档，不能只扫常驻那一份。** 只扫 `AGENTS.md` 会漏掉 `docs/framework/development-workflow.md` 这类流程契约里的路由，进而给出与既有契约冲突的建议。这个错误本轮犯过一次。
 - **规格说"SHALL 保留"，不等于保留的内容会被读到。** 事实源与执行事实源之间可能断开，而且断开时没有任何机制报警。本地改编层就是这个断开的实例。
 - **人工比对只能覆盖被比对的那一份文档。** 同类漂移的其他副本要靠全仓搜索找——本轮"三处文档写着同一个过时时刻"就是逐条比对指南时看不见的。
+---
+
+## 2026-11-14 · 概念页与适用条件
+
+**起因**
+
+知识层只能表达"一条结论是什么"，不能表达"它在什么条件下成立"。具体两处：
+
+其一，知识页的 frontmatter 只有 `type`/`artifact_kind`/`created`/`confidence`/`status`/`module_ids`/`source_path`/`source_sha256`/`problem_id`/`sources`。一条只适用于旧协议的经验没有地方写"只适用于 v2"，条件只能藏在正文最深处——而摘要层会把它当普适规则读走。
+
+其二，`docs/framework/knowledge-policy.md` §11.12 末段与 `skill/matt-pocock/domain-modeling/framework-rules.md` 两处独立明文把术语表挡在知识库之外。理由本身成立：术语表是当前词汇，不是已验证经验。代价是项目里唯一一处表达"概念"的地方没有来源、没有置信度、没有机器校验。
+
+第三条线索来自盘点：`knowledge/project/` 里 5 篇页面全是需求规格的镜像，`problems/`、`entities/modules/`、`synthesis/decisions/`、`sources/verifications/`、`topics/constraints/` 全部只剩 `.gitkeep`。第三层经验层从未被填过——这比"没有本体"更真实。
+
+**改动**
+
+- 新增 `concept` 页面种类与 `wiki/topics/concepts/` 目录。概念页承载扩展语义：适用条件、易混淆对象、状态作用域、工程映射、关键约束、验证入口。
+- 术语的**定义**仍留在 `docs/project/GLOSSARY.md` 并由人工维护。概念页用 `source_path` + `source_sha256` 指向术语表，两边互指但不互相复制。定义只有一份在术语表，扩展语义只有一份在知识库，不产生第二真相源。
+- 知识页新增 `applies_when`、`not_applicable_when` 与 `preconditions`、`confusable_with`、`supersedes`、`superseded_by`、`derived_from`、`affects` 六个可选字段。`problem` 与 `concept` 类必须有非空 `applies_when`，`problem` 类还必须有 `not_applicable_when`；`requirement` 类不强制。
+- `skill/llm-wiki/scripts/wiki.py` 的 strict lint 按页面种类判定必填；仍留着 `{{占位符}}` 的字段算未填。
+- `tools/framework_core/closure.py` 的回执校验加入概念页种类，并约束其来源只能是术语表或已同步规格。
+- 两处独立明文同改，并用 `KB-GLOSSARY-SPLIT` 标记 + 一条机器检查守住不漂移。
+- 不新增技能、不新增流程、不建本体层、不引形式化本体工具。
+
+**验证**
+
+变异检验：关掉 lint 的适用条件校验与回执的概念页、适用条件校验后，知识与回执两组共 14 项失败；恢复后 68 项全过。全量回归 486 项通过（基线 454）。`check-framework` PASS（605 文件 / 42 技能），`openspec validate --all --strict` 45 项、`--archived` 33 项通过，`check-changes` PASS。
+
+**结论**
+
+知识层现在能说清一条结论在什么前提下成立。概念有了可核对的落点——带来源路径、来源哈希与置信度，来源改动能检出失配。第三层仍是空的：机制齐了不等于有人写。下一个真问题是概念页的实际写作成本与检索命中率。
+
+---
+
+## 2026-11-14 · 可纠正性与生效追踪
+
+**起因**
+
+两条独立的缺口，都表现为"存下来了，但用不对"。
+
+**作废不了**：`status` 枚举只有 `approved`/`verified`/`temporary-workaround`。一条结论被推翻之后没有"待复核"和"被取代"的说法，只能继续被召回并继续当已确认规则用。
+
+**证明不了生效**：知识回执 `knowledge-receipt.json` 只列页路径、种类、来源路径与来源哈希——它证明"写了哪页"，不证明"这页知识改变了哪段实现或哪条断言"。回执能挡住"没写知识页就宣称完成"，挡不住"写了知识页却没改变任何行为"。
+
+**改动**
+
+- 页面状态增加被取代、撤回与待复核。被取代必须声明 `superseded_by` 指向真实存在的页；撤回必须声明 `retraction_reason`；两者都不得再被任何页的 `applies_when` 引用。进入待复核的页能列出引用它的下游，原始事件保留但不再作为已确认规则。
+- 知识回执增加第二版结构 `knowledge-receipt/v2` 与 `influenced`：这页知识改变了哪条断言、哪个文件、哪个 task。页路径必须在同一张回执的页面清单里，task 标识必须在该 change 的任务清单里；没有这一项必须显式声明不适用并给出理由。第一版回执按引入前的规则判定，不追溯。
+- doctor 的知识维度报告每个知识页的引用次数、从未被引用的页，以及处于待复核的页的下游。
+- `skill/matt-pocock/diagnosing-bugs/discipline.md` 补失败归因五层：内容、访问、验证、流程、方法。归属决定写到哪个知识库，归因决定该改哪一层，两者分别记录。
+
+**一处实现期修正**
+
+原计划让三个新状态进入对外指南的框架状态词典。实现时发现 `check-framework` 的状态词典校验用 `STATUS_TOKEN = "`([A-Z][A-Z0-9_]*(?:/[A-Z]+)?)`"` 扫描，**只认大写 token**；而知识页的 `status` 是小写，本来就从未出现在那本词典里。把小写状态写进去既扫不到、也不构成双向校验，还会让框架状态码与页面状态变成同名不同义的两套词汇混在一张表里。
+
+改为：页面状态的唯一声明处是知识库 schema，代码里的接受集合与它比对，一条机器检查守住不漂移；框架状态词典保持只收框架自身的状态码，不动。这比原计划更严——原计划依赖的那道双向校验对页面状态本来就不生效。`guide-learning-path` 因此不被修改。
+
+**验证**
+
+变异检验：关掉状态机、v2 回执与受影响页校验后，共 14 项失败；恢复后 68 项全过。全量回归 486 项通过（基线 454）。六道门禁全绿。对两个 change 显式调用 `knowledge_receipt_detail`，均返回空。
+
+**结论**
+
+结论现在能被推翻、能被撤回，撤回的下游能被列出而不是静默保留。回执从"证明写了"变成"证明写了并且起了作用"。归因五层让诊断的产出从"一个 fix"变成"一个 fix 加一条归因"。
+
+剩下的：效果评测（时间切分双组、冻结组对吸收新经验组）不在本轮内。它属于效果研究而非工程集成，需要单独立项；在此之前不能说本体语义层带来了多少收益。

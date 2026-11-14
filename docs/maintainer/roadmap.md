@@ -128,32 +128,6 @@ git diff --check <base>...HEAD
 
 ---
 
-## 8. 知识层的概念语义与可纠正性
-
-**是什么**：把知识层的"概念语义"和"可纠正性"落成可校验的字段与状态——概念页入库、适用条件与不适用条件必填、结论可被取代或撤回、知识回执记录它改变了哪条断言、调试阶段补失败归因五层。
-
-**为什么**：知识层现在只有"存了什么"，没有"在什么条件下成立"和"这条还算不算数"。三个具体缺口：
-
-- **适用条件缺失**：知识页 frontmatter 只有 `type`/`artifact_kind`/`created`/`confidence`/`status`/`module_ids`/`source_path`/`source_sha256`/`problem_id`/`sources`。一条只适用于旧协议的经验，没有地方写"只适用于 v2"，条件只能藏在正文最深处，而摘要层会把它当普适规则读走。
-- **结论无法作废**：`status` 只有 `approved`/`verified`/`temporary-workaround`。旧结论被推翻后没有"待复核"和"被取代"的说法，只能继续被召回。
-- **知识是否生效不可追踪**：回执只证明"写了哪页"，不证明这页知识改变了哪段实现或哪条断言。召回日志不能证明经验生效。
-
-同时，**第三层至今是空的**：知识库 5 篇页面全是需求规格的镜像，`problems/`、`entities/modules/`、`synthesis/decisions/`、`sources/verifications/`、`topics/constraints/` 全部只剩 `.gitkeep`。这是比"没有本体"更真实的缺口。
-
-**怎么做**：按 [`docs/plans/2026-11-14-knowledge-concept-pages.md`](../plans/2026-11-14-knowledge-concept-pages.md) 的五期实施，核心取向是**只扩字段、不加机制**——不新增技能、不新增流程、不建本体层、不引形式化本体工具，全部挂到已有的四个承载点（`llm-wiki` 技能管知识页形态、`domain-modeling` 本地层管术语接缝、`knowledge-policy` 管可摄入范围、`tools/framework_core/closure.py` 管门禁）。
-
-1. Phase 0：字段最终定稿，建两个 change（`add-concept-pages-and-applicability`、`add-knowledge-correction-and-influence`），过评审。
-2. Phase 1：扩模板、扩 schema、加 `wiki/topics/concepts/` 目录。此时只提供形态，不强制。
-3. Phase 2：lint 增校验，适用条件对 `problem`/`concept` 变必填；改术语表接缝的两处既定规则。
-4. Phase 3：加 `superseded`/`retracted`/`needs-review` 三个状态，把状态机落进代码。
-5. Phase 4：回执加 `influenced[]`；调试纪律加失败归因五层；doctor 暴露从未被引用的知识页。
-
-**闭环判据**：六道门禁全绿，且——一张 concept 页能过 lint 且其 `source_sha256` 与 `docs/project/GLOSSARY.md` 实文件匹配；缺 `applies_when` 的问题页被报出；`superseded` 页缺 `superseded_by` 被报出；缺 `influenced` 的 v2 回执被报出；**现有 5 篇 requirement 页与 31 个已归档 change 未受影响**（新规则只对新对象生效，不追溯）。
-
-**边界要说清楚**：这一批**不产生"本体引擎"**，也不承诺第三层会被填上。机制齐了不等于经验层启动——那要靠有人真的开始写 concept 页。分期的第一刀建议只做 Phase 0 + Phase 1（1.5–2.5 人日），先看 8 个字段里哪几个真被用、哪几个永远空着，再决定要不要收紧。
-
----
-
 ## 需要环境或授权才能做的事
 
 | 事项 | 阻塞在哪 |
@@ -161,7 +135,7 @@ git diff --check <base>...HEAD
 | 真实宿主 / 跨宿主恢复证据 | 需要对应的宿主环境与授权；两个旧 change 的归档门禁依赖它 |
 | 私有源认证 | SSH 接口有离线回归，真实私有源未验收；HTTPS credential helper 不自动加载 |
 | 真实设备 / 部署 | 框架不预建业务设备适配器，需具体项目提供 |
-| 术语表接缝的规则变更 | `knowledge-policy.md` 与 `domain-modeling/framework-rules.md` 两处独立明文挡着，改动即行为变更，须走 OpenSpec 流程并获用户批准 |
+| 概念页的真实试写 | 概念页要写在一个真实项目里才有意义；本仓库是分发侧，不产生业务术语 |
 | 概念页的真实试写 | 概念页要写在一个真实项目里才有意义；本仓库是分发侧，不产生业务术语 |
 
 这些不是仓库能自己解决的，写在这里是为了别被当成"待办"漏掉。
@@ -200,5 +174,6 @@ git diff --check <base>...HEAD
 | 12 | 本地改编层可达化：登记 + 指针 + 双向核对；移除 using-superpowers 入口；统一委派技能归属 | `deffeb1` |
 | 13 | 收口检查送达使用者项目：`framework_core/closure.py` + `tools/check-project` + CI 模板 | `3a1d072` |
 | 14 | 原生工作流门禁：十五条目录 + 只读路由 + 批准核验 + 任务记录 + Claude Code / Qwen Code 两个宿主适配；原生验收实测出信任锚点可被代理改写，据此加 WF-08 | `6d18fa1` |
+| 15 | 知识层的概念语义与可纠正性：概念页、适用条件、可纠正状态机、v2 回执与失败归因五层；两个 change 已归档 | `7f2e4e8` |
 
 证据索引：[归档的 change](../../openspec/changes/archive/)与[复盘记录](retro-findings.md)。
