@@ -32,7 +32,7 @@ Run through Bash; script paths below are relative to this skill's directory. Pyt
 | batch | bash scripts/batch-ingest.sh KB SOURCE_DIR | Snapshots Markdown input list; reports each preparation failure; nonzero on partial failure |
 | digest | bash scripts/digest.sh KB TOPIC | PLAN_ONLY, relevant pages for Agent synthesis |
 | status | bash scripts/status.sh KB | Read-only shell, ingestion EMPTY or PRESENT, page count, and raw count |
-| lint | bash scripts/lint.sh KB --strict | Structural metadata, unique wikilinks, and raw files with no knowledge page; not semantic proof |
+| lint | bash scripts/lint.sh KB --strict | Structural metadata, applicability fields on reusable conclusions, unique wikilinks, and raw files with no knowledge page; not semantic proof |
 | graph | bash scripts/graph.sh KB | Read-only JSON nodes/edges on stdout; no generated file |
 | delete | bash scripts/delete.sh KB RAW_RELATIVE_PATH | PLAN_ONLY, exact target and references; never deletes or guesses a summary |
 | crystallize | bash scripts/crystallize.sh KB FILE-or-stdin-dash TOPIC | PLAN_ONLY with INFERRED classification; Agent reads source and performs authorized synthesis |
@@ -44,6 +44,12 @@ No persistent acknowledgement file bypasses future consent. A successful helper 
 ## Ingestion
 
 Which pages may be written, and when, is only in [knowledge policy](../../docs/framework/knowledge-policy.md) section 11.12. Copy `templates/engineering-template.md` after that confirmation. This file does not add a second rule.
+
+## Applicability and concept pages
+
+A reusable conclusion says when it holds and when it must not be used. `applies_when` states the first; `not_applicable_when` states the second. Strict lint requires a non-empty `applies_when` on `problem` and `concept` pages, and a non-empty `not_applicable_when` on `problem` pages. A `requirement` page does not carry them: a requirement is not a conclusion that can be recalled outside its change. A value still holding an unfilled `{{placeholder}}` counts as missing.
+
+A `concept` page carries the extended meaning of a term — applicability, confusable objects, engineering mapping, constraints, where to verify it. The definition itself stays in the project glossary; a concept page points at it through `source_path` and `source_sha256` and does not restate it. Which side holds which is stated once, as `KB-GLOSSARY-SPLIT`, in the knowledge policy and in the domain-modeling local layer.
 
 ## Complete ingestion (Agent responsibility)
 

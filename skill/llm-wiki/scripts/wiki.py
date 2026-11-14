@@ -16,9 +16,25 @@ SHELL_DIRS = (
     "raw/articles", "raw/notes", "raw/pdfs", "raw/assets",
     "wiki/entities/modules",
     "wiki/topics/requirements", "wiki/topics/plans", "wiki/topics/problems", "wiki/topics/constraints",
+    "wiki/topics/concepts",
     "wiki/sources/designs", "wiki/sources/verifications",
     "wiki/comparisons", "wiki/synthesis/decisions", "wiki/queries",
 )
+
+# A page's artifact_kind decides which applicability fields it must carry.
+# `requirement` is deliberately absent: pages written before these fields
+# existed must stay valid, and a requirement is not a reusable conclusion.
+REQUIRED_APPLICABILITY = {
+    "problem": ("applies_when", "not_applicable_when"),
+    "concept": ("applies_when",),
+}
+# The page status vocabulary. It is declared by the knowledge schema, not by
+# the framework's own status dictionary — those are two different vocabularies.
+PAGE_STATUSES = (
+    "approved", "verified", "temporary-workaround",
+    "superseded", "retracted", "needs-review",
+)
+PLACEHOLDER = re.compile(r"^\{\{.*\}\}$")
 
 def emit(value):
     print(json.dumps(value, ensure_ascii=False, indent=2))
@@ -237,6 +253,41 @@ def raw_sources(root):
     return found
 
 
+def frontmatter_fields(body):
+    """Frontmatter key -> raw value, or None when the page has no frontmatter."""
+    fm = re.match(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|$)", body, re.S)
+    if not fm:
+        return None
+    fields = {}
+    for line in fm.group(1).splitlines():
+        m = re.match(r"^([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$", line)
+        if m:
+            fields[m.group(1)] = m.group(2).strip()
+    return fields
+
+
+def applicability_errors(fields, page):
+    """A reusable conclusion must say when it holds and when it must not be used."""
+    kind = (fields or {}).get("artifact_kind", "")
+    required = REQUIRED_APPLICABILITY.get(kind)
+    if not required:
+        return []
+    problems = []
+    for key in required:
+        value = (fields or {}).get(key, "")
+        if not value or PLACEHOLDER.match(value):
+            problems.append({"page": page, "error": "missing applicability field: " + key})
+    return problems
+
+
+def status_errors(fields, page):
+    """A page status outside the schema's vocabulary is a typo, not a state."""
+    status = (fields or {}).get("status", "")
+    if status and status not in PAGE_STATUSES:
+        return [{"page": page, "error": "status is not a known page status: " + status}]
+    return []
+
+
 def lint(root, strict):
     all_pages=pages(root)
     errors=[]
@@ -250,6 +301,11 @@ def lint(root, strict):
         fm=re.match(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|$)",body,re.S)
         if strict and (not fm or any(not re.search(r"(?m)^"+key+r":\s*\S",fm.group(1)) for key in ["type","created"])):
             errors.append({"page":f.relative_to(root).as_posix(),"error":"missing frontmatter/type/created"})
+        if strict:
+            fields = frontmatter_fields(body)
+            relative = f.relative_to(root).as_posix()
+            errors.extend(applicability_errors(fields, relative))
+            errors.extend(status_errors(fields, relative))
         for link in re.findall(r"\[\[([^\]]+)\]\]",body):
             key=link.split("|")[0].split("#")[0].strip()
             if not key:

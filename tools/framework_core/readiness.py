@@ -123,8 +123,19 @@ def knowledge_status(root):
             return {'status': 'NOT_CONFIGURED', 'ingestion': 'NOT_APPLICABLE'}
         if not safe_path(root, 'knowledge/project/.wiki-schema.md').is_file():
             return {'status': 'CONFLICT', 'ingestion': 'NOT_APPLICABLE'}
-        wiki = safe_path(root, 'knowledge/project/wiki')
+        # safe_path resolves symlinks, so relative paths are taken from the
+        # resolved base rather than from the unresolved root.
+        kb = safe_path(root, 'knowledge/project')
+        wiki = kb / 'wiki'
         pages = [path for path in wiki.rglob('*.md') if path.is_file() and not path.is_symlink()] if wiki.is_dir() else []
-        return {'status': 'SCAFFOLDED', 'ingestion': 'EMPTY' if not pages else 'PRESENT', 'alias': 'project'}
+        # Deferred import: closure imports this module, so it cannot sit at module level.
+        from .closure import knowledge_page_index, knowledge_references, needs_review_downstream, page_ref
+        counts = knowledge_references(root)
+        refs = sorted({page_ref(path.relative_to(kb).as_posix()) for path in pages})
+        return {'status': 'SCAFFOLDED', 'ingestion': 'EMPTY' if not pages else 'PRESENT',
+                'alias': 'project',
+                'references': {ref: counts.get(ref, 0) for ref in refs},
+                'never_referenced': [ref for ref in refs if not counts.get(ref)],
+                'under_review': needs_review_downstream(knowledge_page_index(root))}
     except (OSError, ValueError):
         return {'status': 'CONFLICT', 'ingestion': 'NOT_APPLICABLE'}

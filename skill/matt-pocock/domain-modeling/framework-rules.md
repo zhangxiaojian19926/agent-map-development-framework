@@ -20,10 +20,18 @@ docs/project/GLOSSARY-MAP.md       multiple contexts, points at the per-context 
   guide requires.
 - Create it lazily: only when the first term is actually resolved. An empty
   glossary is noise.
-- The knowledge base does not hold it. The knowledge policy governs what may
-  be ingested, and a glossary is current project vocabulary rather than a
-  verified, reusable experience. See
+- The glossary keeps the **definition**; the knowledge base keeps the
+  **extended meaning**. A resolved term may get a `concept` page in the
+  knowledge base carrying its applicability, confusable objects, engineering
+  mapping, constraints and verification entry. That page points back at this
+  glossary through `source_path` and `source_sha256` and does not restate the
+  definition. The definition stays here, human-authored; the extended meaning
+  stays in the knowledge page. Neither side copies the other, so there is no
+  second source of truth. See
   [knowledge-policy.md](../../../docs/framework/knowledge-policy.md).
+- This boundary is recorded as `KB-GLOSSARY-SPLIT`. The same boundary is
+  declared with the same marker in the knowledge policy, and the two
+  statements must change together.
 
 ## Decision records are already covered
 

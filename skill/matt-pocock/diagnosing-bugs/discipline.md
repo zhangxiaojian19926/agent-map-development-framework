@@ -126,6 +126,37 @@ external:
 **But:** the large majority of "no root cause" cases are incomplete
 investigation. Say so explicitly before accepting that conclusion.
 
+## Attribution: which layer this failure belongs to (framework addition)
+
+A fix that works is not the end of the investigation. Before the loop closes,
+name the layer this failure belongs to. Without that, the same class of
+failure returns with a different symptom, and the fix accumulates as reminders
+instead of as knowledge — and the same reminder cannot fix a problem of a
+different kind.
+
+| Layer | What the failure looks like | What to change | Where it lands |
+|---|---|---|---|
+| Content | A concept is missing, or two things that share a name were treated as one concept | Add the concept, or split the concepts that were merged | A `concept` page carrying the conditions it holds under |
+| Access | The concept was already right, but retrieval returned a similar case whose conditions did not match | The index and the applicability filter | The fields a query filters on |
+| Verification | Retrieval and interpretation were both right, but a data-side check was skipped | The workflow and the verification tool | The assertion or the check before the action |
+| Flow | The failure was not a knowledge problem at all — the sequence, the authorization or the gate was wrong | The flow contract | `development-workflow.md` |
+| Method | Many failures of the same kind each missing the same thing — the extraction itself is systematically incomplete | The extraction method | Needs cross-task validation before it counts |
+
+Two records, not one. **Which knowledge base the record belongs to** is the
+module routing decision; **which layer the failure belongs to** is this
+attribution. Record both — they do not substitute for each other.
+
+The layer decides what you write down next:
+
+- Content becomes a `concept` page or a revised applicability condition.
+- Access becomes a change to the fields a query filters on.
+- Verification becomes an assertion, or a check before the action.
+- Flow becomes a change to the flow contract.
+- Method becomes a change to the extraction method — and that one needs
+  cross-task validation before it counts as an improvement. Allowing the
+  method to improve and allowing the standard that scores it to be lowered are
+  two different permissions.
+
 ## Redaction
 
 Commands, outputs and captured artifacts carry secrets. Write `<REDACTED>`

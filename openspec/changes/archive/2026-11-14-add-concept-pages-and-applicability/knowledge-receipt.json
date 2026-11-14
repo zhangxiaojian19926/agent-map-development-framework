@@ -1,0 +1,49 @@
+{
+  "schema": "knowledge-receipt/v2",
+  "change": "add-concept-pages-and-applicability",
+  "alias": "project",
+  "pages": [
+    {
+      "path": "knowledge/project/wiki/topics/requirements/concept-pages.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/concept-pages/spec.md",
+      "source_sha256": "ddc5184b463a95a82c560441357d2cd77af3eb4ec6eedc13ef9d76a0ccd39a1d"
+    },
+    {
+      "path": "knowledge/project/wiki/topics/requirements/knowledge-applicability.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/knowledge-applicability/spec.md",
+      "source_sha256": "da6fc288a1e3fb4fb49314b8199b5a62882b011dfb205d88d35e8108a70128bd"
+    },
+    {
+      "path": "knowledge/project/wiki/topics/requirements/completion-knowledge-ingest.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/completion-knowledge-ingest/spec.md",
+      "source_sha256": "3a137926b7f80d2ec98dc60e62a025506c00b7a99791107bda2bc9a8defde60b"
+    }
+  ],
+  "influenced": [
+    {
+      "page": "knowledge/project/wiki/topics/requirements/concept-pages.md",
+      "task_id": "1.1",
+      "file": "skill/llm-wiki/templates/schema-template.md",
+      "assertion": "schema 声明概念页目录 wiki/topics/concepts 与 artifact_kind concept"
+    },
+    {
+      "page": "knowledge/project/wiki/topics/requirements/knowledge-applicability.md",
+      "task_id": "2.2",
+      "file": "skill/llm-wiki/scripts/wiki.py",
+      "assertion": "lint 按 artifact_kind 分别判定适用条件的必填字段"
+    },
+    {
+      "page": "knowledge/project/wiki/topics/requirements/completion-knowledge-ingest.md",
+      "task_id": "2.4",
+      "file": "tools/framework_core/closure.py",
+      "assertion": "回执校验问题页的适用条件与概念页的来源约束"
+    }
+  ],
+  "problem": {
+    "status": "not_applicable",
+    "reason": "本变更没有已验证的问题记录，不写问题页"
+  }
+}

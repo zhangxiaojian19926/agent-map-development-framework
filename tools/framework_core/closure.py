@@ -20,6 +20,188 @@ from .storage import fingerprint, read_json, safe_path
 DONE = re.compile(r"^\s*-\s*\[x\]", re.M)
 TODO = re.compile(r"^\s*-\s*\[ \]", re.M)
 
+# A reusable conclusion must say when it holds and when it must not be used.
+# `requirement` is deliberately absent: a requirement is not a conclusion that
+# can be recalled outside the change it belongs to.
+PAGE_APPLICABILITY = {
+    'problem': ('applies_when', 'not_applicable_when'),
+    'concept': ('applies_when',),
+}
+# The page status vocabulary. It is declared by the knowledge schema, not by
+# the framework's own status dictionary — those are two different vocabularies.
+PAGE_STATUSES = ('approved', 'verified', 'temporary-workaround',
+                 'superseded', 'retracted', 'needs-review')
+SUPERSEDED = 'superseded'
+RETRACTED = 'retracted'
+NEEDS_REVIEW = 'needs-review'
+VOID_STATUSES = (SUPERSEDED, RETRACTED)
+RETRACTION_REASON = 'retraction_reason'
+RECEIPT_SCHEMA_V2 = 'knowledge-receipt/v2'
+PLACEHOLDER = re.compile(r"^\{\{.*\}\}$")
+CONCEPT_SOURCES = ('docs/project/GLOSSARY.md',)
+
+
+def page_fields(text):
+    """Frontmatter key -> raw value for a knowledge page."""
+    match = re.match(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|$)", text, re.S)
+    if not match:
+        return {}
+    fields = {}
+    for line in match.group(1).splitlines():
+        item = re.match(r"^([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$", line)
+        if item:
+            fields[item.group(1)] = item.group(2).strip()
+    return fields
+
+
+def missing_applicability(fields, kind):
+    """Which applicability fields this page kind must declare but does not."""
+    required = PAGE_APPLICABILITY.get(kind, ())
+    missing = []
+    for key in required:
+        value = fields.get(key, '')
+        if not value or PLACEHOLDER.match(value):
+            missing.append(key)
+    return missing
+
+
+def concept_source_allowed(source_rel):
+    """A concept page points at the glossary or at a synced capability spec."""
+    if source_rel in CONCEPT_SOURCES:
+        return True
+    return source_rel.startswith('openspec/specs/') and source_rel.endswith('/spec.md')
+
+
+def knowledge_page_index(root):
+    """Every knowledge page in the initialized base: KB-relative path -> frontmatter."""
+    kb = root / 'knowledge' / 'project'
+    index = {}
+    if not kb.is_dir() or kb.is_symlink():
+        return index
+    for path in sorted(kb.rglob('*.md')):
+        try:
+            text = path.read_text(encoding='utf-8', errors='replace')
+        except OSError:
+            continue
+        index[path.relative_to(kb).as_posix()] = page_fields(text)
+    return index
+
+
+def page_ref(ref):
+    """Normalise a page reference so both spellings point at the same page."""
+    ref = (ref or '').strip()
+    prefix = 'knowledge/project/'
+    if ref.startswith(prefix):
+        return ref[len(prefix):]
+    return ref
+
+
+def status_machine_errors(index, scope):
+    """A conclusion that was superseded or retracted must be consistent about it."""
+    errors = []
+    for rel in scope:
+        fields = index.get(rel)
+        if fields is None:
+            continue
+        status = fields.get('status', '')
+        if status and status not in PAGE_STATUSES:
+            errors.append('%s: status is not a known page status: %s' % (rel, status))
+            continue
+        if status == SUPERSEDED:
+            raw = fields.get('superseded_by', '')
+            target = page_ref(raw)
+            if not raw or PLACEHOLDER.match(raw) or target not in index:
+                errors.append('%s: superseded page does not point at an existing successor' % rel)
+        if status == RETRACTED:
+            reason = fields.get(RETRACTION_REASON, '')
+            if not reason or PLACEHOLDER.match(reason):
+                errors.append('%s: retracted page states no retraction reason' % rel)
+    voided = {rel for rel, fields in index.items() if fields.get('status', '') in VOID_STATUSES}
+    for rel, fields in sorted(index.items()):
+        if rel in voided:
+            continue
+        applies = fields.get('applies_when', '')
+        for target in sorted(voided):
+            if target in applies or page_ref(target) in applies:
+                errors.append('%s: applies_when still points at a voided page: %s' % (rel, target))
+    return errors
+
+
+def knowledge_references(root):
+    """How often each knowledge page is named by a knowledge receipt."""
+    counts = {}
+    changes = root / 'openspec' / 'changes'
+    if not changes.is_dir():
+        return counts
+    for receipt_path in sorted(changes.rglob('knowledge-receipt.json')):
+        try:
+            data = json.loads(receipt_path.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        for page in data.get('pages') or []:
+            if isinstance(page, dict) and page.get('path'):
+                ref = page_ref(page['path'])
+                counts[ref] = counts.get(ref, 0) + 1
+    return counts
+
+
+def needs_review_downstream(index):
+    """For each page under review, the pages that still quote it."""
+    downstream = {}
+    for rel, fields in sorted(index.items()):
+        if fields.get('status', '') != NEEDS_REVIEW:
+            continue
+        quoted = []
+        for other, other_fields in sorted(index.items()):
+            if other == rel:
+                continue
+            applies = other_fields.get('applies_when', '')
+            if rel in applies or page_ref(rel) in applies:
+                quoted.append(other)
+        downstream[rel] = quoted
+    return downstream
+
+
+def receipt_task_ids(change):
+    """Task identifiers the change's own task list declares."""
+    path = change / 'tasks.md'
+    if not path.is_file():
+        return set()
+    text = path.read_text(encoding='utf-8', errors='replace')
+    ids = set()
+    for line in text.splitlines():
+        item = re.match(r"^\s*-\s*\[[ xX]\]\s*([0-9]+(?:\.[0-9]+)*)\b", line)
+        if item:
+            ids.add(item.group(1))
+    return ids
+
+
+def influenced_errors(receipt, pages, change):
+    """A v2 receipt has to show whether the knowledge actually changed something."""
+    if receipt.get('schema') != RECEIPT_SCHEMA_V2:
+        return []
+    influenced = receipt.get('influenced')
+    if isinstance(influenced, dict):
+        if influenced.get('status') == 'not_applicable' and influenced.get('reason'):
+            return []
+        return ['knowledge receipt declares influenced as not applicable without a reason']
+    if not isinstance(influenced, list) or not influenced:
+        return ['knowledge receipt v2 does not record whether the knowledge took effect']
+    known = {page_ref(page.get('path', '')) for page in pages if isinstance(page, dict)}
+    tasks = receipt_task_ids(change)
+    for entry in influenced:
+        if not isinstance(entry, dict):
+            return ['knowledge receipt influenced entry is not an object']
+        if page_ref(entry.get('page', '')) not in known:
+            return ['knowledge receipt influenced entry points at a page that is not in the receipt: '
+                    + str(entry.get('page'))]
+        if entry.get('task_id') not in tasks:
+            return ['knowledge receipt influenced entry points at a task that does not exist: '
+                    + str(entry.get('task_id'))]
+    return []
+
 
 def task_counts(change_dir):
     """Return (done, todo) for a change, or None when it has no task file."""
@@ -67,8 +249,8 @@ def _page_detail(root, page):
     source_rel = page.get('source_path')
     digest = page.get('source_sha256')
     page_rel = page.get('path')
-    if kind not in ('requirement', 'problem'):
-        return 'knowledge receipt page kind is not requirement or problem'
+    if kind not in ('requirement', 'problem', 'concept'):
+        return 'knowledge receipt page kind is not requirement, problem or concept'
     if not isinstance(source_rel, str) or not isinstance(page_rel, str) or not isinstance(digest, str):
         return 'knowledge receipt page is incomplete'
     if source_rel.startswith('/') or '..' in Path(source_rel).parts:
@@ -77,6 +259,8 @@ def _page_detail(root, page):
         return 'requirement source is not a synced spec'
     if kind == 'problem' and not source_rel.endswith('/verified-problem.json'):
         return 'problem source is not verified-problem.json'
+    if kind == 'concept' and not concept_source_allowed(source_rel):
+        return 'concept source is not the project glossary or a synced spec'
     try:
         source = safe_path(root, source_rel)
         written = safe_path(root, page_rel)
@@ -88,8 +272,12 @@ def _page_detail(root, page):
         return 'source_sha256 does not match ' + source_rel
     if not written.is_file():
         return 'missing page ' + page_rel
-    if digest not in written.read_text(encoding='utf-8', errors='replace'):
+    text = written.read_text(encoding='utf-8', errors='replace')
+    if digest not in text:
         return 'page does not record source_sha256'
+    missing = missing_applicability(page_fields(text), kind)
+    if missing:
+        return 'page is missing %s: %s' % (kind + ' page applicability', ', '.join(missing))
     return None
 
 
@@ -114,6 +302,14 @@ def knowledge_receipt_detail(root, change, capabilities):
         detail = _page_detail(root, page)
         if detail:
             return detail
+    index = knowledge_page_index(root)
+    scope = [page_ref(page.get('path', '')) for page in pages]
+    problems = status_machine_errors(index, scope)
+    if problems:
+        return problems[0]
+    influence = influenced_errors(receipt, pages, change)
+    if influence:
+        return influence[0]
     if capabilities:
         sources = {page.get('source_path') for page in pages if page.get('artifact_kind') == 'requirement'}
         missing = ['openspec/specs/%s/spec.md' % cap for cap in capabilities if 'openspec/specs/%s/spec.md' % cap not in sources]

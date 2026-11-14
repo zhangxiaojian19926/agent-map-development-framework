@@ -73,6 +73,8 @@ staleness:
 
 需求开发完成或问题验证完成时，规格同步之后、归档之前，把需求页和适用的问题页写入初始化知识库 alias `project`，并在 change 目录留下 `knowledge-receipt.json`。这两类不再逐次询问。结晶、删除、新建知识库、修改 alias 注册表和推送仍要单独授权。没有注册表时记 `NOT_CONFIGURED`，不新建库。
 
+回执的结构分两版。声明 `schema: knowledge-receipt/v2` 的回执必须记录 `influenced`：这页知识改变了哪条断言、哪个文件、哪个 task。每条记录至少含知识页路径、task 标识、文件与断言或检查；页路径必须在同一张回执的页面清单里，task 标识必须在该 change 的任务清单里，对不上就报出。没有这一项时必须显式声明 `not_applicable` 并给出理由，不允许静默省略——回执要能区分"知识起了作用"和"知识只是被存了下来"。没有声明版本的第一版回执按引入前的规则判定，不要求补充生效记录：新规则只对新对象生效。
+
 局部 schema 中的“session 结束自动”或“fix 提交触发”只触发摄入询问,不得绕过本次写入确认，也不得代替上述两类完成写入。用户已明确授权本次内容和目标时直接执行,不重复询问。
 
 ### 11.6 来源/推理分离
@@ -120,7 +122,7 @@ OpenSpec archive
 
 **内容与执行**:
 - 写入前读取目标 KB 的 `AGENTS.md`(如有)、`purpose.md` 与 `.wiki-schema.md`,检索已有记录以复用或补充,避免重复摄入;按其已声明的目录与页面类型保存。
-- 记录共同问题标识、主归属与相关模块、问题和影响、环境/版本、根因及置信度、关键排查步骤与排除依据、实际修复或规避步骤、验证命令及结果、已知限制和证据引用。没有提交或缺少证据时明确说明,不得编造。
+- 记录共同问题标识、主归属与相关模块、问题和影响、环境/版本、根因及置信度、关键排查步骤与排除依据、实际修复或规避步骤、验证命令及结果、已知限制和证据引用，并记录这次失败归属的改进层（内容 / 访问 / 验证 / 流程 / 方法）。**归属决定写到哪个知识库，归因决定该改哪一层**，两者分别记录，不能互相替代。没有提交或缺少证据时明确说明,不得编造。
 - 来源文件和验证报告的提取标 `EXTRACTED`;会话综合与推理标 `INFERRED`。用户确认保存解决过程可覆盖其中已说明的会话归纳,不要求用户额外复述工作流名称。
 - 只保存脱敏后的必要过程和可复核引用,不得保存密钥、密码、Token、账号、个人信息、设备唯一标识或完整敏感日志。
 - 完整摄入须完成 schema 要求的来源记录、知识页、必要索引/日志及相关校验。只复制 raw 或运行脚本成功不代表完成;检查目标 KB 的链接、来源和实际 Git 边界内的 `git diff --check`。
@@ -156,7 +158,8 @@ OpenSpec archive
 | constraint | `wiki/topics/constraints/` | 项目约束和非目标已经确认 |
 | module | `wiki/entities/modules/` | 模块已登记，或对外职责、边界变了 |
 | verification | `wiki/sources/verifications/` | 验证已通过。只写环境、版本、结论和证据位置 |
+| concept | `wiki/topics/concepts/` | 术语已确定，且该术语的扩展语义已获本次授权。定义仍留在 `docs/project/GLOSSARY.md`，概念页只写扩展语义，并带来源路径与来源哈希 |
 
 不摄入未批准草案、整份关系地图、CodeGraph 输出、REA 原始输出、反编译文本、目标软件、源码 diff、密钥和一次性日志。命令卡片见 [llm-wiki 技能](../../skill/llm-wiki/SKILL.md)。
 
-术语表与决策记录不属于知识库内容。术语表是项目当前的词汇，落在 `docs/project/GLOSSARY.md`,人工维护;决策记录落在 OpenSpec change 的 design 产物与 `docs/project/architecture.md`,随变更归档。两者都不列入本页清单:知识库存的是已验证且以后仍值得复用的经验,不是项目当前的词汇与决定。
+术语的**定义**不属于知识库内容：定义是项目当前的词汇，落在 `docs/project/GLOSSARY.md`，人工维护。术语的**扩展语义**以 `concept` 页入库——适用条件、易混淆对象、状态作用域、工程映射、关键约束与验证入口——并用 `source_path` 与 `source_sha256` 指向术语表。定义只有一份在术语表，扩展语义只有一份在知识库，两边互指但不互相复制。决策记录仍落在 OpenSpec change 的 design 产物与 `docs/project/architecture.md`，随变更归档。这条边界记作 `KB-GLOSSARY-SPLIT`，同一处边界在 [`skill/matt-pocock/domain-modeling/framework-rules.md`](../../skill/matt-pocock/domain-modeling/framework-rules.md) 用同一个标记声明，两处措辞必须一起改。
