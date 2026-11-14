@@ -25,9 +25,16 @@ git diff --check <base>...HEAD
 
 ---
 
-## 1. 真实项目接入验证（最高优先，需要你给一个项目）
+## 1. 真实项目接入验证（最高优先，项目已授权为 `61.videohao-generator`）
 
 **是什么**：拿一个真实的业务项目跑一遍完整接入——`BOOTSTRAP.md` 的通用入口、模块下载、关系地图、资料生成、规格与实现、评审、验证、交付。
+
+**当前状态（2026-11-15）**：项目已授权为 `61.videohao-generator`。已完成两步：
+
+- 项目侧 `e41bf75`：四个已完成 change 的实现与验收证据进版本库（业务代码、测试、资产、验收报告），安装载荷升级到当前分发版；`pytest tests` 563 passed, 1 skipped。
+- 项目侧 `fc412ba`：六个能力规格同步进 `openspec/specs/`。
+
+**余下**：写需求页与 `knowledge-receipt/v2` 回执 → 归档四个 change → `check-project` 不再报欠账。资料接受被一个框架侧缺陷卡住，见第 8 批。详细状态与顺序见 [`docs/plans/2026-11-15-remaining-batches-and-project-closure.md`](../plans/2026-11-15-remaining-batches-and-project-closure.md)。
 
 **为什么**：**这份计划最初写错了前提。** 当时写的是"所有证据都来自它自己和自己造的合成样例，没有一项在真实项目上跑过"。2026-11-01 复查后确认不对：工作区里有四个真实项目接过公共壳——`61.videohao-generator`（207 个源文件、101 个测试文件，5 个 change、69 个已完成任务）、`23.auto_cut`（1 个 change、7 个已完成任务）、`prntscr-web`（逆向项目，6 份真实逆向分析）、`64.onzon`（Swift/iOS，3 个模块、13 个源文件）。`docs/guide/from-zero-to-one.md` 的图文版验证记录也早于这次复查。
 
@@ -43,7 +50,7 @@ git diff --check <base>...HEAD
 
 **闭环判据**：真实项目完成一次新行为（规格 → 计划 → 实现 → 评审 → 验证 → 集成），**并且**规格已同步、change 已归档、doctor 不再报未完成状态；接入过程中的问题被逐条记为 change 或修复。
 
-**阻塞**：需要你提供项目，或授权使用已有项目。这条不做，后面的都是纸面功夫。
+**阻塞**：项目已授权。剩下的阻塞是第 8 批的框架缺陷，不是环境问题。
 
 ---
 
@@ -51,7 +58,9 @@ git diff --check <base>...HEAD
 
 **是什么**：在本仓库（或接入的项目）里真正跑一次 llm-wiki 的知识回流：解决一个问题 → 判定归属模块 → 摄入 → 校验 → 下次检索得到。
 
-**为什么**：知识回流是框架的核心机制之一。本仓库已有初始化壳 `knowledge/project/`，并写入了完成知识摄入变更的需求页；已验证问题的回流和模块库摄入仍没有在本仓库实践过。`docs/framework/knowledge-policy.md` 规定了模块路由、写入授权、来源与推理分离。
+**当前状态（2026-11-15）**：机制已具备但内容还是空的。壳侧 `7f2e4e8` 给知识回执加了第二版结构 `knowledge-receipt/v2` 与 `influenced`（这页知识改变了哪条断言、哪个文件、哪个 task），并给知识页加了适用条件、可纠正状态与概念页。项目侧 `61.videohao-generator` 的知识库八个目录仍全空，只有 `requirements/` 有内容。
+
+**待写真实问题**：框架的源码发现不排除 `.worktrees/`，把项目内的 superpowers 工作树当成了独立模块（详见第 8 批）。这个问题的证据、影响与修法都已查清，正好是知识回流要记录的第一条真问题。
 
 **怎么做**：
 1. 挑一个已解决的真问题（例如本次会话里的"keychain 阻塞推送"或"引入技能漏带 agents/openai.yaml"）。
@@ -125,6 +134,36 @@ git diff --check <base>...HEAD
 **怎么防复发**：`tools/check-framework` 现在会核对每个在包内的技能是否在活文档里有落点，以及同一技能在两处契约里的阶段归属是否一致。归属不一致会被报出。
 
 **闭环判据**：核对工具进 CI 且差异为零。
+
+---
+
+## 8. 源码发现要排除 `.worktrees/`（真实项目暴露的缺陷）
+
+**是什么**：把 `.worktrees` 加进源码发现的排除清单，让项目内的 superpowers 工作树不再被当成独立模块。
+
+**为什么**：这是 2026-11-15 在 `61.videohao-generator` 收口时暴露的**真实缺陷**，不是设想。项目的模块目录里多了一个 `module-eb717aae36`，路径 `.worktrees/feishu-preflight`，92 个源文件全是 `.superpowers/sdd/2026-10-24-feishu-preflight/*/before-fix/` 下的历史快照副本。
+
+根因在 `tools/framework_core/modules.py` 与 `tools/framework_core/analysis_batches.py` 各有一份 `EXCLUDED`。两份内容完全一致，但都不含 `.worktrees`：
+
+```
+EXCLUDED = {'.git', '.framework', '.agent-framework', '.codegraph', '.agents',
+            'node_modules', 'dist', 'build', 'coverage', '__pycache__', '.venv', 'venv'}
+```
+
+框架的源码发现**不认 `.gitignore`**，而项目的 `.gitignore` 明明写着 `.worktrees/`。后果是幻影模块污染模块目录、关系地图、资料档案与覆盖统计（376 个"源文件"里有 92 个是工作树快照），并直接让项目的资料无法接受——档案必须覆盖目录里的每个模块。
+
+**为什么不能靠删工作树绕过**：`61.videohao-generator/.worktrees/feishu-preflight` 里有 10 处未提交改动与一个未跟踪的计划文档，删它就是毁掉未完成的工作。
+
+**怎么做**：
+1. 开一个 OpenSpec change，声明"源码发现排除清单要包含工作树目录"。
+2. 在两份 `EXCLUDED` 里加入 `.worktrees`（保持两份一致——它们今天完全相同）。
+3. 加回归用例：构造一个带 `.worktrees/` 的工程，断言其中的文件不进模块目录、不进覆盖统计。
+4. 同步规格、写知识回执、归档 change。
+5. 用修好的壳重新刷新 `61.videohao-generator` 的目录，幻影模块应当消失，资料随即可以接受。
+
+**闭环判据**：带 `.worktrees/` 的工程不再产出幻影模块；`61.videohao-generator` 的模块目录只剩真实业务模块，`initialization` 回到 `COMPLETE`。
+
+**边界**：不改用 `.gitignore` 作为排除依据——发现阶段跑在索引之前，依赖 git 会引入另一种耦合。只把确知的本地工作目录名写进清单。
 
 ---
 
