@@ -1,0 +1,43 @@
+{
+  "schema": "knowledge-receipt/v2",
+  "change": "exclude-worktrees-from-module-discovery",
+  "alias": "project",
+  "pages": [
+    {
+      "path": "knowledge/project/wiki/topics/requirements/module-lifecycle.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/module-lifecycle/spec.md",
+      "source_sha256": "b7bce4fd51e810d454c1e64d2c05861a59a0a79bf1fcf340b937cb00567b0b73"
+    }
+  ],
+  "influenced": [
+    {
+      "page": "knowledge/project/wiki/topics/requirements/module-lifecycle.md",
+      "task_id": "2.1",
+      "file": "tools/framework_core/modules.py",
+      "assertion": "EXCLUDED 包含 .worktrees，发现跳过该目录及其子树"
+    },
+    {
+      "page": "knowledge/project/wiki/topics/requirements/module-lifecycle.md",
+      "task_id": "1.1",
+      "file": "tests/test_bootstrap_modules.py",
+      "assertion": "test_worktree_subtree_stays_out_of_module_catalog：子树不进模块目录，源文件不计入任何模块"
+    },
+    {
+      "page": "knowledge/project/wiki/topics/requirements/module-lifecycle.md",
+      "task_id": "1.2",
+      "file": "tests/test_analysis_batches.py",
+      "assertion": "test_session_excluded_directories_match_discovery_set：会话排除名单与发现集合相同且包含 .worktrees"
+    },
+    {
+      "page": "knowledge/project/wiki/topics/requirements/module-lifecycle.md",
+      "task_id": "1.3",
+      "file": "tests/test_bootstrap_modules.py",
+      "assertion": "test_gitignore_does_not_select_discovered_directories：.gitignore 不决定发现，local-snapshots 仍可被发现"
+    }
+  ],
+  "problem": {
+    "status": "not_applicable",
+    "reason": "本变更没有 verified-problem.json，不写问题页"
+  }
+}

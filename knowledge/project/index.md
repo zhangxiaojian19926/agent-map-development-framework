@@ -3,7 +3,7 @@
 Created: 2026-11-08
 Language: zh
 
-2026-11-08 按授权摄入 change `add-completion-knowledge-ingest` 的需求页。2026-11-14 按授权摄入 change `add-concept-pages-and-applicability` 与 `add-knowledge-correction-and-influence` 的需求页。其余目录仍是空壳，不是已摄入内容。当前需求仍以 OpenSpec 规格为准。
+2026-11-08 按授权摄入 change `add-completion-knowledge-ingest` 的需求页。2026-11-14 按授权摄入 change `add-concept-pages-and-applicability` 与 `add-knowledge-correction-and-influence` 的需求页。2026-11-15 按完成写入规则摄入 change `exclude-worktrees-from-module-discovery` 的需求页。其余目录仍是空壳，不是已摄入内容。当前需求仍以 OpenSpec 规格为准。
 
 ## 需求页
 
@@ -16,3 +16,4 @@ Language: zh
 - [knowledge-applicability 需求](wiki/topics/requirements/knowledge-applicability.md)
 - [knowledge-correction 需求](wiki/topics/requirements/knowledge-correction.md)
 - [knowledge-influence-tracking 需求](wiki/topics/requirements/knowledge-influence-tracking.md)
+- [module-lifecycle 需求](wiki/topics/requirements/module-lifecycle.md)

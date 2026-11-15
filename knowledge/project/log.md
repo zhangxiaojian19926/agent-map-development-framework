@@ -27,3 +27,11 @@ Language: zh
 - requirement `knowledge-correction`，来源 `openspec/specs/knowledge-correction/spec.md`，source_sha256 `f61864102c6092d50f2084d31e892091ca780c66f44c0ad1617de7a08098324b`
 - requirement `knowledge-influence-tracking`，来源 `openspec/specs/knowledge-influence-tracking/spec.md`，source_sha256 `f7fca23050fbb32a7e2f4375d89e276d7e468f569aaa43ee4628d528fb14c06d`
 - requirement `completion-knowledge-ingest`，来源 `openspec/specs/completion-knowledge-ingest/spec.md`，source_sha256 `3a137926b7f80d2ec98dc60e62a025506c00b7a99791107bda2bc9a8defde60b`
+
+## 2026-11-15 摄入 exclude-worktrees-from-module-discovery
+
+授权范围：规格同步之后、归档之前，把该 change 的需求页写入 alias `project`，并留下 `knowledge-receipt/v2`。未结晶、未删除、未建模块库、未推送。
+
+没有 `verified-problem.json`。问题页不适用，回执中的 problem 状态为 `not_applicable`。
+
+- requirement `module-lifecycle`，来源 `openspec/specs/module-lifecycle/spec.md`，source_sha256 `b7bce4fd51e810d454c1e64d2c05861a59a0a79bf1fcf340b937cb00567b0b73`
