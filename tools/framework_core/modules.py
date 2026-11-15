@@ -9,7 +9,7 @@ from .config import identity, digest
 from .storage import safe_path, fingerprint
 
 EXCLUDED = {'.git', '.framework', '.agent-framework', '.codegraph', '.agents',
-            'node_modules', 'dist', 'build', 'coverage', '__pycache__', '.venv', 'venv'}
+            'node_modules', 'dist', 'build', 'coverage', '__pycache__', '.venv', 'venv', '.worktrees'}
 EXTENSIONS = {'.py', '.js', '.ts', '.tsx', '.jsx', '.go', '.rs', '.c', '.cpp', '.h', '.java', '.swift'}
 
 

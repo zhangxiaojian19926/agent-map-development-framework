@@ -198,3 +198,28 @@ class BatchTests(unittest.TestCase):
         broken = catalog_update(drifted, [{'id': 'api', 'path': 'api'}], discover(root, ['api']))
         atomic(root, 'module-catalog.generated.json', encoded(broken))
         self.assertEqual(self.api.advance_map(root, broken, set())['status'], 'MAP_STRUCTURAL')
+
+
+class WorktreeScopeTests(unittest.TestCase):
+    def setUp(self):
+        self.assertIsNotNone(importlib.util.find_spec('framework_core.analysis_batches'), 'Batch protocol missing')
+        self.api = importlib.import_module('framework_core.analysis_batches')
+
+    def test_session_excluded_directories_match_discovery_set(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d).resolve()
+            (root / 'app').mkdir()
+            (root / 'app' / 'code.py').write_text('def app(): return 1\n')
+            worktree = root / '.worktrees' / 'feishu-preflight'
+            (worktree / '.git').mkdir(parents=True)
+            (worktree / 'snap.py').write_text('def snap(): return 1\n')
+            catalog = catalog_update({}, [{'id': 'app', 'path': 'app'}], discover(root, ['app']))
+            atomic(root, 'module-catalog.generated.json', encoded(catalog))
+            session = self.api.begin_analysis(root, catalog, {'write', 'agent'})
+            self.assertEqual(set(session['scope']['excluded_directories']), {
+                '.git', '.framework', '.agent-framework', '.codegraph', '.agents',
+                'node_modules', 'dist', 'build', 'coverage', '__pycache__', '.venv', 'venv',
+                '.worktrees'})
+            catalog_sources = {path for module in catalog['modules'].values() for path in module['sources']}
+            self.assertEqual(set(session['sources']), catalog_sources)
+            self.assertFalse(any(path.startswith('.worktrees/') for path in session['sources']))

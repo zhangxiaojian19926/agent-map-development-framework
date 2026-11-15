@@ -40,3 +40,35 @@ class ModuleTests(unittest.TestCase):
             found = self.module.find_candidates(root, ['.'], 3)
             self.assertEqual([c['path'] for c in found], ['modules/new'])
             self.assertFalse((root / 'module-catalog.generated.json').exists())
+
+    def test_worktree_subtree_stays_out_of_module_catalog(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d).resolve()
+            (root / '.git').mkdir()
+            (root / 'app.py').write_text('def app(): return 1\n')
+            worktree = root / '.worktrees' / 'feishu-preflight'
+            (worktree / '.git').mkdir(parents=True)
+            (worktree / 'snap.py').write_text('def snap(): return 1\n')
+            (root / '.worktrees' / 'note.py').write_text('def note(): return 1\n')
+            found = self.module.find_candidates(root, ['.'], 4)
+            paths = [item['path'] for item in found]
+            self.assertFalse(any(path == '.worktrees' or path.startswith('.worktrees/') for path in paths))
+            sources = self.module.discover(root, ['.'])[0]['sources']
+            self.assertFalse(any(path.startswith('.worktrees/') for path in sources))
+
+    def test_gitignore_does_not_select_discovered_directories(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d).resolve()
+            (root / '.git').mkdir()
+            (root / '.gitignore').write_text('.worktrees/\nlocal-snapshots/\n')
+            (root / 'app.py').write_text('def app(): return 1\n')
+            worktree = root / '.worktrees' / 'feishu-preflight'
+            (worktree / '.git').mkdir(parents=True)
+            (worktree / 'snap.py').write_text('def snap(): return 1\n')
+            kept = root / 'local-snapshots'
+            (kept / '.git').mkdir(parents=True)
+            (kept / 'keep.py').write_text('def keep(): return 1\n')
+            found = self.module.find_candidates(root, ['.'], 4)
+            paths = [item['path'] for item in found]
+            self.assertFalse(any(path == '.worktrees' or path.startswith('.worktrees/') for path in paths))
+            self.assertIn('local-snapshots', paths)
