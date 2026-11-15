@@ -1,0 +1,21 @@
+{
+  "schema": "knowledge-receipt/v2",
+  "change": "add-agents-reading-seam",
+  "alias": "project",
+  "pages": [
+    {
+      "path": "knowledge/project/wiki/topics/requirements/agent-persona.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/agent-persona/spec.md",
+      "source_sha256": "05a4c8ef41747fba2db108505767fbfc2a13f3933a92e1365097a1052afe6599"
+    }
+  ],
+  "influenced": {
+    "status": "not_applicable",
+    "reason": "阅读顺序写在 AGENTS.md，位置测试写在 tests/test_bootstrap_generation.py。这两处都没有写出知识页路径 knowledge/project/wiki/topics/requirements/agent-persona.md，不能把未出现在工作树文件里的页路径记成生效记录。需求页只是按新的规格哈希存下来。"
+  },
+  "problem": {
+    "status": "not_applicable",
+    "reason": "本变更没有 verified-problem.json，不写问题页"
+  }
+}
