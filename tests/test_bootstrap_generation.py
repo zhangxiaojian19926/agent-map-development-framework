@@ -210,6 +210,18 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual(body, persona_source())
         self.assertIn('| 1. DISCOVERY |', text[text.index(PERSONA_END):])
 
+    def test_reading_order_sits_after_persona_and_before_stage_table(self):
+        sentence = '标记内先读约束，再读交付姿态，再读工程壳闸门'
+        text = (REPO / 'AGENTS.md').read_text(encoding='utf-8')
+        begin = text.index(PERSONA_BEGIN) + len(PERSONA_BEGIN)
+        end = text.index(PERSONA_END)
+        inside = text[begin:end]
+        after = text[end + len(PERSONA_END):]
+        self.assertNotIn(sentence, inside)
+        self.assertNotIn(sentence, persona_source())
+        self.assertIn(sentence, after)
+        self.assertLess(after.index(sentence), after.index('| 1. DISCOVERY |'))
+
     def test_prepare_managed_block_includes_persona_and_forbids_self_edit(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d) / 'new'

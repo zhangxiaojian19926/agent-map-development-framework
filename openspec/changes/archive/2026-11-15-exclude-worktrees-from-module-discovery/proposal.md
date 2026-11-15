@@ -37,5 +37,5 @@ EXCLUDED = {'.git', '.framework', '.agent-framework', '.codegraph', '.agents',
 
 - 将来修改 `tools/framework_core/modules.py` 的 `EXCLUDED`。`tools/framework_core/analysis_batches.py` 继续从 `modules` 导入该集合并写入 `scope.excluded_directories`。
 - 将来增加回归：带 `.worktrees/` 的工程 fixture，断言该路径不出现在模块目录。
-- 采用方项目 `/Users/zhangjiang/bigmodel_learn/61.videohao-generator` 及其 `.worktrees/feishu-preflight` 不在本 change 中删除或修改。那个项目的目录要等壳修好之后另行刷新，幻影模块才会从它的模块目录消失。
+- 采用方项目 `61.videohao-generator` 及其 `.worktrees/feishu-preflight` 不在本 change 中删除或修改。那个项目的目录要等壳修好之后另行刷新，幻影模块才会从它的模块目录消失。
 - 范围之外：不把 `.superpowers` 加入排除；不把排除依据改成读取 `.gitignore`；不纳入第 3 批 `verify-live` 的退出码。

@@ -16,7 +16,7 @@
 
 - 不把 `.superpowers` 加入排除集合。
 - 不删除采用方工作树。
-- 不修改 `/Users/zhangjiang/bigmodel_learn/61.videohao-generator`，也不刷新它已经生成的模块目录。
+- 不修改 `61.videohao-generator`，也不刷新它已经生成的模块目录。
 - 不处理第 3 批 `verify-live` 的退出码 5。
 - 不新增第二份排除名单，也不把现有一处字面量收成新的抽象或新常量名。
 - 不改为读取 `.gitignore`。

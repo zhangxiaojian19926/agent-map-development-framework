@@ -21,5 +21,5 @@
 
 - [x] 4.1 核对完成后的 diff：排除集合只多了 `.worktrees`，没有 `.superpowers`；没有第二份排除名单，也没有新的共享常量。验证：`analysis_batches.py` 仍是 `from .modules import EXCLUDED`，diff 里没有新的 `EXCLUDED =`。关联 MOD-01；design 的 Non-Goals。
   证据：`git diff --stat` 生产代码只有 `tools/framework_core/modules.py | 2 +-`，该 diff 仅在原字面量末尾加上 `.worktrees`。`analysis_batches.py` 不在 diff 中。
-- [x] 4.2 核对本 change 没有删除采用方工作树，没有修改 `/Users/zhangjiang/bigmodel_learn/61.videohao-generator`，也没有处理 `verify-live` 退出码 5。验证：该仓库不在本次 diff 中，任务 2.1 的改动只在本仓库的 `modules.py` 与新增回归。关联 design 的 Non-Goals。
+- [x] 4.2 核对本 change 没有删除采用方工作树，没有修改 `61.videohao-generator`，也没有处理 `verify-live` 退出码 5。验证：该仓库不在本次 diff 中，任务 2.1 的改动只在本仓库的 `modules.py` 与新增回归。关联 design 的 Non-Goals。
   证据：本仓库 `git status --short` 只有两个测试文件、`modules.py` 和本 change 目录。diff 不含 `videohao-generator`、`.superpowers` 或 `verify-live`。
