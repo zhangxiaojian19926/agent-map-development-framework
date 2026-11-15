@@ -178,7 +178,31 @@ def receipt_task_ids(change):
     return ids
 
 
-def influenced_errors(receipt, pages, change):
+def _worktree_influence_error(entry, root):
+    """file and assertion have to be text in this worktree. The page citation is checked apart."""
+    rel = entry.get('file')
+    assertion = entry.get('assertion')
+    if not isinstance(rel, str) or not rel:
+        return ('knowledge receipt influenced entry points at a file that is not in the worktree: '
+                + str(rel))
+    try:
+        path = safe_path(root, rel)
+    except ValueError:
+        return 'knowledge receipt influenced entry file escapes the project: ' + rel
+    if not path.is_file():
+        return ('knowledge receipt influenced entry points at a file that is not in the worktree: '
+                + rel)
+    text = path.read_text(encoding='utf-8', errors='replace')
+    if not isinstance(assertion, str) or not assertion or assertion not in text:
+        return ('knowledge receipt influenced entry assertion is not in the file: '
+                + str(assertion))
+    page = entry.get('page')
+    if not isinstance(page, str) or not page or page not in text:
+        return 'knowledge receipt influenced entry file does not cite the page: ' + str(page)
+    return None
+
+
+def influenced_errors(receipt, pages, change, root):
     """A v2 receipt has to show whether the knowledge actually changed something."""
     if receipt.get('schema') != RECEIPT_SCHEMA_V2:
         return []
@@ -200,6 +224,9 @@ def influenced_errors(receipt, pages, change):
         if entry.get('task_id') not in tasks:
             return ['knowledge receipt influenced entry points at a task that does not exist: '
                     + str(entry.get('task_id'))]
+        mismatch = _worktree_influence_error(entry, root)
+        if mismatch:
+            return [mismatch]
     return []
 
 
@@ -307,7 +334,7 @@ def knowledge_receipt_detail(root, change, capabilities):
     problems = status_machine_errors(index, scope)
     if problems:
         return problems[0]
-    influence = influenced_errors(receipt, pages, change)
+    influence = influenced_errors(receipt, pages, change, root)
     if influence:
         return influence[0]
     if capabilities:

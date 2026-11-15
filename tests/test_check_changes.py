@@ -446,13 +446,80 @@ class OutstandingChangeTests(unittest.TestCase):
             self.assertEqual(len(findings), 1)
             self.assertIn('task that does not exist', findings[0]['detail'])
 
-    def test_a_v2_receipt_with_matching_influence_is_accepted(self):
+    def test_a_v2_receipt_rejects_a_file_that_is_not_in_the_worktree(self):
         with tempfile.TemporaryDirectory() as base:
             root = Path(base) / 'repo'
             make_change(root, 'done', done=2, todo=0, capability='demo-cap', synced=True)
             receipt = install_receipt(root, 'done', 'demo-cap')
             install_receipt(root, 'done', 'demo-cap', schema='knowledge-receipt/v2',
                             influenced=[{'page': receipt['pages'][0]['path'], 'task_id': '1.1',
+                                         'file': 'src/a.py', 'assertion': 'test_a'}])
+            findings = self.tool.find_outstanding(root)
+            self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0]['problem'], 'knowledge receipt is not acceptable')
+            self.assertIn('src/a.py', findings[0]['detail'])
+
+    def test_a_v2_receipt_rejects_an_assertion_missing_from_the_file(self):
+        with tempfile.TemporaryDirectory() as base:
+            root = Path(base) / 'repo'
+            make_change(root, 'done', done=2, todo=0, capability='demo-cap', synced=True)
+            receipt = install_receipt(root, 'done', 'demo-cap')
+            target = root / 'src/a.py'
+            target.parent.mkdir(parents=True)
+            target.write_text('def other():\n    return 1\n', encoding='utf-8')
+            install_receipt(root, 'done', 'demo-cap', schema='knowledge-receipt/v2',
+                            influenced=[{'page': receipt['pages'][0]['path'], 'task_id': '1.1',
+                                         'file': 'src/a.py', 'assertion': 'test_a'}])
+            findings = self.tool.find_outstanding(root)
+            self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0]['problem'], 'knowledge receipt is not acceptable')
+            self.assertIn('test_a', findings[0]['detail'])
+
+    def test_a_v2_receipt_rejects_a_file_that_does_not_cite_the_page(self):
+        with tempfile.TemporaryDirectory() as base:
+            root = Path(base) / 'repo'
+            make_change(root, 'done', done=2, todo=0, capability='demo-cap', synced=True)
+            receipt = install_receipt(root, 'done', 'demo-cap')
+            page = receipt['pages'][0]['path']
+            target = root / 'src/a.py'
+            target.parent.mkdir(parents=True)
+            target.write_text('def test_a():\n    assert True\n', encoding='utf-8')
+            install_receipt(root, 'done', 'demo-cap', schema='knowledge-receipt/v2',
+                            influenced=[{'page': page, 'task_id': '1.1',
+                                         'file': 'src/a.py', 'assertion': 'test_a'}])
+            findings = self.tool.find_outstanding(root)
+            self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0]['problem'], 'knowledge receipt is not acceptable')
+            self.assertIn(page, findings[0]['detail'])
+
+    def test_a_v2_receipt_rejects_a_file_that_escapes_the_project_root(self):
+        with tempfile.TemporaryDirectory() as base:
+            base = Path(base)
+            root = base / 'repo'
+            make_change(root, 'done', done=2, todo=0, capability='demo-cap', synced=True)
+            receipt = install_receipt(root, 'done', 'demo-cap')
+            page = receipt['pages'][0]['path']
+            outside = base / 'outside.py'
+            outside.write_text('def test_a():\n    # %s\n    assert True\n' % page, encoding='utf-8')
+            install_receipt(root, 'done', 'demo-cap', schema='knowledge-receipt/v2',
+                            influenced=[{'page': page, 'task_id': '1.1',
+                                         'file': '../outside.py', 'assertion': 'test_a'}])
+            findings = self.tool.find_outstanding(root)
+            self.assertEqual(len(findings), 1)
+            self.assertEqual(findings[0]['problem'], 'knowledge receipt is not acceptable')
+            self.assertIn('../outside.py', findings[0]['detail'])
+
+    def test_a_v2_receipt_accepts_a_file_that_cites_the_page_and_the_assertion(self):
+        with tempfile.TemporaryDirectory() as base:
+            root = Path(base) / 'repo'
+            make_change(root, 'done', done=2, todo=0, capability='demo-cap', synced=True)
+            receipt = install_receipt(root, 'done', 'demo-cap')
+            page = receipt['pages'][0]['path']
+            target = root / 'src/a.py'
+            target.parent.mkdir(parents=True)
+            target.write_text('def test_a():\n    # %s\n    assert True\n' % page, encoding='utf-8')
+            install_receipt(root, 'done', 'demo-cap', schema='knowledge-receipt/v2',
+                            influenced=[{'page': page, 'task_id': '1.1',
                                          'file': 'src/a.py', 'assertion': 'test_a'}])
             findings = self.tool.find_outstanding(root)
             self.assertEqual(len(findings), 1)
