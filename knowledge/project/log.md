@@ -35,3 +35,14 @@ Language: zh
 没有 `verified-problem.json`。问题页不适用，回执中的 problem 状态为 `not_applicable`。
 
 - requirement `module-lifecycle`，来源 `openspec/specs/module-lifecycle/spec.md`，source_sha256 `b7bce4fd51e810d454c1e64d2c05861a59a0a79bf1fcf340b937cb00567b0b73`
+
+## 2026-11-15 摄入 bind-influence-to-worktree-assertions
+
+授权范围：任务已全部勾完，把该 change 的知识回执留在 change 目录。未结晶、未删除、未建模块库。不写概念页。
+
+没有 `verified-problem.json`。问题页不适用，回执中的 problem 状态为 `not_applicable`。
+
+两条需求页的来源哈希与已同步主规格一致，相同 sha256 不重复写。回执引用既有页 `knowledge-influence-tracking` 与 `completion-knowledge-ingest`。`influenced` 为带理由的 `not_applicable`：工作树文件没有写出知识页路径，不虚构断言路径。
+
+- requirement `knowledge-influence-tracking`，来源 `openspec/specs/knowledge-influence-tracking/spec.md`，source_sha256 `f7fca23050fbb32a7e2f4375d89e276d7e468f569aaa43ee4628d528fb14c06d`
+- requirement `completion-knowledge-ingest`，来源 `openspec/specs/completion-knowledge-ingest/spec.md`，source_sha256 `3a137926b7f80d2ec98dc60e62a025506c00b7a99791107bda2bc9a8defde60b`

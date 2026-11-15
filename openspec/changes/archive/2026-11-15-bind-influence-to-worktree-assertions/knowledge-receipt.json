@@ -1,0 +1,27 @@
+{
+  "schema": "knowledge-receipt/v2",
+  "change": "bind-influence-to-worktree-assertions",
+  "alias": "project",
+  "pages": [
+    {
+      "path": "knowledge/project/wiki/topics/requirements/knowledge-influence-tracking.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/knowledge-influence-tracking/spec.md",
+      "source_sha256": "f7fca23050fbb32a7e2f4375d89e276d7e468f569aaa43ee4628d528fb14c06d"
+    },
+    {
+      "path": "knowledge/project/wiki/topics/requirements/completion-knowledge-ingest.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/completion-knowledge-ingest/spec.md",
+      "source_sha256": "3a137926b7f80d2ec98dc60e62a025506c00b7a99791107bda2bc9a8defde60b"
+    }
+  ],
+  "influenced": {
+    "status": "not_applicable",
+    "reason": "工作树里的校验和测试没有写出知识页路径。主规格仍是同步前的文本，相同来源哈希的需求页不重写。不能把未出现在文件里的断言或虚构路径写成生效记录。"
+  },
+  "problem": {
+    "status": "not_applicable",
+    "reason": "本变更没有 verified-problem.json，不写问题页"
+  }
+}
