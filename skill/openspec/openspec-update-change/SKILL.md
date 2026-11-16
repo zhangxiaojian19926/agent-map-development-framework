@@ -1,6 +1,6 @@
 ---
 name: openspec-update-change
-description: Update an OpenSpec change by revising its existing planning artifacts and keeping them coherent with one another. Use when the user wants to revise a change's plan, fold new decisions into it, or reconcile its artifacts after an edit. Never edits code.
+description: Revise an existing change's proposal, delta specs, and design, and keep those three coherent. Do not write implementation steps. Do not create tasks.md. Never edits code.
 allowed-tools: Bash(openspec:*)
 license: MIT
 compatibility: Requires openspec CLI.
@@ -10,7 +10,7 @@ metadata:
   generatedBy: "1.11.0"
 ---
 
-Revise a change's existing planning artifacts and keep them coherent. Never edit code.
+Revise an existing change's proposal, delta specs, and design, and keep those three coherent. Do not write implementation steps. Do not create `tasks.md`. Never edit code.
 
 **Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `schemas`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
@@ -59,7 +59,8 @@ Revise a change's existing planning artifacts and keep them coherent. Never edit
    - Read the artifact(s) the request touches and the change's other existing artifacts.
    - Apply the requested edit. Then check every other existing artifact against it - in ANY direction: an edit to a later artifact may require revising an earlier one, not only the other way around. Build order is a useful reading order, not a constraint on which artifacts may be revised.
    - Note everything that is now inconsistent, missing, or contradictory.
-   - Revise only files that already exist (`existingOutputPaths`). Do NOT create artifacts that don't exist yet, and do NOT invent new files under a glob artifact - note them and point the user to `$openspec-continue-change (Codex) or /openspec-continue-change (other agents)` to create them.
+   - Revise only existing proposal, delta spec, and design files. Do not write implementation steps. Do not create `tasks.md`. If `tasks.md` already exists, do not edit it; slice text belongs to `to-tickets`.
+   - Do NOT create artifacts that don't exist yet, and do NOT invent new files under a glob artifact - note a missing proposal, delta spec, or design and point the user to `$openspec-continue-change (Codex) or /openspec-continue-change (other agents)` for those three only, not for `tasks.md`.
    - If the change is already coherent, say so and make no edits.
 
 5. **Confirm and apply, one artifact at a time**
@@ -71,9 +72,10 @@ Revise a change's existing planning artifacts and keep them coherent. Never edit
      ```
 
 6. **Point to the next step (guidance only - NEVER act on it)**
-   - Artifacts still missing -> suggest `$openspec-continue-change (Codex) or /openspec-continue-change (other agents)` to create them.
-   - Change already implemented (tasks checked off / already applied) -> the code may no longer match the revised plan; suggest `$openspec-apply-change (Codex) or /openspec-apply-change (other agents)` to carry the delta into code.
-   - Everything done and implemented -> suggest `$openspec-archive-change (Codex) or /openspec-archive-change (other agents)`.
+   - This skill revises proposal, delta spec, and design only. Do not write implementation steps. Do not create `tasks.md`.
+   - A missing proposal, delta spec, or design -> suggest `$openspec-continue-change (Codex) or /openspec-continue-change (other agents)` for that artifact only. Do not suggest creating `tasks.md`.
+   - Do not suggest `openspec-apply-change` as the way to write a delta into source. Source changes are not this skill's job.
+   - Do not move the change directory from this skill.
 
 **Output**
 
@@ -83,7 +85,7 @@ After each invocation, show:
 - Where the change stands and the recommended next command
 
 **Guardrails**
-- Planning artifacts only - NEVER edit implementation code. If the revised plan implies code changes, stop and point to `$openspec-apply-change (Codex) or /openspec-apply-change (other agents)`.
+- Revise existing proposal, delta spec, and design only. Do not write implementation steps. Do not create `tasks.md`. If the revised plan implies code changes, stop. Do not point at `openspec-apply-change` as the way to write the delta into source.
 - Use the artifact ids and paths reported by `openspec status`; never branch on hardcoded artifact names.
 - Edit only the concrete files in `existingOutputPaths`; never write to a glob `resolvedOutputPath`.
 - Do not advance the build frontier: no new artifacts, no new files under glob artifacts - that is `$openspec-continue-change (Codex) or /openspec-continue-change (other agents)`'s job.

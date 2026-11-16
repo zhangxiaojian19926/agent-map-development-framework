@@ -19,8 +19,8 @@
 
 ## 2. OpenSpec 与 Superpowers 分工
 
-- OpenSpec 是当前变更的需求、设计、验收场景和宏观任务记录;任务完成状态以它为准。
-- Superpowers 负责设计讨论、可执行计划、测试驱动实现、调试和评审。计划细化 OpenSpec 任务,不另建竞争的需求或完成状态。
+- OpenSpec 独占可校验的规格账本：proposal、delta spec、design、主规格，以及 propose、update、sync、archive。`tasks.md` 的切片正文只由 `to-tickets` 写入。勾选只发生在该切片 `TASK_VERIFIED` 之后，且文件仍在活动 change 目录。
+- Superpowers 与 matt-pocock 把账本谈清楚、切成切片、用测试改代码并交出证据。同一段源码只有一个实现器。没有委派授权，或宿主不提供子代理能力时，主 Agent 用 `tdd`，并用 `code-review` 做评审判断。两者都有时，被委派者仍用 `tdd`。
 - 每个计划步骤关联 Requirement/Scenario 与 OpenSpec task ID;模块责任、接口依赖和集成顺序遵循 公共及项目模块协作约定。
 - OpenSpec schema 已有 design 产物时,将讨论结果写入该产物。额外设计或计划文件只通过链接关联,避免复制两份规格。
 - 技能执行顺序不等于固定文件名。产物路径、schema 和当前可执行步骤由所选 OpenSpec 根的 CLI 返回结果确定。
@@ -28,7 +28,7 @@
 ## 3. DISCOVERY — 理解与设计
 
 **进入**:目标、问题或架构变化需要澄清。
-**技能**:已有规格上下文用 `openspec-explore`;新设计用 `superpowers:brainstorming`;排障先用 `matt-pocock:diagnosing-bugs`;设计模块接口、决定 seam 位置或判断可测试性时参考 `matt-pocock:codebase-design`。
+**技能**:排障先用 `matt-pocock:diagnosing-bugs`，诊断停在红信号、最小复现和根因，Phase 5 不应用修复，回归测试和修复只由 `tdd` 写；澄清意图只用 `superpowers:brainstorming`；人点名仍可用 `openspec-explore`，它不是下一项，也不代替 brainstorming。设计模块接口、决定 seam 位置或判断可测试性时参考 `matt-pocock:codebase-design`。
 **步骤**:
 1. 完成入口路由、KB 查询,检查目标模块的 Git 根、HEAD 和已有修改。
 2. 已存在 CodeGraph 时先查图定位再核对源码;没有索引默认 rg。仅当本次明确授权 index 时由适配器 init 或 sync。CLI 不在 PATH 上时，另有 index-install 才把锁定版本装进项目内 `.framework/tools/codegraph`；不全局安装，不调用 `codegraph install`。新文件先更新受管放行列表再 sync。索引新鲜不等于关系地图已更新。模块内部修改不发布地图。doctor 显示还没有地图或模块结构已失效，且本次可以改代码时，用 `map` 发布一轮。本次改动了模块职责或模块间关系时同样发布一次，不要等用户再次要求。下载配置不能自行授权。
@@ -42,7 +42,7 @@
 **技能**:`openspec-propose`;修改既有 change 用 `openspec-update-change`。
 **步骤**:
 1. 核实实际规划根/store 与 change,不得把向上找到的其他项目根当成本项目。根缺失时说明缺口;仅在授权范围内初始化。
-2. 按真实 schema 的依赖顺序生成产物。使用 CLI 返回的 instructions 和路径,遵循已有项目规则。
+2. 按真实 schema 的依赖顺序生成 proposal、delta spec、design。不生成实现步骤，不创建 `tasks.md`。使用 CLI 返回的 instructions 和路径,遵循已有项目规则。
 3. 为 Requirement/Scenario 设置稳定 ID。Scenario 写明前置条件、输入/触发、可观察结果、超时、验证环境/证据和异常分类。
 4. 按所用 CLI 的支持方式校验 change;结构有效与用户认可分别记录。
 **退出**:规格已校验,用户批准覆盖本次需求与验收;不能用代码改动替代规格更新。
@@ -53,7 +53,7 @@
 **技能**:`matt-pocock:to-tickets`。
 **步骤**:
 1. 读取规格、模块入口与约束,把工作切成垂直切片:每个切片切穿各层,单独可演示;宽重构按 expand–contract 展开,不塞进切片。
-2. 切片写入当前 change 的 `tasks.md`,逐条声明交付的端到端行为、覆盖的 Req/Scenario、验收条件与阻塞边;阻塞边构成任务图,无阻塞者的切片可立即开始。任务状态只以 `tasks.md` 为准。
+2. 切片写入当前 change 的 `tasks.md`,逐条声明交付的端到端行为、覆盖的 Req/Scenario、验收条件与阻塞边;阻塞边构成任务图,无阻塞者的切片可立即开始。任务状态只以 `tasks.md` 为准。`to-tickets` 只写入切片正文。`plan-format.md` 的 Execution handoff 不是下一项。`- [ ]` 改成 `- [x]` 仍等该切片 `TASK_VERIFIED`。
 3. 每条切片列目标模块/文件、输入输出、接口提供方与消费方、最小测试与预期结果。
 4. 跨模块切片显式列依赖顺序、接口责任、可并行边界、集成验收和恢复方式;同一文件只设一个写入责任方。
 5. 实施细节计划按项目约定存放,在 change 内引用;检查场景覆盖、占位内容与命名一致性,并确认阻塞边无环、起始切片可独立开始。
@@ -62,7 +62,7 @@
 ## 6. WORKSPACE — 准备执行
 
 **进入**:计划可执行。
-**技能**:需隔离时用 `superpowers:using-git-worktrees`;顺序执行用 `superpowers:executing-plans`。仅在获得委派授权时用 `subagent-driven-development` 或 `dispatching-parallel-agents`。
+**技能**:需要隔离时用 `superpowers:using-git-worktrees`。无委派授权时不读 `executing-plans`，按已批准切片进入实现。委派只在用户已授权且宿主提供子代理能力时发生，才用 `subagent-driven-development`（并读其同目录 `framework-rules.md`）或 `dispatching-parallel-agents`，二者择一，被委派者仍用 `tdd`。人点名仍可用 `executing-plans`，它不成为实现器，也不按产品名单改走委派。
 **步骤**:
 1. 逐仓库确认基线与已有修改;保护用户内容,不以外层 Git 状态替代子仓库状态。
 2. 确定任务实际目录、环境、测试入口和工作区;需要隔离时创建并核对正确仓库的 worktree。
@@ -71,18 +71,18 @@
 
 ## 7. APPLY — 装载上下文
 
-**技能**:`openspec-apply-change` 负责上下文和宏观进度,选定的 Superpowers 执行技能负责逐项落实。
+**技能**:装载是路由上的三步，不把 `openspec-apply-change` 当必经实现器。人点名仍可用 `openspec-apply-change`，它只装载上下文，不改业务源码，不在 `TASK_VERIFIED` 之前勾选。
 从已确认的规划根运行:
 ```bash
 openspec status --change <change-id> --json
 openspec instructions apply --change <change-id> --json
 ```
 选择 store 时对支持的命令保持相同 `--store <id>`;不用未核实的参数。
-每次开始或恢复实现:
+每次开始或恢复实现前先装载，不在这一步改业务源码:
 1. 读取 schemaName、规划根、changeRoot、状态、任务进度和全部 contextFiles。
 2. 将需求、场景、task 与批准计划逐项对应;不假定固定 proposal/design/tasks 文件名。
 3. blocked、缺产物、范围不符或缺少必要审批时停止依赖它的实现;不能把 all_done 当作集成/发布证明。
-4. 选择一个当前 task,陈述范围、最小验证和所需环境。
+4. 装载完成后进入 `tdd`。不在 `TASK_VERIFIED` 之前勾选。
 
 ## 8. IMPLEMENT — 实现与任务验证
 
@@ -98,7 +98,7 @@ openspec instructions apply --change <change-id> --json
 
 | 触发 | 技能/动作 | 恢复条件 |
 |---|---|---|
-| 测试异常或实现失败 | diagnosing-bugs:建立可复现的红色回路 → 排序假设 → 最小实验 → 修复 | 有效失败原因与回归证据 |
+| 测试异常或实现失败 | diagnosing-bugs：停在红信号、最小复现和根因，Phase 5 不应用修复；回归测试和修复只由 tdd 写 | 有效失败原因与回归证据 |
 | 需求、接口、场景变化 | openspec-update-change → 校验 → 审批 → 更新计划 | 规格和计划重新一致 |
 | 实施顺序或步骤漂移 | to-tickets 更新受影响切片 | 不改变已批准需求,重大变化获确认 |
 | 环境/设备不可用 | 记录 INFRA_ERROR,查项目约束 | 环境恢复,重跑受影响验证 |
@@ -108,7 +108,7 @@ openspec instructions apply --change <change-id> --json
 
 **技能**:`matt-pocock:code-review` 提供两轴评审方法;`superpowers:requesting-code-review` 提供评审节奏与派发;`superpowers:receiving-code-review` 处理收到的反馈。
 提供规格、相关计划、实际 diff 和验证证据。规格以当前 OpenSpec change 为准,提交信息不能替代需求;找不到 change 时如实报告无可用规格并跳过规格轴。规范符合性与规格符合性分轴评审并分别汇报,不合并排序;仓库自身规范优先于气味基线,基线项记为判断项。跨模块变更加评集成维度并记录版本组合,单模块变更显式说明跳过理由。
-反馈须核实后处理,重要问题闭合并重跑受影响检查,驳回需记录理由。评审结论绑定实际评审的区间、规格版本与支撑命令;范围变动后重评或标注失效。独立评审依赖可用且获授权的评审机制;只有自查时明确标注自查,不得伪称独立评审。
+反馈须核实后处理,重要问题闭合并重跑受影响检查,驳回需记录理由。`code-review` 的发现写入交付报告，不往 tasks.md 追加切片。重要发现的修改回到 `tdd`。`receiving-code-review` 若要改码，采纳的修改交给 `tdd`，不必另起一条实现。评审结论绑定实际评审的区间、规格版本与支撑命令;范围变动后重评或标注失效。独立评审依赖可用且获授权的评审机制;只有自查时明确标注自查,不得伪称独立评审。
 
 ## 11. VERIFY — 整体完成验证
 
@@ -123,10 +123,10 @@ openspec instructions apply --change <change-id> --json
 ## 12. INTEGRATE / ARCHIVE / KNOWLEDGE — 交付与收尾
 
 1. 用 `superpowers:finishing-a-development-branch` 展示验证结果并落实用户的合并、PR、保留等选择。提交、推送、部署和设备授权按项目约束处理。
-2. 有 OpenSpec change 时检查任务证据与产物状态,用 `openspec-sync-specs` 同步需要的 delta specs,核对合并结果,再用 `openspec-archive-change` 归档。
+2. 有 OpenSpec change 时检查任务证据与产物状态，用 `openspec-sync-specs` 同步需要的 delta specs，并核对合并结果。同步完成时不移动目录。
 3. 同步与归档顺序执行,不在同步未结束时移动 change。使用实际返回的 changeRoot/planningHome,不要拼接猜测路径。
 4. 未完成任务或缺证据不能以“全部完成”归档;用户若明确选择保留未完成状态,如实报告。
-5. 规格同步之后、归档之前，按 [知识回流](knowledge-policy.md) 把需求页和适用的问题页写入初始化知识库 alias `project`，并在 change 目录留下 `knowledge-receipt.json`。这两类不再询问是否摄入。回执留下之后才归档。结晶、删除、新建知识库、修改注册表和推送仍单独授权。没有注册表时记 `NOT_CONFIGURED`，不新建库。
+5. 规格同步之后、移动目录之前，按 [知识回流](knowledge-policy.md) 把需求页和适用的问题页写入初始化知识库 alias `project`，并在活动 change 目录留下 `knowledge-receipt.json`。这两类不再询问是否摄入。回执留下且规格已同步之后，才用 `openspec-archive-change` 移动目录。结晶、删除、新建知识库、修改注册表和推送仍单独授权。没有注册表时记 `NOT_CONFIGURED`，不新建库。
 6. 最终分别报告实现、适用验证、集成/归档与知识摄入状态。知识回执欠账留在完成检查里，不回滚已经验证过的修复。
 
 完整行为变更路线:

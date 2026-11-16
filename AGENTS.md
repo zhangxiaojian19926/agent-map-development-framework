@@ -88,23 +88,23 @@
 
 ## 2. OpenSpec 与 Superpowers 如何配合
 
-OpenSpec 管需求、设计、Scenario 和宏观任务状态;Superpowers 管设计讨论、实施计划、TDD、调试、评审与完成验证。每个计划步骤关联 Req/Scenario/task ID,不维护竞争的规格或完成状态。已有设计产物优先复用,其他计划用链接关联。真实 schema、产物路径与执行状态以所选规划根的 CLI 结果为准。
+OpenSpec 独占可校验的规格账本：proposal、delta spec、design、主规格，以及 propose、update、sync、archive。`tasks.md` 的切片正文只由 `to-tickets` 写入；`- [ ]` 改成 `- [x]` 只发生在该切片 `TASK_VERIFIED` 之后，并且这个文件仍在活动 change 目录。Superpowers 与 matt-pocock 把账本谈清楚、切成切片、用测试改代码并交出证据。同一段源码只有一个实现器：没有委派授权，或宿主不提供子代理能力时，主 Agent 用 `tdd` 实现，并用 `code-review` 做评审判断；两者都有时，被委派者仍用 `tdd`，主 Agent 不再改同一段。评审判断只走 `code-review`。每个计划步骤关联 Req/Scenario/task ID,不维护竞争的规格或完成状态。已有设计产物优先复用,其他计划用链接关联。真实 schema、产物路径与执行状态以所选规划根的 CLI 结果为准。
 
 以下是阶段路由;具体进入条件、步骤、产物、异常回流和退出门禁见 [完整开发流程](docs/framework/development-workflow.md)。工作流入口是 `skill/flows/flow-01`、`flow-02`、`flow-03`、`flow-04`、`flow-05`、`flow-06`、`flow-07`、`flow-08`、`flow-09`、`flow-10`、`flow-11`、`flow-12`、`flow-13`、`flow-14`、`flow-15`。一条请求只命中其中一个，下一项以该路由正文为准。
 
 | 顺序 | 使用技能 | 必须交接的结果 |
 |---|---|---|
-| 1. DISCOVERY | openspec-explore; superpowers:brainstorming（并读其同目录 framework-rules.md）; 故障先 matt-pocock:diagnosing-bugs（并读其同目录 discipline.md） | 目标、范围、模块、兼容性、验证环境、方案与待确认项 |
-| 2. SPEC | openspec-propose / openspec-update-change | 稳定 Req/Scenario、真实 schema 校验、用户认可 |
-| 3. PLAN | matt-pocock:to-tickets（并读其同目录 plan-format.md） | 垂直切片、阻塞边、Req/Scenario 关联、文件/模块、测试、集成与恢复;计划获批 |
-| 4. WORKSPACE | 需隔离时 using-git-worktrees; 顺序 executing-plans; 获委派授权时 dispatching-parallel-agents 或 subagent-driven-development（并读其同目录 framework-rules.md） | 各仓库基线、正确工作区、最小环境检查;委派需授权 |
-| 5. APPLY | openspec-apply-change + 已选执行技能 | 重新读取 status/instructions/all contextFiles,核对计划,选定 task |
-| 6. IMPLEMENT | matt-pocock:tdd（并读其同目录 discipline.md） | 有效 RED → GREEN → REFACTOR → 相关回归 → TASK_VERIFIED |
-| 7. REVIEW | matt-pocock:code-review（并读其同目录 framework-rules.md）/ requesting-code-review / receiving-code-review | 规格符合性、质量和接口分轴评审;重要问题处理,自查不得冒充独立评审 |
+| 1. DISCOVERY | 故障先 matt-pocock:diagnosing-bugs（并读其同目录 discipline.md）；澄清只走 superpowers:brainstorming（并读其同目录 framework-rules.md）。人点名仍可用 openspec-explore，不是下一项 | 诊断停在红信号、最小复现和根因。diagnosing-bugs 的 Phase 5 不应用修复。回归测试和修复只由 tdd 写。只有要改行为、接口或验收才进入规格；探针停在建议。设计被批准后才进入规格 |
+| 2. SPEC | openspec-propose / openspec-update-change | 只落 proposal、delta spec、design。不写实现步骤，不创建 tasks.md。下一项是 to-tickets。Requirement 与 Scenario 被认可后才写切片 |
+| 3. PLAN | matt-pocock:to-tickets（并读其同目录 plan-format.md） | 切片正文只写入当前 change 的 tasks.md。plan-format.md 的 Execution handoff 不是下一项。勾选仍等该切片 TASK_VERIFIED。切片被批准后才进入实现 |
+| 4. WORKSPACE | 需要隔离才点名 using-git-worktrees。无委派授权时不读 executing-plans。委派只在用户已授权且宿主提供子代理时，才读 subagent-driven-development（并读其同目录 framework-rules.md）或 dispatching-parallel-agents，二者择一。人点名仍可用 executing-plans，不成为实现器 | 被委派者仍用 tdd。子代理是任何一个 coding agent 都可以有的能力，不是只有 Claude Code 与 CodeBuddy。当前安装事实不改宿主安装器。不按产品名单改走委派 |
+| 5. APPLY | 路由三步：openspec status --json、openspec instructions apply --json、读完全部 contextFiles。人点名仍可用 openspec-apply-change，只装载上下文 | 不改业务源码，不在 TASK_VERIFIED 之前勾选。openspec-apply-change 不是下一项 |
+| 6. IMPLEMENT | matt-pocock:tdd（并读其同目录 discipline.md） | 有效 RED → GREEN → REFACTOR → 相关回归 → TASK_VERIFIED。该切片 TASK_VERIFIED 之后才把对应任务勾成完成 |
+| 7. REVIEW | matt-pocock:code-review（并读其同目录 framework-rules.md）/ requesting-code-review / receiving-code-review | 发现写入交付报告，不往 tasks.md 追加切片。重要发现回到 tdd。receiving-code-review 若要改码，采纳的修改交给 tdd |
 | 8. VERIFY | verification-before-completion | 最终工作树/产物的新鲜证据;适用局部与集成场景分别验证 |
 | 9. INTEGRATE | finishing-a-development-branch | 用户选择合并/PR/保留等;不擅自提交、推送、部署或操作设备 |
-| 10. ARCHIVE | openspec-sync-specs → openspec-archive-change | 同步核对后归档,未完成/无证据不得宣称完整归档 |
-| 11. KNOWLEDGE | llm-wiki,按公共知识规则 | 规格同步后把需求页和已验证问题页写入初始化知识库 alias `project`，留下回执后再归档;其他种类仍要本次授权 |
+| 10. KNOWLEDGE | openspec-sync-specs → llm-wiki | 先同步规格，再把需求页、适用问题页和 knowledge-receipt.json 留在活动 change。这两类不再逐次询问 |
+| 11. ARCHIVE | openspec-archive-change | 回执留下且规格已同步之后才移动目录。未完成或无证据不得宣称完整归档 |
 
 表中未写前缀的 Superpowers 技能同属 superpowers。未安装、不可调用或参数不支持时报告,不伪造执行。
 除阶段路由表外还有五个按需取用的参考技能,不构成必做步骤:编写或修改任何 Agent 读取的文档(技能、AGENTS.md 及任何被指针引用的文档)时用 `matt-pocock:writing-for-agents`;新建一个技能时另用 `superpowers:writing-skills` 走"先看它失败"的验证流程;设计模块接口、决定 seam 位置或判断可测试性时用 `matt-pocock:codebase-design`;讨论领域术语、锐化含糊用词或用具体场景压测概念边界时用 `matt-pocock:domain-modeling`（并读其同目录 framework-rules.md）;用户要求复盘会话时用 `matt-pocock:retro`（并读其同目录 framework-rules.md）。它们是参考材料,不产生新的授权、状态或完成判据。

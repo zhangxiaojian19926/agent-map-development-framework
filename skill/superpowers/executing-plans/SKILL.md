@@ -1,64 +1,67 @@
 ---
 name: executing-plans
-description: Use when you have a written implementation plan to execute in a separate session with review checkpoints
+description: Compare a written plan with the approved slices. This skill does not implement the plan and does not choose delegation.
 ---
 
 # Executing Plans
 
 ## Overview
 
-Load plan, review critically, execute all tasks, report when complete.
+Compare an approved slice list with the plan text. This skill does not implement the plan and does not mark tasks complete.
 
-**Announce at start:** "I'm using the executing-plans skill to implement this plan."
+**Announce at start:** "I'm using the executing-plans skill to compare this plan with the approved slices."
 
-**Note:** Tell your human partner that Superpowers works much better with access to subagents (Claude Code, Codex CLI, Codex App, Copilot CLI, and Gemini CLI all qualify; see the per-platform tool refs in `../using-superpowers/references/`). If subagents are available, use superpowers:subagent-driven-development instead of this skill.
+**Note:** This skill does not choose delegation. A product list does not choose delegation. Delegation happens only when the user has already authorized it and the host provides subagents. The delegated implementer still uses tdd.
 
 ## The Process
 
 ### Step 1: Load and Review Plan
-1. Ensure an isolated workspace: use superpowers:using-git-worktrees to create one or verify the existing one
-2. Read plan file
+
+1. Read the approved slices in the active change `tasks.md`
+2. Read the plan file if one is referenced
 3. Review critically - identify any questions or concerns about the plan
-4. If concerns: Raise them with your human partner before starting
-5. If no concerns: Create todos for the plan items and proceed
+4. If concerns: raise them with your human partner before any implementation
+5. If no concerns: stop. Do not create a second task list and do not start writing code
 
-### Step 2: Execute Tasks
+### Step 2: Do not execute
 
-For each task:
-1. Mark as in_progress
-2. Follow each step exactly (plan has bite-sized steps)
-3. Run verifications as specified
-4. Mark as completed
+This skill does not implement.
 
-### Step 3: Complete Development
+1. Do not edit business source
+2. Do not follow plan steps as an implementation loop
+3. Do not mark tasks completed
+4. The implementer is tdd, after the route says so
 
-After all tasks complete and verified:
-- Announce: "I'm using the finishing-a-development-branch skill to complete this work."
-- **REQUIRED SUB-SKILL:** Use superpowers:finishing-a-development-branch
-- Follow that skill to verify tests, present options, execute choice
+### Step 3: Hand back
+
+After the comparison:
+
+- Report mismatches between the plan and the approved slices
+- Do not start implementation from this skill
+- Return to the route. The next implementer is tdd
 
 ## When to Stop and Ask for Help
 
-**STOP executing immediately when:**
-- Hit a blocker (missing dependency, test fails, instruction unclear)
-- Plan has critical gaps preventing starting
-- You don't understand an instruction
-- Verification fails repeatedly
+**Stop and return to the route when:**
 
-**Ask for clarification rather than guessing.**
+- The plan and the approved slices disagree
+- A slice is missing a verification the route requires
+- You do not understand an instruction
+
+**Ask for clarification rather than guessing.** Do not choose another skill because a particular product is installed.
 
 ## When to Revisit Earlier Steps
 
 **Return to Review (Step 1) when:**
-- Partner updates the plan based on your feedback
-- Fundamental approach needs rethinking
 
-**Don't force through blockers** - stop and ask.
+- The approved slices change
+- The comparison finds a gap in the slice text
+
+**Do not force a code change from this skill.** Slice text belongs to to-tickets. Implementation belongs to tdd.
 
 ## Remember
-- Review plan critically first
-- Follow plan steps exactly
-- Don't skip verifications
-- Reference skills when plan says to
-- Stop when blocked, don't guess
-- Never start implementation on main/master branch without explicit user consent
+
+- This skill does not implement
+- This skill does not choose delegation
+- Compare the plan with the approved slices, then stop
+- Do not mark tasks complete here

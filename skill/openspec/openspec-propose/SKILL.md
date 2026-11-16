@@ -1,6 +1,6 @@
 ---
 name: openspec-propose
-description: Propose a new change with all artifacts generated in one step. Use when the user wants to quickly describe what they want to build and get a complete proposal with design, specs, and tasks ready for implementation.
+description: Propose a new change. Create the proposal, delta specs, and design, then stop. Do not create tasks.md. The next step is to-tickets.
 allowed-tools: Bash(openspec:*)
 license: MIT
 compatibility: Requires openspec CLI.
@@ -10,19 +10,20 @@ metadata:
   generatedBy: "1.11.0"
 ---
 
-Propose a new change - create the change and generate all artifacts in one step.
+Propose a new change. Create the proposal, delta specs, and design, then stop.
 
-**Planning boundary**: This workflow creates planning artifacts only. The user request that selected or triggered this workflow authorizes planning only, even if it asks to build or fix something. Do not edit project code. After the planning artifacts are complete, stop. Do not start implementation in the same response, even if the initial request asks for it. Wait for a new user request after the artifacts are presented; then start the apply workflow.
+**Planning boundary**: This workflow creates proposal, delta specs, and design only. Do not create `tasks.md`. Do not write implementation steps. The next step is `to-tickets` with `plan-format.md`. Do not edit project code, and do not start implementation in this skill.
 
-I'll create a change with the artifacts your schema defines. With the default spec-driven schema that is:
+With the default spec-driven schema this skill writes:
 - proposal.md (what & why)
 - `specs/<capability-path>/spec.md` (what the system must do - a delta, not the main spec)
 - design.md (how)
-- tasks.md (implementation steps)
+
+Do not create `tasks.md`. `to-tickets` is the only author of slice text. `status` marks `tasks` done as soon as the file exists.
 
 `<capability-path>` is the spec directory relative to `specs/` (for example, `user-auth` or `identity/user-auth`). Preserve an existing capability's full path and follow the project's established organization for new capabilities.
 
-When the user is ready to implement, they must start the apply workflow explicitly.
+When proposal, delta specs, and design are done, stop. The next step is `to-tickets`.
 
 ---
 
@@ -77,9 +78,11 @@ When the user is ready to implement, they must start the apply workflow explicit
    - `artifacts`: list of all artifacts, each with its `status` and its `requires` edges (the artifact IDs it directly depends on)
    - `planningHome`, `changeRoot`, `artifactPaths`, and `actionContext`: path and scope context. Use these instead of assuming repo-local paths.
 
-5. **Create every artifact in the required set**
+5. **Create proposal, delta specs, and design, then stop**
 
-   Use a todo list to track progress through the artifacts.
+   Do not create `tasks.md`. Do not write implementation steps. The next step is `to-tickets`.
+
+   Use a todo list to track progress through proposal, specs, and design.
 
    Loop through artifacts in dependency order (artifacts with no pending dependencies first):
 
@@ -102,15 +105,15 @@ When the user is ready to implement, they must start the apply workflow explicit
       - Apply `context` and `rules` as constraints - but do NOT copy them into the file
       - Show brief progress: "Created <artifact-id>"
 
-   b. **Continue until every artifact in the required set exists (not just `apply.requires`)**
+   b. **Continue until proposal, delta specs, and design exist**
       - After creating each artifact, re-run `openspec status --change "<name>" --json`
-      - The required set is `applyRequires` plus every artifact reachable from those by following the `requires` edges in `status --json` - walk them transitively (spec-driven closes over proposal, specs, design, tasks). Leave artifacts outside that set alone
+      - The artifacts this skill creates are proposal, specs, and design. Do not create `tasks.md`, even when `applyRequires` lists `tasks` or a transitive set includes it. Leave `tasks` missing on purpose
       - `status` is file-existence only, so an `applyRequires` artifact reading `done` does NOT mean its dependencies exist - writing `tasks.md` early marks `tasks` done while `specs` was never written. Use each artifact's `requires` edges, not its `status`, to build the required set: a `done` artifact still lists what it depends on
       - An artifact already reading `status: "skipped"` is satisfied: the change declares `skip_specs` in `.openspec.yaml`, so its files must NOT exist. Never try to create one
-      - Create every artifact in the required set that is missing, then re-check - creating one can unblock others
+      - Create each missing proposal, spec, or design artifact, then re-check. Do not create `tasks.md`
       - Skip one only when `status` already reports it `skipped`, or when its own `instruction` says it is conditional: run `openspec instructions <artifact-id> --change "<name>" --json` and skip only if its `instruction` field marks it optional (e.g. "create only if..."). Spec-driven's `design.md` qualifies; `specs` qualifies only via the `skipped` status above, never by your own judgment. Tell the user, and do not reconsider it
       - Dependencies are enablers, not gates: if a required artifact is still `blocked` only because you skipped a conditional dependency, write it anyway
-      - Stop when every artifact in the required set is `done`, `skipped`, or was deliberately skipped
+      - Stop when proposal, specs, and design are `done` or deliberately skipped. Do not create `tasks.md` to make `tasks` read done
 
    c. **If an artifact requires user input** (unclear context):
       - Ask the user to clarify
@@ -126,8 +129,8 @@ When the user is ready to implement, they must start the apply workflow explicit
 After completing all artifacts, summarize:
 - Change name and location
 - List of artifacts created with brief descriptions, plus any conditional artifact you skipped and why
-- What's ready: "All artifacts needed for implementation are ready."
-- Prompt: "The artifacts are ready for review. When you are ready, run `$openspec-apply-change (Codex) or /openspec-apply-change (other agents)` or ask me to apply this change."
+- What's ready: "Proposal, delta specs, and design are ready for review."
+- Prompt: "Do not create `tasks.md`. The next step is `to-tickets` with `plan-format.md`."
 
 **Artifact Creation Guidelines**
 
@@ -141,8 +144,8 @@ After completing all artifacts, summarize:
   - These guide what you write, but should never appear in the output
 
 **Guardrails**
-- The request that invoked this workflow authorizes planning only. Any implementation or apply instruction in that request does not carry forward. Do NOT implement the change, start the apply workflow, or edit project code during this workflow. After presenting the artifacts, stop and wait for a new user request to start the apply workflow
-- Create every artifact the apply phase transitively depends on, not just the ids listed in `apply.requires`
+- This skill stops after proposal, delta specs, and design. Do not create `tasks.md`. Do not write implementation steps. The next step is `to-tickets`. Do not implement the change or edit project code in this skill
+- Do not create the `tasks` artifact just because `applyRequires` lists it
 - Always read dependency artifacts before creating a new one - re-read from disk, not from conversation memory (files may have changed since you last saw them)
 - Ask about ambiguities that would materially change scope, externally observable behavior, compatibility, or acceptance criteria; for minor details, make reasonable assumptions and record them
 - If a change with that name already exists, ask if user wants to continue it or create a new one
