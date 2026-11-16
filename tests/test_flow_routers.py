@@ -119,6 +119,71 @@ class RouterContractTests(unittest.TestCase):
         layer = (ROOT / 'skill/superpowers/brainstorming/framework-rules.md').read_text(encoding='utf-8')
         self.assertIn('to-tickets', layer)
 
+    def test_flow_01_failure_stops_before_a_fix(self):
+        text = (ROOT / 'skill/flows/flow-01/SKILL.md').read_text(encoding='utf-8')
+        stop = ('只停在红信号、最小复现和根因。diagnosing-bugs 的 Phase 5 不在本路由应用修复：'
+                '不把最小复现写成回归测试，也不应用修复。本路由不写修复，也不把 tdd 写成下一项。')
+        self.assertIn(stop, text)
+        self.assertIn('先读 [BOOTSTRAP.md](../../../BOOTSTRAP.md)，再读 [project-bootstrap](../../project-bootstrap/SKILL.md)。', text)
+        self.assertIn('设计未批准时停止，不进入 flow-02。', text)
+        self.assertIn('设计未批准时没有下一项技能。', text)
+        self.assertNotIn('失败完成后，下一项是 diagnosing-bugs 与 discipline.md。', text)
+        self.assertNotIn('回归测试和修复只由 tdd 写', text)
+        flows = {item['id']: item for item in load_combinations()['flows']}
+        self.assertEqual(flows['flow-01']['mentions'],
+                         ['BOOTSTRAP.md', 'diagnosing-bugs', 'discipline.md', 'project-bootstrap'])
+
+    def test_flow_14_failure_uses_the_same_stop(self):
+        text = (ROOT / 'skill/flows/flow-14/SKILL.md').read_text(encoding='utf-8')
+        stop = ('只停在红信号、最小复现和根因。diagnosing-bugs 的 Phase 5 不在本路由应用修复：'
+                '不把最小复现写成回归测试，也不应用修复。本路由不写修复，也不把 tdd 写成下一项。')
+        self.assertIn(stop, text)
+        self.assertIn('改技能点名 [writing-skills](../../superpowers/writing-skills/SKILL.md)。', text)
+        self.assertIn('改 Agent 所读文档点名 [writing-for-agents](../../matt-pocock/writing-for-agents/SKILL.md)。', text)
+        self.assertIn('三种模式各自结束，不把另一种模式写为下一项。', text)
+        self.assertIn('本路由覆盖改技能、改 Agent 所读文档和排障三种模式。三种模式各自结束。', text)
+        self.assertNotIn('下一项是 writing-skills', text)
+        self.assertNotIn('下一项是 writing-for-agents', text)
+        self.assertNotIn('下一项是 tdd', text)
+        self.assertNotIn('回归测试和修复只由 tdd 写', text)
+        flows = {item['id']: item for item in load_combinations()['flows']}
+        self.assertEqual(flows['flow-14']['mentions'],
+                         ['diagnosing-bugs', 'discipline.md', 'writing-for-agents', 'writing-skills'])
+
+    def test_flow_08_stops_in_the_design_conversation(self):
+        text = (ROOT / 'skill/flows/flow-08/SKILL.md').read_text(encoding='utf-8')
+        self.assertIn('先点名 [reverse-engineer](../../reverse-engineer/SKILL.md) 的交接部分。', text)
+        self.assertIn('brainstorming 的架构路径', text)
+        self.assertIn('[brainstorming](../../superpowers/brainstorming/SKILL.md)', text)
+        self.assertIn('[framework-rules.md](../../superpowers/brainstorming/framework-rules.md)', text)
+        self.assertIn('停在设计对话', text)
+        self.assertIn('不把 openspec-propose 或 to-tickets 当作下一项', text)
+        self.assertIn('不创建 OpenSpec change，包括未批准的 change。', text)
+        self.assertIn('不创建 OpenSpec change。', text)
+        self.assertNotIn('不创建已批准的 OpenSpec change', text)
+        self.assertNotIn('下一项是 openspec-propose', text)
+        self.assertNotIn('下一项是 to-tickets', text)
+        flows = {item['id']: item for item in load_combinations()['flows']}
+        self.assertEqual(flows['flow-08']['mentions'],
+                         ['brainstorming', 'framework-rules.md', 'reverse-engineer'])
+
+    def test_review_findings_are_not_appended_to_tasks(self):
+        rules = (ROOT / 'skill/matt-pocock/code-review/framework-rules.md').read_text(encoding='utf-8')
+        self.assertIn('发现只写入交付报告，不往 tasks.md 追加切片。', rules)
+        self.assertNotIn("change's task list", rules)
+        self.assertIn('**Important** findings must be fixed before the work proceeds', rules)
+        self.assertIn('→ openspec/changes/<change>/tasks.md', rules)
+        upstream = (ROOT / 'skill/matt-pocock/code-review/SKILL.md').read_text(encoding='utf-8')
+        self.assertNotIn('发现只写入交付报告，不往 tasks.md 追加切片。', upstream)
+        flow04 = (ROOT / 'skill/flows/flow-04/SKILL.md').read_text(encoding='utf-8')
+        self.assertIn('评审受管 diff 时点名 [code-review](../../matt-pocock/code-review/SKILL.md) 与 [framework-rules.md](../../matt-pocock/code-review/framework-rules.md)。', flow04)
+        self.assertIn('存在人工改动冲突时停止。', flow04)
+        self.assertNotIn('不往 tasks.md 追加切片', flow04)
+        flow09 = (ROOT / 'skill/flows/flow-09/SKILL.md').read_text(encoding='utf-8')
+        self.assertIn('规格已批准且实现之后，点名 [code-review](../../matt-pocock/code-review/SKILL.md) 与 [framework-rules.md](../../matt-pocock/code-review/framework-rules.md)。', flow09)
+        self.assertIn('找不到 change 时报告无可用规格。', flow09)
+        self.assertNotIn('不往 tasks.md 追加切片', flow09)
+
 
 class RouterFalsificationTests(unittest.TestCase):
     def setUp(self):

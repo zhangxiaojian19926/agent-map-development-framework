@@ -56,3 +56,13 @@ Language: zh
 来源哈希已变，更新既有需求页 `agent-workflow-routers`。`influenced` 为带理由的 `not_applicable`：工作树里的路由、阶段表和测试没有写出知识页路径，不虚构生效记录。需求页只是按新的规格哈希存下来。
 
 - requirement `agent-workflow-routers`，来源 `openspec/specs/agent-workflow-routers/spec.md`，source_sha256 `f8308e3f9003d8ffa9dc764d40aa6a736820aef63b66bfc63dfb27278547ffce`
+
+## 2026-11-17 更新 align-remaining-flow-stops
+
+授权范围：规格同步之后、归档之前，把该 change 的需求页更新进 alias `project`，并留下 `knowledge-receipt/v2`。未结晶、未删除、未建模块库。不写概念页。
+
+没有 `verified-problem.json`。问题页不适用，回执中的 problem 状态为 `not_applicable`。
+
+来源哈希已变，更新既有需求页 `agent-workflow-routers`。`influenced` 为带理由的 `not_applicable`：工作树里的路由正文、改编层和测试没有写出知识页路径，不虚构生效记录。需求页只是按新的规格哈希存下来。
+
+- requirement `agent-workflow-routers`，来源 `openspec/specs/agent-workflow-routers/spec.md`，source_sha256 `82e68c829313c75397b26a91ec24fee51aa172332a9d657ce027e0bdf22a5fa0`

@@ -82,8 +82,7 @@ Findings are not done until they are closed:
 
 - **Important** findings must be fixed before the work proceeds, and the
   affected checks must be re-run afterwards.
-- **Minor** findings may be recorded for later, in the change's task list or
-  the delivery report.
+- **Minor** 发现只写入交付报告，不往 tasks.md 追加切片。
 - A finding that is rejected needs a reason recorded, not silence.
 
 ## Evidence binding

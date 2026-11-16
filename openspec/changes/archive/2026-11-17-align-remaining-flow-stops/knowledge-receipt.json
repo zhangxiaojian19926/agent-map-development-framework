@@ -1,0 +1,21 @@
+{
+  "schema": "knowledge-receipt/v2",
+  "change": "align-remaining-flow-stops",
+  "alias": "project",
+  "pages": [
+    {
+      "path": "knowledge/project/wiki/topics/requirements/agent-workflow-routers.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/agent-workflow-routers/spec.md",
+      "source_sha256": "82e68c829313c75397b26a91ec24fee51aa172332a9d657ce027e0bdf22a5fa0"
+    }
+  ],
+  "influenced": {
+    "status": "not_applicable",
+    "reason": "停点写在 skill/flows/flow-01/SKILL.md、skill/flows/flow-08/SKILL.md、skill/flows/flow-14/SKILL.md、skill/matt-pocock/code-review/framework-rules.md、tools/framework_core/workflows/combinations.json 和 tests/test_flow_routers.py。这几处都没有写出知识页路径 knowledge/project/wiki/topics/requirements/agent-workflow-routers.md，不能把未出现在工作树文件里的页路径记成生效记录。需求页只是按新的规格哈希存下来。"
+  },
+  "problem": {
+    "status": "not_applicable",
+    "reason": "本变更没有 verified-problem.json，不写问题页"
+  }
+}
