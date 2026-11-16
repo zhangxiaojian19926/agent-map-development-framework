@@ -46,3 +46,13 @@ Language: zh
 
 - requirement `knowledge-influence-tracking`，来源 `openspec/specs/knowledge-influence-tracking/spec.md`，source_sha256 `f7fca23050fbb32a7e2f4375d89e276d7e468f569aaa43ee4628d528fb14c06d`
 - requirement `completion-knowledge-ingest`，来源 `openspec/specs/completion-knowledge-ingest/spec.md`，source_sha256 `3a137926b7f80d2ec98dc60e62a025506c00b7a99791107bda2bc9a8defde60b`
+
+## 2026-11-16 更新 complement-openspec-and-superpowers
+
+授权范围：规格同步之后、归档之前，把该 change 的需求页更新进 alias `project`，并留下 `knowledge-receipt/v2`。未结晶、未删除、未建模块库、未推送。不写概念页。
+
+没有 `verified-problem.json`。问题页不适用，回执中的 problem 状态为 `not_applicable`。
+
+来源哈希已变，更新既有需求页 `agent-workflow-routers`。`influenced` 为带理由的 `not_applicable`：工作树里的路由、阶段表和测试没有写出知识页路径，不虚构生效记录。需求页只是按新的规格哈希存下来。
+
+- requirement `agent-workflow-routers`，来源 `openspec/specs/agent-workflow-routers/spec.md`，source_sha256 `f8308e3f9003d8ffa9dc764d40aa6a736820aef63b66bfc63dfb27278547ffce`

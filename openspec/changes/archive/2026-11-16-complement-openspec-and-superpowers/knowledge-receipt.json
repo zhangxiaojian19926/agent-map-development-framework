@@ -1,0 +1,21 @@
+{
+  "schema": "knowledge-receipt/v2",
+  "change": "complement-openspec-and-superpowers",
+  "alias": "project",
+  "pages": [
+    {
+      "path": "knowledge/project/wiki/topics/requirements/agent-workflow-routers.md",
+      "artifact_kind": "requirement",
+      "source_path": "openspec/specs/agent-workflow-routers/spec.md",
+      "source_sha256": "f8308e3f9003d8ffa9dc764d40aa6a736820aef63b66bfc63dfb27278547ffce"
+    }
+  ],
+  "influenced": {
+    "status": "not_applicable",
+    "reason": "新行为链写在 skill/flows/flow-02/SKILL.md、AGENTS.md 第 2 节、docs/framework/development-workflow.md 和 tests/test_flow_routers.py。这几处都没有写出知识页路径 knowledge/project/wiki/topics/requirements/agent-workflow-routers.md，不能把未出现在工作树文件里的页路径记成生效记录。需求页只是按新的规格哈希存下来。"
+  },
+  "problem": {
+    "status": "not_applicable",
+    "reason": "本变更没有 verified-problem.json，不写问题页"
+  }
+}

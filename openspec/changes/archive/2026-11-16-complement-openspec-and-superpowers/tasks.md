@@ -20,4 +20,4 @@
 - [x] 4.2 跑 `tests/test_flow_routers.py` 与 `python3 -m unittest discover -s tests`，失败则修到通过，不降低既有断言。
 - [x] 4.3 跑 `python3 tools/check-framework`。若只因指纹或新文件未登记失败，用 `python3 tools/update-manifest` 刷新或按现有流程登记，再跑到通过。不手改哈希，不削弱检查。
 - [x] 4.4 跑只读 `python3 tools/framework doctor --target . --summary`。分发库退出码 5 保持原样，不为此改工程。
-- [ ] 4.5 知识回执与归档未授权。全部任务勾完会让 `python3 tools/check-changes` 要求活动 change 里的 `knowledge-receipt.json`。本条保持未勾选，不写知识页，不移动目录。
+- [x] 4.5 规格同步后把需求页写入 alias `project`，回执留在活动 change 的 `knowledge-receipt.json`。检查能看见且可接受后再归档。验证：`knowledge_receipt_detail` 为空，目录随后进入 `openspec/changes/archive/`。
