@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.4 — 2026-11-16
+
 - 新增 `docs/plans/2026-11-15-remaining-batches-and-project-closure.md` 作为当前执行的记账：各批次实际状态、已完成的提交、阻塞与更新后的顺序。维护者 roadmap 的第 1、2 批补上当前状态，并新增第 8 批「源码发现要排除 `.worktrees/`」。**这是真实项目 `61.videohao-generator` 收口时暴露的缺陷**：框架的源码发现不认 `.gitignore`，`tools/framework_core/modules.py` 与 `tools/framework_core/analysis_batches.py` 两份完全一致的 `EXCLUDED` 都不含 `.worktrees`，于是项目内的 superpowers 工作树被当成独立模块登记（92 个源文件全是 `.superpowers/sdd/.../before-fix/` 的历史快照），污染模块目录、关系地图与资料档案，并让项目的资料无法接受。该工作树内还有 10 处未提交改动，因此不能靠删除绕过。第 8 批的边界写明：不改用 `.gitignore` 作为排除依据，只把确知的本地工作目录名写进清单。
 
 - 知识层新增本体语义与可纠正性。两个已归档 change：`add-concept-pages-and-applicability`、`add-knowledge-correction-and-influence`。**概念页**：新增 `concept` 页面种类与 `wiki/topics/concepts/` 目录，承载适用条件、易混淆对象、工程映射、约束与验证入口；术语的**定义**仍留在 `docs/project/GLOSSARY.md` 并由人工维护，概念页用 `source_path` + `source_sha256` 指向术语表，两边互指但不互相复制。**适用条件**：知识页新增 `applies_when`、`not_applicable_when` 与六个可选字段，`problem`/`concept` 类必须有非空 `applies_when`，`problem` 类还必须有 `not_applicable_when`，`requirement` 类不强制，旧页面不追溯。**可纠正性**：页面状态增加 `superseded`/`retracted`/`needs-review`，被取代须有 `superseded_by` 指向真实存在的页，撤回须有 `retraction_reason`，作废页不再被任何页的 `applies_when` 引用。**生效追踪**：知识回执增加第二版结构 `knowledge-receipt/v2` 与 `influenced`，记录这页知识改变了哪条断言、哪个文件、哪个 task；第一版回执按老规则放行。doctor 的知识维度报告引用计数、从未被引用的页与待复核页的下游。调试纪律补失败归因五层（内容/访问/验证/流程/方法）。**页面状态不进对外指南的框架状态词典**——那本词典收的是框架自身的大写状态码，两者同名不同义；页面状态的声明处改为知识库 schema，另加机器检查守住 schema 与代码不漂移。术语接缝涉及 `knowledge-policy.md` 与 `domain-modeling/framework-rules.md` 两处独立明文，同改并加机器检查。不新增技能、不新增流程、不建本体层、不引形式化本体工具，因此不新增门禁。验证：变异检验关掉新校验后 14 项失败、恢复后 68 项全过；全量回归 486 项通过（基线 454）；六道门禁全绿。
