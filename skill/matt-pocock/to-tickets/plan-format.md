@@ -170,16 +170,7 @@ the slice.
 
 ## Execution handoff
 
-After the plan is approved, offer the execution choice:
-
-**1. Subagent-driven (recommended)** — dispatch a fresh subagent per slice,
-review between slices, fast iteration.
-
-**2. Inline execution** — execute slices in this session in batches with
-checkpoints for review.
-
-Either way, the slice state is updated in the change's `tasks.md`, never in
-the plan document.
+不再提供子代理执行或当轮执行的选择，也不在这里把 `- [ ]` 改成 `- [x]`。勾选仍等该切片 TASK_VERIFIED。下一项由活动 flow 宣布。
 
 ## Further reading in this group
 

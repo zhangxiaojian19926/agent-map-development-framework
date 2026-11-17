@@ -53,8 +53,8 @@ framework:
 
 ## Two axes, but three reviews
 
-The upstream method runs Standards and Spec as parallel sub-agents so neither
-pollutes the other. Add a third dimension this framework requires:
+低风险不派独立上下文；高风险只在已有授权的只读子代理时派；没有时报告标明自审。评审不改业务源码。
+Add a third dimension this framework requires:
 
 | Axis | Question | Source |
 |---|---|---|

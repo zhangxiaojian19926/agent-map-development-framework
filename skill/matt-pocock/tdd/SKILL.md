@@ -35,4 +35,4 @@ When the shape of that interface is itself in question (how deep the module is, 
 
 - **Red before green.** Write the failing test first, then only enough code to pass it. Don't anticipate future tests or add speculative features.
 - **One slice at a time.** One seam, one test, one minimal implementation per cycle.
-- **Refactoring is not part of the loop.** It belongs to the review stage (see the `code-review` skill), not the red → green implementation cycle.
+- 红到绿不夹带设计级重构；当前任务里的重复、命名和辅助函数仍在本技能的整理步做完；改 seam、模块职责或接口放到评审里讨论；真要改源码，回到 tdd。

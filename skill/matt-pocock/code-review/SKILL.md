@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
+description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec. 规格就是活动 OpenSpec change；找不到就在报告里写无可用规格。不把 docs/、specs/ 或 .scratch/ 写成规格来源。低风险不派独立上下文；高风险只在已有授权的只读子代理时派；没有时报告标明自审。评审不改业务源码。 Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
 ---
 
 Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
@@ -8,9 +8,9 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 - **Standards**: does the code conform to this repo's documented coding standards?
 - **Spec**: does the code faithfully implement the originating issue / spec?
 
-Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings. Start every sub-agent with a fresh context window.
+低风险不派独立上下文；高风险只在已有授权的只读子代理时派；没有时报告标明自审。评审不改业务源码。已经决定派授权只读子代理时，子代理用新的上下文，两轴对照仍分开报告。
 
-The issue tracker should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+规格就是活动 OpenSpec change。找不到就在报告里写无可用规格。不把 docs/、specs/ 或 .scratch/ 写成规格来源。
 
 ## Process
 
@@ -20,16 +20,11 @@ Whatever the user said is the fixed point (a commit SHA, branch name, tag, `main
 
 Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`.
 
-Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here, not inside two parallel sub-agents.
+Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here.
 
 ### 2. Identify the spec source
 
-Look for the originating spec, in this order:
-
-1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.), fetched via the workflow in the tracker doc.
-2. A path the user passed as an argument.
-3. A spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
-4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
+规格就是活动 OpenSpec change。找不到就在报告里写无可用规格。不把 docs/、specs/ 或 .scratch/ 写成规格来源。
 
 ### 3. Identify the standards sources
 
@@ -55,9 +50,9 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 - **Middle Man**: a class or function that mostly just delegates onward. → cut it, call the real target direct.
 - **Refused Bequest**: a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
 
-### 4. Spawn both sub-agents in parallel
+### 4. 按风险决定是否派只读上下文
 
-Issue both sub-agent calls together, in the foreground, and aggregate the reports they return.
+低风险不派独立上下文；高风险只在已有授权的只读子代理时派；没有时报告标明自审。评审不改业务源码。低风险不派这些 brief。下面的 brief 只在已经决定派授权只读子代理时使用。
 
 **Standards sub-agent prompt** should include:
 

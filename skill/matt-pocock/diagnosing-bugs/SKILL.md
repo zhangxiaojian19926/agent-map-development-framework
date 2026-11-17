@@ -73,7 +73,7 @@ Confirm:
 
 - [ ] The loop produces the failure mode the **user** described, not a different failure that happens to be nearby. Wrong bug = wrong fix.
 - [ ] The failure is reproducible across multiple runs (or, for non-deterministic bugs, reproducible at a high enough rate to debug against).
-- [ ] You have captured the exact symptom (error message, wrong output, slow timing) so later phases can verify the fix actually addresses it.
+- [ ] You have captured the exact symptom (error message, wrong output, slow timing)。记下症状是为了后面核对根因能不能解释同一现象；本技能不因此应用修复，也不把循环跑绿。
 
 ### Minimise
 

@@ -19,7 +19,7 @@
 NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 ```
 
-If you have not completed Phase 1, you cannot propose fixes.
+本技能在根因前后都不改生产代码，也不提出由本技能执行的修复。不存在「先试三次修复」。
 
 Symptom fixes are failures. A fix that makes the error message go away
 without explaining why the error happened is not a fix; it is a delay.
@@ -59,26 +59,9 @@ environment, is a hypothesis — not a finding. Re-verify before acting on it.
 
 提交多、范围看不出时，用 git worktree add --detach 在临时目录里 git bisect run。复现材料还没提交的，用新文件名拷进去。结束只 git worktree remove 这个临时目录。当前分支、工作区和暂存区不动。构建失败的版本用退出码 125 跳过。新 worktree 要装依赖或联网时先问。本技能仍不改生产代码。卫生清单和进入 finishing 前的只读事实仍不执行 git worktree remove。
 
-## When three fixes fail, question the architecture
+## 本技能在根因前后都不改生产代码
 
-Each failed fix reveals a new shared state, a new coupling, or a new symptom
-elsewhere. That is not bad luck; it is the shape of the problem.
-
-```
-STOP after the third failed attempt.
-Do not start fix #4.
-
-Each fix reveals new shared state / coupling / problem in a different place
-Fixes require massive refactoring
-Each fix creates new symptoms elsewhere
-
-→ The pattern is the finding. Question the fundamentals:
-  is this pattern sound, or are we continuing out of inertia?
-```
-
-Discuss it with your human partner before attempting another fix. Three
-attempts that fail the same way is an architectural signal, not a debugging
-technique.
+本技能在根因前后都不改生产代码；不存在「先试三次修复」。三次失败若发生在 tdd 里，由 tdd 在活动 flow 把 tdd 写成下一项之后处理。flow-01 与 flow-14 连 tdd 都没有。
 
 ## Rationalizations
 
@@ -91,7 +74,7 @@ technique.
 | "Multiple fixes at once saves time" | Can't isolate what worked. Causes new bugs. |
 | "Reference too long, I'll adapt the pattern" | Partial understanding guarantees mistakes. Read it completely. |
 | "The code is the issue, let me just fix it" | Seeing symptoms ≠ understanding root cause. |
-| "One more fix attempt" (after 2+ failures) | 3+ failures = architectural problem. Question the pattern, don't fix again. |
+| 本技能在根因前后都不改生产代码 | 不存在「先试三次修复」。三次失败若发生在 tdd 里，由 tdd 在活动 flow 把 tdd 写成下一项之后处理。flow-01 与 flow-14 连 tdd 都没有。 |
 
 ## Red flags — STOP and return to Phase 1
 
@@ -102,7 +85,7 @@ technique.
 - "It's probably this, let me just change it"
 - "I don't fully understand but let's try"
 - Proposing solutions before tracing data flow
-- **"One more fix attempt" (when already tried 2+)**
+- 本技能在根因前后都不改生产代码；不存在「先试三次修复」。三次失败若发生在 tdd 里，由 tdd 在活动 flow 把 tdd 写成下一项之后处理。flow-01 与 flow-14 连 tdd 都没有。
 - **Each fix reveals a new problem in a different place**
 
 **ALL of these mean: STOP. Return to Phase 1.**
@@ -136,34 +119,21 @@ investigation. Say so explicitly before accepting that conclusion.
 
 ## Attribution: which layer this failure belongs to (framework addition)
 
-A fix that works is not the end of the investigation. Before the loop closes,
-name the layer this failure belongs to. Without that, the same class of
-failure returns with a different symptom, and the fix accumulates as reminders
-instead of as knowledge — and the same reminder cannot fix a problem of a
-different kind.
+在根因陈述里点明失败落在内容、取用、验证、流程还是方法。本技能不因此新建概念页，也不改 flow 契约。概念页和问题页仍走 flow-02 的知识步骤。
 
 | Layer | What the failure looks like | What to change | Where it lands |
 |---|---|---|---|
-| Content | A concept is missing, or two things that share a name were treated as one concept | Add the concept, or split the concepts that were merged | A `concept` page carrying the conditions it holds under |
-| Access | The concept was already right, but retrieval returned a similar case whose conditions did not match | The index and the applicability filter | The fields a query filters on |
-| Verification | Retrieval and interpretation were both right, but a data-side check was skipped | The workflow and the verification tool | The assertion or the check before the action |
-| Flow | The failure was not a knowledge problem at all — the sequence, the authorization or the gate was wrong | The flow contract | `development-workflow.md` |
-| Method | Many failures of the same kind each missing the same thing — the extraction itself is systematically incomplete | The extraction method | Needs cross-task validation before it counts |
+| Content | A concept is missing, or two things that share a name were treated as one concept | 根因陈述点明失败落在内容。本技能不因此新建概念页，也不改 flow 契约。 | 概念页和问题页仍走 flow-02 的知识步骤 |
+| Access | The concept was already right, but retrieval returned a similar case whose conditions did not match | 根因陈述点明失败落在取用。本技能不因此新建概念页，也不改 flow 契约。 | 概念页和问题页仍走 flow-02 的知识步骤 |
+| Verification | Retrieval and interpretation were both right, but a data-side check was skipped | 根因陈述点明失败落在验证。本技能不因此新建概念页，也不改 flow 契约。 | 概念页和问题页仍走 flow-02 的知识步骤 |
+| Flow | The failure was not a knowledge problem at all — the sequence, the authorization or the gate was wrong | 根因陈述点明失败落在流程。本技能不因此新建概念页，也不改 flow 契约。 | 概念页和问题页仍走 flow-02 的知识步骤 |
+| Method | Many failures of the same kind each missing the same thing — the extraction itself is systematically incomplete | 根因陈述点明失败落在方法。本技能不因此新建概念页，也不改 flow 契约。 | 概念页和问题页仍走 flow-02 的知识步骤 |
 
 Two records, not one. **Which knowledge base the record belongs to** is the
 module routing decision; **which layer the failure belongs to** is this
-attribution. Record both — they do not substitute for each other.
+attribution. Record both — they do not substitute for each other. 记录不在本技能里落成新页或改契约。
 
-The layer decides what you write down next:
-
-- Content becomes a `concept` page or a revised applicability condition.
-- Access becomes a change to the fields a query filters on.
-- Verification becomes an assertion, or a check before the action.
-- Flow becomes a change to the flow contract.
-- Method becomes a change to the extraction method — and that one needs
-  cross-task validation before it counts as an improvement. Allowing the
-  method to improve and allowing the standard that scores it to be lowered are
-  two different permissions.
+失败落在内容、取用、验证、流程还是方法。本技能不因此新建概念页，也不改 flow 契约。概念页和问题页仍走 flow-02 的知识步骤。
 
 ## Redaction
 

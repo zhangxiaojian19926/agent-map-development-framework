@@ -286,7 +286,10 @@ class RouterContractTests(unittest.TestCase):
                 'GREEN   the smallest implementation that passes it\n'
                 'REPEAT  one slice at a time')
         self.assertIn(loop, discipline)
-        self.assertIn('The test passes, the other tests still pass', discipline)
+        self.assertNotIn('The test passes, the other tests still pass', discipline)
+        self.assertNotIn('All tests pass', discipline)
+        self.assertIn('这一轮变绿只看刚写的那条测试，以及这轮结束后的关联局部快测', discipline)
+        self.assertIn('全量、端到端和打包留到 verification-before-completion', discipline)
         self.assertIn('写这一轮生产代码时，额外检查只跑编译、类型检查这类秒级检查。', discipline)
         self.assertIn('这一轮改动写完后跑关联的局部快测，失败就修，修完重跑同一条。', discipline)
         self.assertIn('全量、端到端和打包不在这里用来声称验证通过。', discipline)
@@ -620,6 +623,154 @@ class RouterContractTests(unittest.TestCase):
             diff = subprocess.check_output(
                 ['git', 'diff', '--name-only', 'HEAD', '--', change], cwd=ROOT, text=True)
             self.assertEqual(diff, '')
+
+    def test_diagnosis_has_one_next_step(self):
+        """Seam: diagnosing-bugs symptom purpose and the no-fix exit.
+
+        Catches a symptom note that still authorizes a fix, a three-try
+        repair loop, or a layer table that writes a concept page. Misses
+        whether a session actually states a root cause.
+        """
+        skill = (ROOT / 'skill/matt-pocock/diagnosing-bugs/SKILL.md').read_text(encoding='utf-8')
+        discipline = (ROOT / 'skill/matt-pocock/diagnosing-bugs/discipline.md').read_text(encoding='utf-8')
+        self.assertNotIn('so later phases can verify the fix actually addresses it', skill)
+        self.assertNotIn('If you have not completed Phase 1, you cannot propose fixes.', discipline)
+        self.assertNotIn('When three fixes fail, question the architecture', discipline)
+        self.assertNotIn('STOP after the third failed attempt.', discipline)
+        self.assertNotIn('Do not start fix #4.', discipline)
+        self.assertNotIn('One more fix attempt', discipline)
+        self.assertNotIn('A fix that works is not the end of the investigation.', discipline)
+        self.assertNotIn('The layer decides what you write down next', discipline)
+        self.assertIn('记下症状是为了后面核对根因能不能解释同一现象', skill)
+        self.assertIn('本技能不因此应用修复，也不把循环跑绿', skill)
+        self.assertIn('不应用修复，也不写生产代码。', skill)
+        self.assertIn('green once fixed', skill)
+        self.assertIn('NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST', discipline)
+        self.assertIn('INFRA_ERROR', discipline)
+        self.assertIn('本技能在根因前后都不改生产代码', discipline)
+        self.assertIn('不存在「先试三次修复」', discipline)
+        self.assertIn('失败落在内容、取用、验证、流程还是方法', discipline)
+        self.assertIn('本技能不因此新建概念页，也不改 flow 契约', discipline)
+        self.assertIn('概念页和问题页仍走 flow-02 的知识步骤', discipline)
+        self.assertIn('本技能仍不改产品代码。', discipline)
+
+    def test_bounded_design_does_not_start_implementation(self):
+        """Seam: brainstorming's bounded exit and sub-project close.
+
+        Catches an approved bounded design that starts implementation, or a
+        sub-project that opens spec, plan, and implementation. Misses whether
+        the active flow later names a spec step.
+        """
+        skill = (ROOT / 'skill/superpowers/brainstorming/SKILL.md').read_text(encoding='utf-8')
+        rules = (ROOT / 'skill/superpowers/brainstorming/framework-rules.md').read_text(encoding='utf-8')
+        self.assertNotIn('Implement via normal workflow', skill)
+        self.assertNotIn('implementation proceeds directly', skill)
+        self.assertNotIn('spec → plan → implementation cycle', skill)
+        self.assertNotIn('Each sub-project gets its own spec → plan → implementation cycle.', skill)
+        self.assertIn('批准之后收尾指向活动 flow', skill)
+        self.assertIn('要改行为、接口或验收就等 flow 进入规格', skill)
+        self.assertIn('探针停在建议', skill)
+        self.assertIn('本技能不按有界路径直接写实现', skill)
+        self.assertIn('每个子项目单独做一轮设计对话', skill)
+        self.assertIn('本技能不替它启动 spec、plan、implementation', skill)
+        self.assertIn('flow-08 不创建 OpenSpec change', skill)
+        self.assertIn('收尾指向活动 flow 的下一项', skill)
+        self.assertIn('下一项只由活动中的 flow 正文宣布。', rules)
+        self.assertIn('不按有界路径直接写实现。', rules)
+
+    def test_narrow_cleanup_stays_with_implementation(self):
+        """Seam: tdd's cleanup sentence in SKILL.md and discipline.md.
+
+        Catches a red-to-green step that forbids all cleanup, or a sentence
+        that still says both statements are true. Misses whether a session
+        actually extracts a helper.
+        """
+        skill = (ROOT / 'skill/matt-pocock/tdd/SKILL.md').read_text(encoding='utf-8')
+        discipline = (ROOT / 'skill/matt-pocock/tdd/discipline.md').read_text(encoding='utf-8')
+        self.assertNotIn('Refactoring is not part of the loop.', skill)
+        self.assertNotIn('Both are true here', discipline)
+        self.assertIn('红到绿不夹带设计级重构', skill)
+        self.assertIn('当前任务里的重复、命名和辅助函数仍在本技能的整理步做完', skill)
+        self.assertIn('改 seam、模块职责或接口放到评审里讨论', skill)
+        self.assertIn('真要改源码，回到 tdd', skill)
+        self.assertIn('红到绿不夹带设计级重构', discipline)
+        self.assertIn('In scope here:', discipline)
+        self.assertIn('Out of scope here:', discipline)
+        self.assertIn('这一轮变绿只看刚写的那条测试，以及这轮结束后的关联局部快测', discipline)
+        self.assertIn('NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST', discipline)
+
+    def test_review_uses_the_active_change_and_conditional_context(self):
+        """Seam: code-review spec source and whether a sub-agent is dispatched.
+
+        Catches a missing spec that sends the user to a setup skill, or a
+        review that always starts two sub-agents. Misses whether a host
+        actually provides a read-only sub-agent.
+        """
+        skill = (ROOT / 'skill/matt-pocock/code-review/SKILL.md').read_text(encoding='utf-8')
+        rules = (ROOT / 'skill/matt-pocock/code-review/framework-rules.md').read_text(encoding='utf-8')
+        self.assertNotIn('setup-matt-pocock-skills', skill)
+        self.assertNotIn('Issue both sub-agent calls', skill)
+        self.assertNotIn('A spec file under', skill)
+        self.assertNotIn('runs Standards and Spec as parallel sub-agents', rules)
+        self.assertIn('规格就是活动 OpenSpec change', skill)
+        self.assertIn('不把 docs/、specs/ 或 .scratch/ 写成规格来源', skill)
+        self.assertIn('无可用规格', skill)
+        self.assertIn('低风险不派独立上下文', skill)
+        self.assertIn('高风险只在已有授权的只读子代理时派', skill)
+        self.assertIn('没有时报告标明自审', skill)
+        self.assertIn('评审不改业务源码', skill)
+        self.assertIn('does the code conform to this repo', skill)
+        self.assertIn('how to fix', skill)
+        self.assertIn('低风险不派独立上下文', rules)
+        self.assertIn('评审不改业务源码，不往 tasks.md 追加切片。发现写入交付报告。', rules)
+        self.assertIn('走轻量核对，不要求独立只读上下文。', rules)
+        self.assertIn('没有已授权的只读子代理时，报告标明自审。', rules)
+
+    def test_delegated_implementer_does_not_commit(self):
+        """Seam: subagent-driven-development's implementer and review exit.
+
+        Catches an implementer told to commit, a dispatch of the upstream
+        task reviewer, or this skill naming the next skill. Misses whether
+        a host actually provides a sub-agent.
+        """
+        skill = (ROOT / 'skill/superpowers/subagent-driven-development/SKILL.md').read_text(encoding='utf-8')
+        rules = (ROOT / 'skill/superpowers/subagent-driven-development/framework-rules.md').read_text(encoding='utf-8')
+        self.assertNotIn('task-reviewer-prompt', skill)
+        self.assertNotIn('finishing-a-development-branch', skill)
+        self.assertNotIn('implements, tests, commits, self-reviews', skill)
+        self.assertIn('被委派者仍用 tdd', skill)
+        self.assertIn('实现者不提交', skill)
+        self.assertIn('评审用 code-review', skill)
+        self.assertIn('本技能结束时不自己提示下一个技能', skill)
+        self.assertIn('提交仍等用户当次选择', skill)
+        self.assertIn('Fresh subagent per task', skill)
+        self.assertIn('Controller fixes pollute your context', skill)
+        self.assertIn('The implementer does not commit.', rules)
+        self.assertIn('Do not dispatch the upstream `task-reviewer-prompt.md`.', rules)
+        self.assertTrue((ROOT / 'skill/superpowers/subagent-driven-development/task-reviewer-prompt.md').is_file())
+
+    def test_slices_land_in_tasks_and_handoff_does_not_choose(self):
+        """Seam: to-tickets landing place and the execution handoff.
+
+        Catches slices published to a scratch tracker, or a handoff that
+        offers subagent versus inline execution. Misses whether a session
+        later checks a box after TASK_VERIFIED.
+        """
+        skill = (ROOT / 'skill/matt-pocock/to-tickets/SKILL.md').read_text(encoding='utf-8')
+        plan = (ROOT / 'skill/matt-pocock/to-tickets/plan-format.md').read_text(encoding='utf-8')
+        self.assertNotIn('setup-matt-pocock-skills', skill)
+        self.assertNotIn('.scratch/<feature-slug>', skill)
+        self.assertNotIn('offer the execution choice', plan)
+        self.assertNotIn('Subagent-driven (recommended)', plan)
+        self.assertNotIn('Inline execution', plan)
+        self.assertIn('切片正文只写入当前 change 的 tasks.md', skill)
+        self.assertIn('不写 .scratch，不要求安装命令，不发到外部 tracker', skill)
+        self.assertIn('Each slice cuts a narrow but COMPLETE path', skill)
+        self.assertIn('不再提供子代理执行或当轮执行的选择', plan)
+        self.assertIn('勾选仍等该切片 TASK_VERIFIED', plan)
+        self.assertIn('下一项由活动 flow 宣布', plan)
+        self.assertIn('Write them into the current OpenSpec', plan)
+        self.assertIn('Spec coverage', plan)
 
 
 class RouterFalsificationTests(unittest.TestCase):

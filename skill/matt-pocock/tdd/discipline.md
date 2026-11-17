@@ -67,8 +67,8 @@ imagined behavior, not real behavior.
 fix the test. A test that errors has a broken setup; fix the error and re-run
 until it fails correctly.
 
-**Verify green.** The test passes, the other tests still pass, and the output
-is clean. If the test fails, fix the code, not the test.
+**Verify green.** 这一轮变绿只看刚写的那条测试，以及这轮结束后的关联局部快测；全量、端到端和打包留到 verification-before-completion。
+If the test fails, fix the code, not the test.
 
 这些动作不算修复：说不清坏值从哪来，就在报错处加空值判断、try/catch、重试、sleep 或加大超时；只对报告的那一个输入写特判；放宽、跳过或删除失败测试；一次改好几处却说不清是哪一处起作用。兜底如果还要，单独写明，不把它当成根因修复。入口校验如果就是坏数据第一次产生的地方，空值判断仍然算修复。
 
@@ -85,12 +85,9 @@ narrow:
   review stage, where they are discussed and decided, and may need their own
   change.
 
-写这一轮生产代码时，额外检查只跑编译、类型检查这类秒级检查。这一轮改动写完后跑关联的局部快测，失败就修，修完重跑同一条。全量、端到端和打包不在这里用来声称验证通过。「The test passes, the other tests still pass」不授权把全量、端到端或打包扩进每一次变绿。切片自己的一次 RED 失败测试仍保留。
+写这一轮生产代码时，额外检查只跑编译、类型检查这类秒级检查。这一轮改动写完后跑关联的局部快测，失败就修，修完重跑同一条。全量、端到端和打包不在这里用来声称验证通过。这一轮变绿只看刚写的那条测试，以及这轮结束后的关联局部快测；全量、端到端和打包留到 verification-before-completion。不授权把全量、端到端或打包扩进每一次变绿。切片自己的一次 RED 失败测试仍保留。
 
-`SKILL.md` says refactoring is not part of the red-to-green loop and belongs
-to review. Both are true here: the cleanup that keeps the current task
-readable happens with the implementation; the restructuring that changes what
-the module is happens at review.
+红到绿不夹带设计级重构；当前任务里的重复、命名和辅助函数仍在本技能的整理步做完；改 seam、模块职责或接口放到评审里讨论；真要改源码，回到 tdd。
 
 ## Rationalizations
 
@@ -137,7 +134,7 @@ Before marking a task verified:
 - [ ] You watched each test fail before implementing
 - [ ] Each test failed for the expected reason (feature missing, not a typo)
 - [ ] You wrote the minimal code to pass each test
-- [ ] All tests pass
+- [ ] 这一轮变绿只看刚写的那条测试，以及这轮结束后的关联局部快测；全量、端到端和打包留到 verification-before-completion
 - [ ] Output is clean — no errors, no warnings
 - [ ] The expected values come from an independent source, not from the code under test
 - [ ] Edge cases and error paths are covered

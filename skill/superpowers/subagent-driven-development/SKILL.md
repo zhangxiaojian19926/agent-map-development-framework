@@ -67,8 +67,8 @@ digraph process {
         "Dispatch implementer subagent (./implementer-prompt.md)" [shape=box];
         "Implementer asks questions?" [shape=diamond];
         "Answer questions, provide context" [shape=box];
-        "Implementer implements, tests, commits, self-reviews" [shape=box];
-        "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" [shape=box];
+        "被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。" [shape=box];
+        "被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。" [shape=box];
         "Spec ✅ and quality approved?" [shape=diamond];
         "Finding conflicts with plan text?" [shape=diamond];
         "Rule on the conflict, ledger the ruling" [shape=box];
@@ -88,15 +88,15 @@ digraph process {
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [shape=box];
     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" [shape=box];
     "Final review clean: delete this plan's workspace" [shape=box];
-    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+    "被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。" [shape=box style=filled fillcolor=lightgreen];
 
     "Setup: worktree, ledger check, read plan, pre-flight review" -> "Dispatch implementer subagent (./implementer-prompt.md)";
     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer asks questions?";
     "Implementer asks questions?" -> "Answer questions, provide context" [label="yes"];
-    "Answer questions, provide context" -> "Implementer implements, tests, commits, self-reviews";
-    "Implementer asks questions?" -> "Implementer implements, tests, commits, self-reviews" [label="no"];
-    "Implementer implements, tests, commits, self-reviews" -> "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)";
-    "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" -> "Spec ✅ and quality approved?";
+    "Answer questions, provide context" -> "被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。";
+    "Implementer asks questions?" -> "被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。" [label="no"];
+    "被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。" -> "被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。";
+    "被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。" -> "Spec ✅ and quality approved?";
     "Spec ✅ and quality approved?" -> "Append completion to ledger, mark todo complete" [label="yes"];
     "Spec ✅ and quality approved?" -> "Finding conflicts with plan text?" [label="no"];
     "Finding conflicts with plan text?" -> "Rule on the conflict, ledger the ruling" [label="yes"];
@@ -117,7 +117,7 @@ digraph process {
     "More tasks remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals";
     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" -> "Final review clean: delete this plan's workspace";
-    "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
+    "Final review clean: delete this plan's workspace" -> "被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。";
 }
 ```
 
@@ -263,7 +263,7 @@ and fix-round diffs need it.
 - **Report file:** name the implementer's report file after the brief
   (brief `…/task-N-brief.md` → report `…/task-N-report.md`) and put it in
   the dispatch prompt. The implementer writes the full report there and
-  returns only status, commits, a one-line test summary, and concerns.
+  returns only status, a one-line test summary, and concerns. 被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。
 - A dispatch prompt describes one task, not the session's history. Do not
   paste accumulated prior-task summaries ("state after Tasks 1-3") into
   later dispatches — a real session's dispatch hit 42k chars of which 99%
@@ -287,7 +287,7 @@ Template: [implementer-prompt.md](implementer-prompt.md)
 
 Implementer subagents report one of four statuses. Handle each appropriately:
 
-**DONE:** Generate the review package (`scripts/review-package PLAN_FILE BASE HEAD`, from this skill's directory — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path.
+**DONE:** 被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。
 
 **DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
 
@@ -320,9 +320,9 @@ needed.
   file). The output never enters your own context, and the reviewer sees
   the commit list, stat summary, and full diff with context in one Read
   call. Use the BASE you recorded before dispatching the implementer —
-  never `HEAD~1`, which silently truncates multi-commit tasks. Never
-  dispatch a task reviewer without a diff file.
-- **Reviewer inputs:** the task reviewer gets three paths — the same brief
+  never `HEAD~1`, which silently truncates multi-commit tasks.
+  被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。
+- **Reviewer inputs:** 评审用 code-review。被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。 已经决定派授权只读子代理时，它读取三条路径 — the same brief
   file, the report file, and the review package — plus the global
   constraints that bind the task.
 - The global-constraints block you hand the reviewer is its attention
@@ -342,14 +342,14 @@ needed.
   loop. If the prompt you are writing contains "do not flag," "don't treat X
   as a defect," "at most Minor," or "the plan chose" — stop: you are
   pre-judging, usually to spare yourself a review loop.
-The task reviewer may report "⚠️ Cannot verify from diff" items — requirements
+被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。 A review may report "⚠️ Cannot verify from diff" items — requirements
 that live in unchanged code or span tasks. These do not block the rest of the
 review, but you must resolve each one yourself before marking the task
 complete: you hold the plan and cross-task context the reviewer
 lacks. If you confirm an item is a real gap, treat it as a failed spec
 review — it enters the fix loop with the other findings.
 
-Template: [task-reviewer-prompt.md](task-reviewer-prompt.md)
+被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。
 
 ### 4. The fix loop
 
@@ -466,7 +466,7 @@ Adjudicate any residual findings as in the task loop's breaker: park with
 rulings, or rule on the load-bearing ones and ledger what you decided. Only
 the four classes above stop you here. There is no second fix wave —
 residual load-bearing findings surface to your human partner when
-finishing-a-development-branch presents the options.
+被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。
 
 ## Finish
 
@@ -484,7 +484,7 @@ delete this plan's workspace (`rm -rf <workspace>`) — the git history is
 the record now. Sibling directories belong to other plans; leave them
 alone.
 
-Use superpowers:finishing-a-development-branch.
+被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。
 
 ## Common Rationalizations
 
@@ -522,9 +522,9 @@ Implementer: [Later]
   - Implemented install-hook command
   - Added tests, 5/5 passing
   - Self-review: Found I missed --force flag, added it
-  - Committed
+  - 报告改动和测试结果，不提交。被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。
 
-[Run review-package PLAN_FILE BASE HEAD; dispatch task reviewer with the printed path]
+[被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。]
 Task reviewer: Spec ✅ - all requirements met, nothing extra.
   Strengths: Good test coverage, clean. Issues: None. Task quality: Approved.
 
@@ -537,9 +537,9 @@ Task 2: Recovery modes
 Implementer: [No questions]
   - Added verify/repair modes
   - 8/8 tests passing
-  - Committed
+  - 报告改动和测试结果，不提交。被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。
 
-[Run review-package PLAN_FILE BASE HEAD; dispatch task reviewer with the printed path]
+[被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。]
 Task reviewer: Spec ❌:
   - Missing: Progress reporting (spec says "report every 100 items")
   Issues (Important): Magic number (100)
@@ -564,5 +564,5 @@ Final reviewer: All requirements met. Deferred minors triaged: none block merge.
 
 [Delete this plan's workspace — the record now lives in git]
 
-Done! Using superpowers:finishing-a-development-branch.
+被委派者仍用 tdd，实现者不提交；不派上游任务评审，评审用 code-review；本技能结束时不自己提示下一个技能。提交仍等用户当次选择。
 ```

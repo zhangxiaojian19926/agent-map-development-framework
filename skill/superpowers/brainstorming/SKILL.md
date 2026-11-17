@@ -89,7 +89,7 @@ your path and complete them in order.
 2. **Ask clarifying questions** — one at a time, the ones that matter
 3. **Present short design in chat** — approach, files touched, testing
 4. **Get approval** — STOP and wait for an explicit yes; presenting the design and starting in the same breath is skipping the gate
-5. **Implement** — proceed with the normal development workflow (TDD applies); no plan document
+5. 批准之后收尾指向活动 flow；要改行为、接口或验收就等 flow 进入规格；探针停在建议；本技能不按有界路径直接写实现。
 
 **Architectural:**
 1. **Explore project context** — check files, docs, recent commits
@@ -112,7 +112,7 @@ digraph brainstorming {
     "Present short design in chat" [shape=box];
     "Human approves?" [shape=diamond];
     "Investigate; report recommendation" [shape=doublecircle];
-    "Implement via normal workflow (no plan doc)" [shape=doublecircle];
+    "批准之后收尾指向活动 flow；要改行为、接口或验收就等 flow 进入规格；探针停在建议；本技能不按有界路径直接写实现" [shape=doublecircle];
     "Explore project context" [shape=box];
     "Ask clarifying questions" [shape=box];
     "Propose 2-3 approaches" [shape=box];
@@ -131,7 +131,7 @@ digraph brainstorming {
     "Ask clarifying questions (bounded)" -> "Present short design in chat";
     "Present short design in chat" -> "Human approves?";
     "Human approves?" -> "Investigate; report recommendation" [label="spike: yes"];
-    "Human approves?" -> "Implement via normal workflow (no plan doc)" [label="bounded: yes"];
+    "Human approves?" -> "批准之后收尾指向活动 flow；要改行为、接口或验收就等 flow 进入规格；探针停在建议；本技能不按有界路径直接写实现" [label="bounded: yes"];
     "Hidden complexity? Upgrade path" -> "Classify: spike / bounded / architectural";
     "Explore project context" -> "Ask clarifying questions";
     "Ask clarifying questions" -> "Propose 2-3 approaches";
@@ -147,9 +147,7 @@ digraph brainstorming {
 ```
 
 **Terminal states are path-bound.** Architectural: 收尾指向活动 flow 的下一项。Do not invoke `to-tickets` unless the active flow names it — never frontend-design,
-mcp-builder, or any other implementation skill. Bounded: after
-approval, implementation proceeds directly through the normal
-development workflow; no plan document. Spike: the terminal state is a
+mcp-builder, or any other implementation skill. Bounded: 批准之后收尾指向活动 flow；要改行为、接口或验收就等 flow 进入规格；探针停在建议；本技能不按有界路径直接写实现。 Spike: the terminal state is a
 reported recommendation.
 
 ## The Process
@@ -164,7 +162,7 @@ is the whole process.
 
 - Check out the current project state first (files, docs, recent commits)
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
-- If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
+- If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. 每个子项目单独做一轮设计对话，结束时指向当时活动 flow 的下一项；本技能不替它启动 spec、plan、implementation。flow-08 不创建 OpenSpec change。
 - For appropriately-scoped projects, ask questions one at a time to refine the idea
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
