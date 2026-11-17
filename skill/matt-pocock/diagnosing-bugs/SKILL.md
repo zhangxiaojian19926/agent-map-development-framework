@@ -79,7 +79,7 @@ Confirm:
 
 Once it's red, shrink the repro to the **smallest scenario that still goes red**. Cut inputs, callers, config, data, and steps **one at a time**, re-running the loop after each cut, and keep only what's load-bearing for the failure.
 
-Why bother: a minimal repro shrinks the hypothesis space in Phase 3 (fewer moving parts left to suspect) and becomes the clean regression test in Phase 5.
+Why bother: a minimal repro shrinks the hypothesis space in Phase 3 (fewer moving parts left to suspect). This skill does not turn that repro into a regression test.
 
 Done when **every remaining element is load-bearing**: removing any one of them makes the loop go green.
 
@@ -109,30 +109,24 @@ Tool preference:
 
 **Tag every debug log** with a unique prefix, e.g. `[DEBUG-a4f2]`. Cleanup at the end becomes a single grep. Untagged logs survive; tagged logs die.
 
-**Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement (timing harness, `performance.now()`, profiler, query plan), then bisect. Measure first, fix second.
+**Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement (timing harness, `performance.now()`, profiler, query plan), then bisect. Measure first. Do not change production code in this skill.
 
-## Phase 5: Fix + regression test
+## Phase 5: Stop at the root cause
 
-Write the regression test **before the fix**, but only if there is a **correct seam** for it.
+本阶段不是实现器。不应用修复，也不写生产代码。
 
-A correct seam is one where the test exercises the **real bug pattern** as it occurs at the call site. If the only available seam is too shallow (single-caller test when the bug needs multiple callers, unit test that can't replicate the chain that triggered the bug), a regression test there gives false confidence.
+State the root cause, the minimised repro, and the evidence that supports them. Then stop. Do not write a regression test in this phase, and do not change production code to make the loop go green.
 
-**If no correct seam exists, that itself is the finding.** Note it. The codebase architecture is preventing the bug from being locked down. Flag this for the next phase.
-
-If a correct seam exists:
-
-1. Turn the minimised repro into a failing test at that seam.
-2. Watch it fail. If you forced the red by mutating code or a fixture, `diff` against a pristine copy to prove the mutation landed before you trust it.
-3. Apply the fix.
-4. Watch it pass.
-5. Re-run the Phase 1 feedback loop against the original (un-minimised) scenario.
+回归测试和修复只在活动路由把 tdd 写成下一项时由 tdd 做。flow-01 与 flow-14 不把 tdd 写成下一项，所以这两条读完诊断就停。
 
 ## Phase 6: Cleanup
 
-Required before declaring done:
+The diagnosis is done when the root cause is stated. Leaving this skill does not require the original repro to go green, and it does not require a regression test.
 
-- [ ] Original repro no longer reproduces (re-run the Phase 1 loop)
-- [ ] Regression test passes (or absence of seam is documented)
+Required before leaving the diagnosis:
+
+- [ ] The root cause, the minimised repro, and the supporting evidence are stated
 - [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)
 - [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)
-- [ ] The hypothesis that turned out correct is stated in the commit / PR message, so the next debugger learns
+
+Do not open a fix commit from this skill.

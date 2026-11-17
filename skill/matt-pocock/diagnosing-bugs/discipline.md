@@ -27,12 +27,14 @@ without explaining why the error happened is not a fix; it is a delay.
 ## Environment failures are not red signals (framework addition)
 
 A missing compiler, an unreachable device, a broken network or a dead runner
-is **INFRA_ERROR**, not a failing test. It never counts as the red that
-licenses writing production code, and it never counts as a green verification.
+is **INFRA_ERROR**, not a failing test. It never counts as a red signal,
+and it never counts as a green verification. A genuine red signal does not
+license this skill to write production code.
 
 ```
 Environment is broken      → INFRA_ERROR, fix the environment, re-run
-Environment works, behavior missing → genuine RED, now write code
+Environment works, behavior missing → genuine RED. 本技能不写生产代码。
+查完根因后不先写测试再修复。回归测试和修复只在活动路由把 tdd 写成下一项时由 tdd 做。
 ```
 
 Do not dress an environment failure up as a red signal, and do not report an
@@ -79,7 +81,7 @@ technique.
 | "Issue is simple, don't need process" | Simple issues still have root causes. The process is fast for simple bugs. |
 | "Emergency, no time for process" | Systematic debugging is FASTER than guess-and-check thrashing. |
 | "Just try this first, then investigate" | First fix sets the pattern. Do it right from the start. |
-| "I'll write test after confirming fix works" | Untested fixes don't stick. Test first proves the fix. |
+| "I'll write test after confirming fix works" | 查完根因后不先写测试再修复。回归测试和修复只在活动路由把 tdd 写成下一项时由 tdd 做。 |
 | "Multiple fixes at once saves time" | Can't isolate what worked. Causes new bugs. |
 | "Reference too long, I'll adapt the pattern" | Partial understanding guarantees mistakes. Read it completely. |
 | "The code is the issue, let me just fix it" | Seeing symptoms ≠ understanding root cause. |
@@ -120,8 +122,8 @@ external:
 
 1. You have completed the process
 2. Document what you investigated
-3. Implement appropriate handling (retry, timeout, error message)
-4. Add monitoring or logging for future investigation
+3. 本技能不写生产代码。
+4. Do not add monitoring or logging here. 回归测试和修复只在活动路由把 tdd 写成下一项时由 tdd 做。
 
 **But:** the large majority of "no root cause" cases are incomplete
 investigation. Say so explicitly before accepting that conclusion.
@@ -170,7 +172,7 @@ user for the missing artifact rather than guessing.
 
 ## Further reading in this group
 
-- [SKILL.md](SKILL.md) — the feedback loop, hypotheses, instrumentation, fix and cleanup phases
+- [SKILL.md](SKILL.md) — the feedback loop, hypotheses, instrumentation, and cleanup phases
 - [root-cause-tracing.md](root-cause-tracing.md) — tracing a bad value back to its origin
 - [defense-in-depth.md](defense-in-depth.md) — validating at several layers after the root cause is known
 - [condition-based-waiting.md](condition-based-waiting.md) — replacing fixed timeouts with condition polling

@@ -45,7 +45,7 @@ override it:
 - **Architectural** — new projects, new subsystems, changes that
   restructure how components fit together or alter interfaces others
   depend on. Follow the full process: questions, approaches, sectioned
-  design, written spec, then the to-tickets skill.
+  design. 收尾指向活动 flow 的下一项。
 
 When in doubt between two paths, take the heavier one. The ratchet is
 one-way: hidden complexity discovered mid-task upgrades the path —
@@ -97,10 +97,10 @@ your path and complete them in order.
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — write the validated design into the current OpenSpec change's design artifact, at the path the OpenSpec CLI returns for that change. When no change exists yet, keep the design in the conversation and let `openspec-propose` create the artifacts instead of writing a second copy of the spec. Do not commit it here
+6. **Write design doc** — when an OpenSpec change already exists, write the validated design into that change's design artifact, at the path the OpenSpec CLI returns. When no change exists yet, keep the design in the conversation instead of writing a second copy of the spec. 收尾指向活动 flow 的下一项。Do not commit it here
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — invoke to-tickets skill to create the implementation slices
+9. **Close** — 收尾指向活动 flow 的下一项。Do not invoke `openspec-propose` or `to-tickets` unless the active flow names them
 
 ## Process Flow
 
@@ -121,7 +121,7 @@ digraph brainstorming {
     "Write design doc" [shape=box];
     "Spec self-review\n(fix inline)" [shape=box];
     "User reviews spec?" [shape=diamond];
-    "Invoke to-tickets skill" [shape=doublecircle];
+    "Follow the active flow's next item" [shape=doublecircle];
     "Hidden complexity? Upgrade path" [shape=box];
 
     "Classify: spike / bounded / architectural" -> "Present question + probe (2-3 sentences)" [label="spike"];
@@ -142,12 +142,11 @@ digraph brainstorming {
     "Write design doc" -> "Spec self-review\n(fix inline)";
     "Spec self-review\n(fix inline)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Invoke to-tickets skill" [label="approved"];
+    "User reviews spec?" -> "Follow the active flow's next item" [label="approved"];
 }
 ```
 
-**Terminal states are path-bound.** Architectural: the ONLY skill you
-invoke after brainstorming is to-tickets — never frontend-design,
+**Terminal states are path-bound.** Architectural: 收尾指向活动 flow 的下一项。Do not invoke `to-tickets` unless the active flow names it — never frontend-design,
 mcp-builder, or any other implementation skill. Bounded: after
 approval, implementation proceeds directly through the normal
 development workflow; no plan document. Spike: the terminal state is a
@@ -221,7 +220,7 @@ MIT, copyright Matt Pocock; see `THIRD_PARTY_NOTICES.md`.)*
 **Documentation:**
 
 - Write the validated design into the current OpenSpec change's design artifact, at the path the OpenSpec CLI returns for that change. Use the artifact name the schema actually declares rather than assuming a fixed file name.
-  - When no change exists yet, keep the design in the conversation and let `openspec-propose` create the artifacts; extra design or plan files are linked from the change, not written beside it as a second copy.
+  - When no change exists yet, keep the design in the conversation. 收尾指向活动 flow 的下一项。Extra design or plan files are not written beside the conversation as a second copy.
   - (User preferences for spec location override this default, but the same requirement is never duplicated into two files.)
 - Do not commit or push the design document. Commit, push, deploy and release are authorized separately from design.
 
@@ -238,14 +237,14 @@ Fix any issues inline. No need to re-review — just fix and move on.
 **User Review Gate:**
 After the spec review loop passes, ask the user to review the written spec before proceeding:
 
-> "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
+> "Please review the written design and let me know if you want to make any changes. 收尾指向活动 flow 的下一项。"
 
 Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
 
-**Implementation:**
+**Next item:**
 
-- Invoke the to-tickets skill to create the implementation slices
-- Do NOT invoke any other skill. to-tickets is the next step.
+- 收尾指向活动 flow 的下一项。
+- Do not invoke `to-tickets` or `openspec-propose` unless the active flow names them.
 
 ## Visual Companion
 

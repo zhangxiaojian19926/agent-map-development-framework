@@ -78,10 +78,9 @@ self-review and must never be reported as an independent approval.**
 
 ## Closure rules
 
-Findings are not done until they are closed:
+评审不改业务源码，不往 tasks.md 追加切片。发现写入交付报告。
 
-- **Important** findings must be fixed before the work proceeds, and the
-  affected checks must be re-run afterwards.
+- **Important** 活动路由把 tdd 写成下一项时，修改回到 tdd。flow-04 与 flow-09 没有这句，评审到报告为止。
 - **Minor** 发现只写入交付报告，不往 tasks.md 追加切片。
 - A finding that is rejected needs a reason recorded, not silence.
 
