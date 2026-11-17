@@ -84,6 +84,10 @@ self-review and must never be reported as an independent approval.**
 - **Minor** 发现只写入交付报告，不往 tasks.md 追加切片。
 - A finding that is rejected needs a reason recorded, not silence.
 
+## 风险分档
+
+纯界面、文案、辅助脚本且没碰到高风险目录，走轻量核对，不要求独立只读上下文。并发、数据格式与迁移、不可逆删除、鉴权、对外契约、打包发布，以及仓库已写明的高风险或禁改目录，才需要独立只读上下文。不为此新造一份目录名册。没有已授权的只读子代理时，报告标明自审。对照活动 OpenSpec change 核对允许修改的路径、本期不做、方案点名必须复用的代码。缺陷修复再核对改动是否在坏数据第一次产生的位置。这些句子只追加，不把评审改回改业务源码。flow-04 与 flow-09 只把这些问题写入交付报告，不把修改交回 tdd。
+
 ## Evidence binding
 
 Every review conclusion binds to what was actually reviewed:

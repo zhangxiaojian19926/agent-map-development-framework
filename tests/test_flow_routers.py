@@ -237,6 +237,224 @@ class RouterContractTests(unittest.TestCase):
         self.assertIn('停在设计对话', flow08)
         self.assertIn('不把 openspec-propose 或 to-tickets 当作下一项', flow08)
 
+    def test_flow_02_readonly_audit_names_the_brief_and_hygiene_list(self):
+        """Seam: the rendered flow-02 read-only audit section.
+
+        Catches a missing familiarity split, a brief that drops one of the
+        four items, a read-only slice handed out without delegation, or a
+        hygiene list that edits files. Misses whether a later session
+        actually follows the sentence.
+        """
+        text = (ROOT / 'skill/flows/flow-02/SKILL.md').read_text(encoding='utf-8')
+        audit = text.split('## 只读审计', 1)[1].split('## 纯文档', 1)[0]
+        self.assertIn('不点名实现技能，不写文件。', audit)
+        self.assertIn('按熟悉度分档：单点问题直接检索；单模块再读该模块约束；陌生或跨模块才做结构快照。', audit)
+        self.assertIn('简报至少含文件与行号、可复用代码、仓库里已经存在的局部快测命令、要用户拍板的问题。', audit)
+        self.assertIn('只有用户已授权且宿主提供子代理时，才按互不重叠的目录做只读切片；否则主 Agent 自己读。', audit)
+        self.assertIn('结束仍停在只读审计，不把 openspec-explore、openspec-propose 或 to-tickets 写成下一项。', audit)
+        self.assertIn('用户要看仓库卫生时，只出清单：死链、长期未改的文档是否和当前代码矛盾、没有任何入口执行的测试目录、嵌在主仓库目录里的 worktree、分支合入状态。', audit)
+        self.assertIn('清单不改文件。', audit)
+        self.assertIn('仍走纯文档并点名 [writing-for-agents](../../matt-pocock/writing-for-agents/SKILL.md)。', audit)
+        self.assertIn('不重写 AGENTS.md，不新增小节，不执行 git worktree remove。', audit)
+        docs = text.split('## 纯文档', 1)[1].split('## 既有规格修复', 1)[0]
+        self.assertIn('被 Agent 读取的文档改动点名 [writing-for-agents](../../matt-pocock/writing-for-agents/SKILL.md)。', docs)
+        self.assertIn('文档若改变公开接口或验收，改走新行为路径，不停留在纯文档路径。', docs)
+        self.assertNotIn('oil-plan', text)
+        self.assertNotIn('oil-delegate', text)
+        self.assertNotIn('oil-bug-fix', text)
+
+    def test_flow_02_tdd_keeps_one_red_and_limits_the_round(self):
+        """Seam: flow-02 sentences that name tdd, and the tdd framework addition.
+
+        Catches a round that expands into the full suite, or a rewrite of the
+        RED/GREEN loop. Misses whether the commands a session runs are fast.
+        """
+        text = (ROOT / 'skill/flows/flow-02/SKILL.md').read_text(encoding='utf-8')
+        cadence = ('切片自己的一次 RED 失败测试保留。写这一轮生产代码时，额外检查只跑编译、类型检查这类秒级检查。'
+                   '这一轮改动写完后跑关联的局部快测，失败就修，修完重跑同一条。'
+                   '全量、端到端和打包不在这一步用来声称验证通过。')
+        self.assertGreaterEqual(text.count(cadence), 3)
+        repair = text.split('## 既有规格修复', 1)[1].split('## 新行为', 1)[0]
+        fresh = text.split('## 新行为', 1)[1].split('## 下一项', 1)[0]
+        nxt = text.split('## 下一项', 1)[1].split('## 暂停的收尾', 1)[0]
+        for section in (repair, fresh, nxt):
+            self.assertIn(cadence, section)
+        self.assertIn('tdd 进行中：' + cadence, nxt)
+        discipline = (ROOT / 'skill/matt-pocock/tdd/discipline.md').read_text(encoding='utf-8')
+        loop = ('RED      write one failing test at a confirmed seam\n'
+                'VERIFY  watch it fail, and confirm it failed for the right reason\n'
+                'GREEN   the smallest implementation that passes it\n'
+                'REPEAT  one slice at a time')
+        self.assertIn(loop, discipline)
+        self.assertIn('The test passes, the other tests still pass', discipline)
+        self.assertIn('写这一轮生产代码时，额外检查只跑编译、类型检查这类秒级检查。', discipline)
+        self.assertIn('这一轮改动写完后跑关联的局部快测，失败就修，修完重跑同一条。', discipline)
+        self.assertIn('全量、端到端和打包不在这里用来声称验证通过。', discipline)
+        self.assertIn('不授权把全量、端到端或打包扩进每一次变绿。', discipline)
+
+    def test_flow_02_review_uses_risk_tiers_and_one_local_check(self):
+        """Seam: flow-02 sentences that name code-review, and the review rules.
+
+        Catches a light change that still demands a fresh read-only context,
+        a local check used as the verification claim, or a fast check copied
+        into the adaptation layer. Misses whether the reviewer actually ran.
+        """
+        text = (ROOT / 'skill/flows/flow-02/SKILL.md').read_text(encoding='utf-8')
+        repair = text.split('## 既有规格修复', 1)[1].split('## 新行为', 1)[0]
+        fresh = text.split('## 新行为', 1)[1].split('## 下一项', 1)[0]
+        nxt = text.split('## 下一项', 1)[1].split('## 暂停的收尾', 1)[0]
+        phrases = (
+            '走轻量核对，不要求独立只读上下文。',
+            '并发、数据格式与迁移、不可逆删除、鉴权、对外契约、打包发布，以及仓库已写明的高风险或禁改目录，才需要独立只读上下文。',
+            '没有已授权的只读子代理时，报告标明自审。',
+            '对照活动 OpenSpec change 核对允许修改的路径、本期不做、方案点名必须复用的代码。',
+            '缺陷修复再核对改动是否在坏数据第一次产生的位置。',
+            '亲自跑一次与本次改动相关的局部快测。',
+            '这次通过不能代替 verification-before-completion。',
+            '发现写入交付报告，不往 tasks.md 追加切片。',
+            '要改源码回到 tdd。',
+        )
+        for phrase in phrases:
+            for section in (repair, fresh, nxt):
+                self.assertIn(phrase, section)
+        claim = '声称验证通过只用这一步的全量、端到端和打包。局部快测通过不能代替这一步。'
+        self.assertIn(claim, fresh)
+        self.assertIn(claim, nxt)
+        rules = (ROOT / 'skill/matt-pocock/code-review/framework-rules.md').read_text(encoding='utf-8')
+        self.assertIn('评审不改业务源码，不往 tasks.md 追加切片。发现写入交付报告。', rules)
+        self.assertIn('flow-04 与 flow-09 没有这句，评审到报告为止。', rules)
+        self.assertIn('走轻量核对，不要求独立只读上下文。', rules)
+        self.assertIn('才需要独立只读上下文。', rules)
+        self.assertIn('没有已授权的只读子代理时，报告标明自审。', rules)
+        self.assertIn('对照活动 OpenSpec change 核对允许修改的路径、本期不做、方案点名必须复用的代码。', rules)
+        self.assertIn('缺陷修复再核对改动是否在坏数据第一次产生的位置。', rules)
+        self.assertIn('不把评审改回改业务源码。', rules)
+        self.assertIn('flow-04 与 flow-09 只把这些问题写入交付报告，不把修改交回 tdd。', rules)
+        self.assertNotIn('局部快测', rules)
+        for rel, entry in (
+            ('skill/flows/flow-04/SKILL.md',
+             '评审受管 diff 时点名 [code-review](../../matt-pocock/code-review/SKILL.md) 与 [framework-rules.md](../../matt-pocock/code-review/framework-rules.md)。'),
+            ('skill/flows/flow-09/SKILL.md',
+             '规格已批准且实现之后，点名 [code-review](../../matt-pocock/code-review/SKILL.md) 与 [framework-rules.md](../../matt-pocock/code-review/framework-rules.md)。'),
+        ):
+            body = (ROOT / rel).read_text(encoding='utf-8')
+            self.assertIn(entry, body)
+            self.assertNotIn('不往 tasks.md 追加切片', body)
+            self.assertNotIn('局部快测', body)
+            self.assertNotIn('轻量核对', body)
+            self.assertNotIn('要改源码回到 tdd', body)
+
+    def test_flow_02_states_branch_facts_before_finishing(self):
+        """Seam: the flow-02 sentences immediately before finishing the branch.
+
+        Catches a dirty worktree marked cleanable, or a hygiene list that
+        removes a worktree. Misses the menu the finishing skill shows later.
+        """
+        text = (ROOT / 'skill/flows/flow-02/SKILL.md').read_text(encoding='utf-8')
+        fresh = text.split('## 新行为', 1)[1].split('## 下一项', 1)[0]
+        nxt = text.split('## 下一项', 1)[1].split('## 暂停的收尾', 1)[0]
+        facts = ('先用只读事实说明每条分支和工作树在哪、相对主干推没推、进没进主干、有没有未提交改动。'
+                 '没有独立提交或工作区不干净的，不标成可清理。')
+        self.assertIn('进入 finishing-a-development-branch 之前，' + facts, fresh)
+        self.assertIn('验证通过后、进入 finishing-a-development-branch 之前：' + facts, nxt)
+        self.assertIn('提交、推送、合并、删除和清理仍等待用户当次选择。', fresh)
+        self.assertIn('提交、推送、合并、删除和清理仍等待用户当次选择。', nxt)
+        self.assertIn('下一项才是 finishing-a-development-branch。', nxt)
+        audit = text.split('## 只读审计', 1)[1].split('## 纯文档', 1)[0]
+        self.assertIn('不执行 git worktree remove。', audit)
+        finishing = (ROOT / 'skill/superpowers/finishing-a-development-branch/SKILL.md').read_text(encoding='utf-8')
+        self.assertIn('git worktree remove', finishing)
+
+    def test_stage_table_and_workflow_match_the_five_practices(self):
+        """Seam: the stage-table handover cells and the workflow sections they cite.
+
+        Catches a chain that the router states and the stage table does not.
+        Misses sessions that skip the table. The persona block and the three
+        cut lines are compared with HEAD so this slice cannot move them.
+        """
+        agents = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
+        previous = subprocess.check_output(['git', 'show', 'HEAD:AGENTS.md'], cwd=ROOT, text=True)
+        self.assertIn('<!-- AGENT_PERSONA_START -->', agents)
+        self.assertIn('<!-- AGENT_PERSONA_END -->', agents)
+        self.assertEqual(
+            agents.split('<!-- AGENT_PERSONA_START -->', 1)[1].split('<!-- AGENT_PERSONA_END -->', 1)[0],
+            previous.split('<!-- AGENT_PERSONA_START -->', 1)[1].split('<!-- AGENT_PERSONA_END -->', 1)[0],
+        )
+        self.assertIn('| 查询、解释、审计 | 路由 → 只读探索 → 事实、推断、未验证项与来源;不修改文件 |', agents)
+        section = agents.split('<!-- AGENT_PERSONA_END -->', 1)[1].split('## 3.', 1)[0]
+        self.assertIn('OpenSpec 独占可校验的规格账本', section)
+        self.assertIn('`tasks.md` 的切片正文只由 `to-tickets` 写入', section)
+        self.assertIn('主 Agent 用 `tdd` 实现', section)
+        rows = {line.split('|')[1].strip(): line for line in agents.splitlines() if line.startswith('| ')}
+        self.assertIn('额外检查只跑编译、类型检查这类秒级检查。', rows['6. IMPLEMENT'])
+        self.assertIn('有效 RED → GREEN → REFACTOR → 相关回归 → TASK_VERIFIED。', rows['6. IMPLEMENT'])
+        self.assertIn('走轻量核对，不要求独立只读上下文。', rows['7. REVIEW'])
+        self.assertIn('亲自跑一次与本次改动相关的局部快测。', rows['7. REVIEW'])
+        self.assertIn('不往 tasks.md 追加切片。', rows['7. REVIEW'])
+        self.assertIn('要改源码回到 tdd。', rows['7. REVIEW'])
+        self.assertIn('声称验证通过只用这一步的全量、端到端和打包。局部快测通过不能代替这一步。', rows['8. VERIFY'])
+        self.assertIn('先用只读事实说明每条分支和工作树在哪、相对主干推没推、进没进主干、有没有未提交改动。', rows['9. INTEGRATE'])
+        self.assertIn('没有独立提交或工作区不干净的，不标成可清理。', rows['9. INTEGRATE'])
+        self.assertIn('不擅自提交、推送、部署或操作设备', rows['9. INTEGRATE'])
+        workflow = (ROOT / 'docs/framework/development-workflow.md').read_text(encoding='utf-8')
+        old_workflow = subprocess.check_output(
+            ['git', 'show', 'HEAD:docs/framework/development-workflow.md'], cwd=ROOT, text=True)
+        self.assertEqual(
+            workflow.split('## 2. OpenSpec', 1)[1].split('## 3.', 1)[0],
+            old_workflow.split('## 2. OpenSpec', 1)[1].split('## 3.', 1)[0],
+        )
+        implement = workflow.split('## 8. IMPLEMENT', 1)[1].split('## 9.', 1)[0]
+        review = workflow.split('## 10. REVIEW', 1)[1].split('## 11.', 1)[0]
+        verify = workflow.split('## 11. VERIFY', 1)[1].split('## 12.', 1)[0]
+        integrate = workflow.split('## 12. INTEGRATE', 1)[1].split('## 13.', 1)[0]
+        self.assertIn('1. RED:', implement)
+        self.assertIn('切片自己的一次 RED 失败测试保留。', implement)
+        self.assertIn('写这一轮生产代码时，额外检查只跑编译、类型检查这类秒级检查。', implement)
+        self.assertIn('4. REGRESSION:', implement)
+        self.assertIn('这一轮改动写完后跑关联的局部快测；失败就修，修完重跑同一条。', implement)
+        self.assertIn('全量、端到端和打包不在这一步用来声称验证通过。', implement)
+        self.assertIn('走轻量核对，不要求独立只读上下文。', review)
+        self.assertIn('亲自跑一次与本次改动相关的局部快测。', review)
+        self.assertIn('不往 tasks.md 追加切片。', review)
+        self.assertIn('要改源码回到 `tdd`。', review)
+        self.assertIn('声称验证通过只用这一步的全量、端到端和打包。局部快测通过不能代替这一步。', verify)
+        self.assertIn('先用只读事实说明每条分支和工作树在哪、相对主干推没推、进没进主干、有没有未提交改动。', integrate)
+        self.assertIn('没有独立提交或工作区不干净的，不标成可清理。', integrate)
+        self.assertIn('推送、合并、删除和清理仍等用户当次选择。', integrate)
+
+    def test_only_flow_02_object_changes_and_other_routers_stay(self):
+        """Seam: the combination manifest's other flow objects and their rendered files.
+
+        Catches a render that rewrites flow-01 or flow-03 through flow-15, or a
+        flow-02 mention list that grows a new skill name.
+        """
+        current = load_combinations()['flows']
+        previous = json.loads(subprocess.check_output(
+            ['git', 'show', 'HEAD:tools/framework_core/workflows/combinations.json'],
+            cwd=ROOT, text=True))['flows']
+        self.assertEqual([item['id'] for item in current], [item['id'] for item in previous])
+        for now, before in zip(current, previous):
+            if now['id'] == 'flow-02':
+                self.assertEqual(now['mentions'], before['mentions'])
+                self.assertEqual(now['name'], before['name'])
+                self.assertEqual(now['trigger'], before['trigger'])
+                self.assertEqual(now['purpose'], before['purpose'])
+                continue
+            self.assertEqual(now, before)
+            text = (ROOT / 'skill/flows' / now['id'] / 'SKILL.md').read_text(encoding='utf-8')
+            old = subprocess.check_output(
+                ['git', 'show', 'HEAD:skill/flows/%s/SKILL.md' % now['id']], cwd=ROOT, text=True)
+            self.assertEqual(text, old)
+        bound = subprocess.check_output(
+            ['git', 'diff', '--name-only', 'HEAD', '--',
+             'openspec/changes/bind-skill-endings-to-active-flow'],
+            cwd=ROOT, text=True)
+        self.assertEqual(bound, '')
+        rendered = (ROOT / 'skill/flows/flow-02/SKILL.md').read_text(encoding='utf-8')
+        self.assertEqual(rendered, render_skill(next(item for item in current if item['id'] == 'flow-02')))
+        for name in ('oil-plan', 'oil-delegate', 'oil-bug-fix'):
+            self.assertNotIn(name, rendered)
+
 
 class RouterFalsificationTests(unittest.TestCase):
     def setUp(self):

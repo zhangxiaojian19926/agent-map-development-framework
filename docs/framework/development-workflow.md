@@ -87,10 +87,10 @@ openspec instructions apply --change <change-id> --json
 ## 8. IMPLEMENT — 实现与任务验证
 
 **技能**:`matt-pocock:tdd`。
-1. RED:写测试前先确认被测 seam,并核对该 seam 与模块接口契约一致,未经确认不写测试;再运行能到达目标路径的失败测试,证明目标行为缺失。期望值来自独立真值源,不由被测代码同样推导。
-2. GREEN:最小实现使该场景通过。
+1. RED:写测试前先确认被测 seam,并核对该 seam 与模块接口契约一致,未经确认不写测试;再运行能到达目标路径的失败测试,证明目标行为缺失。切片自己的一次 RED 失败测试保留。期望值来自独立真值源,不由被测代码同样推导。
+2. GREEN:最小实现使该场景通过。写这一轮生产代码时，额外检查只跑编译、类型检查这类秒级检查。
 3. REFACTOR:只做当前任务必要整理,测试保持通过;设计级重构不在此步,归入评审阶段讨论。
-4. REGRESSION:运行受影响范围的测试;需要时用已有 CodeGraph 辅助定位。
+4. REGRESSION:这一轮改动写完后跑关联的局部快测；失败就修，修完重跑同一条。全量、端到端和打包不在这一步用来声称验证通过。需要时用已有 CodeGraph 辅助定位。
 5. TASK_VERIFIED:检查实际结果、局限和证据,再更新 OpenSpec 对应任务。部分完成不得勾选。
 纯文档使用 §1 的文档验证路径;无可用自动化时明确人工验证方式与证据缺口。不得把编译器缺失、设备不可达、网络或 runner 故障当作有效 RED。
 
@@ -108,11 +108,12 @@ openspec instructions apply --change <change-id> --json
 
 **技能**:`matt-pocock:code-review` 提供两轴评审方法;`superpowers:requesting-code-review` 提供评审节奏与派发;`superpowers:receiving-code-review` 处理收到的反馈。
 提供规格、相关计划、实际 diff 和验证证据。规格以当前 OpenSpec change 为准,提交信息不能替代需求;找不到 change 时如实报告无可用规格并跳过规格轴。规范符合性与规格符合性分轴评审并分别汇报,不合并排序;仓库自身规范优先于气味基线,基线项记为判断项。跨模块变更加评集成维度并记录版本组合,单模块变更显式说明跳过理由。
-反馈须核实后处理,重要问题闭合并重跑受影响检查,驳回需记录理由。`code-review` 的发现写入交付报告，不往 tasks.md 追加切片。重要发现的修改回到 `tdd`。`receiving-code-review` 若要改码，采纳的修改交给 `tdd`，不必另起一条实现。评审结论绑定实际评审的区间、规格版本与支撑命令;范围变动后重评或标注失效。独立评审依赖可用且获授权的评审机制;只有自查时明确标注自查,不得伪称独立评审。
+反馈须核实后处理,重要问题闭合并重跑受影响检查,驳回需记录理由。纯界面、文案、辅助脚本且没碰到高风险目录，走轻量核对，不要求独立只读上下文。并发、数据格式与迁移、不可逆删除、鉴权、对外契约、打包发布，以及仓库已写明的高风险或禁改目录，才需要独立只读上下文。没有已授权的只读子代理时，报告标明自审。对照活动 OpenSpec change 核对允许修改的路径、本期不做、方案点名必须复用的代码。缺陷修复再核对改动是否在坏数据第一次产生的位置。`code-review` 亲自跑一次与本次改动相关的局部快测。这次通过不能代替 `verification-before-completion`。`code-review` 的发现写入交付报告，不往 tasks.md 追加切片。重要发现的修改回到 `tdd`。要改源码回到 `tdd`。`receiving-code-review` 若要改码，采纳的修改交给 `tdd`，不必另起一条实现。评审结论绑定实际评审的区间、规格版本与支撑命令;范围变动后重评或标注失效。独立评审依赖可用且获授权的评审机制;只有自查时明确标注自查,不得伪称独立评审。
 
 ## 11. VERIFY — 整体完成验证
 
 **技能**:`superpowers:verification-before-completion`。
+声称验证通过只用这一步的全量、端到端和打包。局部快测通过不能代替这一步。
 1. 使用最终工作树/产物的新鲜证据。已提交时记录 commit;未提交则记录 HEAD 加工作树差异/产物标识。
 2. 按批准场景执行 Host、Cross-build、Target 或 Integration 中适用的验证;不适用项注明原因。
 3. 跨模块单测通过不代表集成通过,核实项目协作文档要求的版本组合和端到端结果。
@@ -122,6 +123,7 @@ openspec instructions apply --change <change-id> --json
 
 ## 12. INTEGRATE / ARCHIVE / KNOWLEDGE — 交付与收尾
 
+进入 `finishing-a-development-branch` 之前，先用只读事实说明每条分支和工作树在哪、相对主干推没推、进没进主干、有没有未提交改动。没有独立提交或工作区不干净的，不标成可清理。推送、合并、删除和清理仍等用户当次选择。
 1. 用 `superpowers:finishing-a-development-branch` 展示验证结果并落实用户的合并、PR、保留等选择。提交、推送、部署和设备授权按项目约束处理。
 2. 有 OpenSpec change 时检查任务证据与产物状态，用 `openspec-sync-specs` 同步需要的 delta specs，并核对合并结果。同步完成时不移动目录。
 3. 同步与归档顺序执行,不在同步未结束时移动 change。使用实际返回的 changeRoot/planningHome,不要拼接猜测路径。

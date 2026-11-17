@@ -83,6 +83,8 @@ narrow:
   review stage, where they are discussed and decided, and may need their own
   change.
 
+写这一轮生产代码时，额外检查只跑编译、类型检查这类秒级检查。这一轮改动写完后跑关联的局部快测，失败就修，修完重跑同一条。全量、端到端和打包不在这里用来声称验证通过。「The test passes, the other tests still pass」不授权把全量、端到端或打包扩进每一次变绿。切片自己的一次 RED 失败测试仍保留。
+
 `SKILL.md` says refactoring is not part of the red-to-green loop and belongs
 to review. Both are true here: the cleanup that keeps the current task
 readable happens with the implementation; the restructuring that changes what

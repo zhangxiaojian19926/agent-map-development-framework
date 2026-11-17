@@ -99,10 +99,10 @@ OpenSpec 独占可校验的规格账本：proposal、delta spec、design、主�
 | 3. PLAN | matt-pocock:to-tickets（并读其同目录 plan-format.md） | 切片正文只写入当前 change 的 tasks.md。plan-format.md 的 Execution handoff 不是下一项。勾选仍等该切片 TASK_VERIFIED。切片被批准后才进入实现 |
 | 4. WORKSPACE | 需要隔离才点名 using-git-worktrees。无委派授权时不读 executing-plans。委派只在用户已授权且宿主提供子代理时，才读 subagent-driven-development（并读其同目录 framework-rules.md）或 dispatching-parallel-agents，二者择一。人点名仍可用 executing-plans，不成为实现器 | 被委派者仍用 tdd。子代理是任何一个 coding agent 都可以有的能力，不是只有 Claude Code 与 CodeBuddy。当前安装事实不改宿主安装器。不按产品名单改走委派 |
 | 5. APPLY | 路由三步：openspec status --json、openspec instructions apply --json、读完全部 contextFiles。人点名仍可用 openspec-apply-change，只装载上下文 | 不改业务源码，不在 TASK_VERIFIED 之前勾选。openspec-apply-change 不是下一项 |
-| 6. IMPLEMENT | matt-pocock:tdd（并读其同目录 discipline.md） | 有效 RED → GREEN → REFACTOR → 相关回归 → TASK_VERIFIED。该切片 TASK_VERIFIED 之后才把对应任务勾成完成 |
-| 7. REVIEW | matt-pocock:code-review（并读其同目录 framework-rules.md）/ requesting-code-review / receiving-code-review | 发现写入交付报告，不往 tasks.md 追加切片。重要发现回到 tdd。receiving-code-review 若要改码，采纳的修改交给 tdd |
-| 8. VERIFY | verification-before-completion | 最终工作树/产物的新鲜证据;适用局部与集成场景分别验证 |
-| 9. INTEGRATE | finishing-a-development-branch | 用户选择合并/PR/保留等;不擅自提交、推送、部署或操作设备 |
+| 6. IMPLEMENT | matt-pocock:tdd（并读其同目录 discipline.md） | 有效 RED → GREEN → REFACTOR → 相关回归 → TASK_VERIFIED。切片自己的一次 RED 失败测试保留。写这一轮生产代码时，额外检查只跑编译、类型检查这类秒级检查。这一轮改动写完后跑关联的局部快测，失败就修，修完重跑同一条。全量、端到端和打包不在这一步用来声称验证通过。该切片 TASK_VERIFIED 之后才把对应任务勾成完成 |
+| 7. REVIEW | matt-pocock:code-review（并读其同目录 framework-rules.md）/ requesting-code-review / receiving-code-review | 纯界面、文案、辅助脚本且没碰到高风险目录，走轻量核对，不要求独立只读上下文。并发、数据格式与迁移、不可逆删除、鉴权、对外契约、打包发布，以及仓库已写明的高风险或禁改目录，才需要独立只读上下文。没有已授权的只读子代理时，报告标明自审。对照活动 OpenSpec change 核对允许修改的路径、本期不做、方案点名必须复用的代码。缺陷修复再核对改动是否在坏数据第一次产生的位置。亲自跑一次与本次改动相关的局部快测。这次通过不能代替 verification-before-completion。发现写入交付报告，不往 tasks.md 追加切片。重要发现回到 tdd。要改源码回到 tdd。receiving-code-review 若要改码，采纳的修改交给 tdd |
+| 8. VERIFY | verification-before-completion | 声称验证通过只用这一步的全量、端到端和打包。局部快测通过不能代替这一步。最终工作树/产物的新鲜证据;适用局部与集成场景分别验证 |
+| 9. INTEGRATE | finishing-a-development-branch | 进入 finishing-a-development-branch 之前，先用只读事实说明每条分支和工作树在哪、相对主干推没推、进没进主干、有没有未提交改动。没有独立提交或工作区不干净的，不标成可清理。推送、合并、删除和清理仍等用户当次选择。用户选择合并/PR/保留等;不擅自提交、推送、部署或操作设备 |
 | 10. KNOWLEDGE | openspec-sync-specs → llm-wiki | 先同步规格，再把需求页、适用问题页和 knowledge-receipt.json 留在活动 change。这两类不再逐次询问 |
 | 11. ARCHIVE | openspec-archive-change | 回执留下且规格已同步之后才移动目录。未完成或无证据不得宣称完整归档 |
 
