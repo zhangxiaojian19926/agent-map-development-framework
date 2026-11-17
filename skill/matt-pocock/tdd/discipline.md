@@ -70,6 +70,8 @@ until it fails correctly.
 **Verify green.** The test passes, the other tests still pass, and the output
 is clean. If the test fails, fix the code, not the test.
 
+这些动作不算修复：说不清坏值从哪来，就在报错处加空值判断、try/catch、重试、sleep 或加大超时；只对报告的那一个输入写特判；放宽、跳过或删除失败测试；一次改好几处却说不清是哪一处起作用。兜底如果还要，单独写明，不把它当成根因修复。入口校验如果就是坏数据第一次产生的地方，空值判断仍然算修复。
+
 ## Where refactoring belongs (framework addition)
 
 The implementation stage has a cleanup step, and its scope is deliberately

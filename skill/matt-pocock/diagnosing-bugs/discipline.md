@@ -24,6 +24,8 @@ If you have not completed Phase 1, you cannot propose fixes.
 Symptom fixes are failures. A fix that makes the error message go away
 without explaining why the error happened is not a fix; it is a delay.
 
+这些动作不算修复：说不清坏值从哪来，就在报错处加空值判断、try/catch、重试、sleep 或加大超时；只对报告的那一个输入写特判；放宽、跳过或删除失败测试；一次改好几处却说不清是哪一处起作用。兜底如果还要，单独写明，不把它当成根因修复。入口校验如果就是坏数据第一次产生的地方，空值判断仍然算修复。本技能仍不改产品代码。
+
 ## Environment failures are not red signals (framework addition)
 
 A missing compiler, an unreachable device, a broken network or a dead runner
@@ -52,6 +54,10 @@ conclusion to the actual worktree or commit:
 
 A root cause found on an older revision, or a signal from a different
 environment, is a hypothesis — not a finding. Re-verify before acting on it.
+
+根因陈述除了因果链和代码位置，还要能解释全部现象，包括为什么以前不出现、为什么只在某些输入或环境下出现。查过历史就写引入提交的短哈希；没查就写未验证，不凭提交说明下结论。
+
+提交多、范围看不出时，用 git worktree add --detach 在临时目录里 git bisect run。复现材料还没提交的，用新文件名拷进去。结束只 git worktree remove 这个临时目录。当前分支、工作区和暂存区不动。构建失败的版本用退出码 125 跳过。新 worktree 要装依赖或联网时先问。本技能仍不改生产代码。卫生清单和进入 finishing 前的只读事实仍不执行 git worktree remove。
 
 ## When three fixes fail, question the architecture
 

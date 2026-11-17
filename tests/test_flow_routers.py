@@ -455,6 +455,172 @@ class RouterContractTests(unittest.TestCase):
         for name in ('oil-plan', 'oil-delegate', 'oil-bug-fix'):
             self.assertNotIn(name, rendered)
 
+    def test_root_cause_explains_why_it_was_absent(self):
+        """Seam: the root-cause statement in diagnosis.
+
+        Catches a cause that names a line but not why the bug was absent
+        before, or a commit message used as the conclusion. Misses whether
+        the cited hash is the real introducing commit.
+        """
+        skill = (ROOT / 'skill/matt-pocock/diagnosing-bugs/SKILL.md').read_text(encoding='utf-8')
+        discipline = (ROOT / 'skill/matt-pocock/diagnosing-bugs/discipline.md').read_text(encoding='utf-8')
+        phase5 = skill.split('## Phase 5:', 1)[1].split('## Phase 6:', 1)[0]
+        cause = ('根因陈述除了因果链和代码位置，还要能解释全部现象，包括为什么以前不出现、'
+                 '为什么只在某些输入或环境下出现。查过历史就写引入提交的短哈希；'
+                 '没查就写未验证，不凭提交说明下结论。')
+        self.assertIn(cause, phase5)
+        self.assertIn(cause, discipline)
+        self.assertIn('不应用修复，也不写生产代码。', phase5)
+        self.assertIn('Do not write a regression test in this phase', phase5)
+        self.assertIn('回归测试和修复只在活动路由把 tdd 写成下一项时由 tdd 做。', phase5)
+        self.assertIn('回归测试和修复只在活动路由把 tdd 写成下一项时由 tdd 做。', discipline)
+
+    def test_bisect_runs_in_a_temporary_worktree(self):
+        """Seam: bisection when the history is long.
+
+        Catches a bisect that moves the current branch or index, or a
+        cleanup that removes a worktree from the hygiene list. Misses
+        whether the temporary directory was actually deleted.
+        """
+        skill = (ROOT / 'skill/matt-pocock/diagnosing-bugs/SKILL.md').read_text(encoding='utf-8')
+        discipline = (ROOT / 'skill/matt-pocock/diagnosing-bugs/discipline.md').read_text(encoding='utf-8')
+        bisect = ('提交多、范围看不出时，用 git worktree add --detach 在临时目录里 git bisect run。'
+                  '复现材料还没提交的，用新文件名拷进去。结束只 git worktree remove 这个临时目录。'
+                  '当前分支、工作区和暂存区不动。构建失败的版本用退出码 125 跳过。'
+                  '新 worktree 要装依赖或联网时先问。')
+        self.assertIn(bisect, skill)
+        self.assertIn(bisect, discipline)
+        self.assertIn('本技能仍不改生产代码。', skill)
+        self.assertIn('本技能仍不改生产代码。', discipline)
+        text = (ROOT / 'skill/flows/flow-02/SKILL.md').read_text(encoding='utf-8')
+        audit = text.split('## 只读审计', 1)[1].split('## 纯文档', 1)[0]
+        self.assertIn('不执行 git worktree remove。', audit)
+        fresh = text.split('## 新行为', 1)[1].split('## 下一项', 1)[0]
+        nxt = text.split('## 下一项', 1)[1].split('## 暂停的收尾', 1)[0]
+        self.assertIn('仍不执行 git worktree remove。', fresh)
+        self.assertIn('仍不执行 git worktree remove。', nxt)
+
+    def test_symptom_patches_do_not_count_as_the_fix(self):
+        """Seam: the judgment used while writing a fix, and the review beside it.
+
+        Catches a null check or a deleted test reported as the root-cause fix.
+        Misses whether the bad value really starts at the guard that was added.
+        """
+        denied = ('这些动作不算修复：说不清坏值从哪来，就在报错处加空值判断、try/catch、重试、sleep 或加大超时；'
+                  '只对报告的那一个输入写特判；放宽、跳过或删除失败测试；'
+                  '一次改好几处却说不清是哪一处起作用。'
+                  '兜底如果还要，单独写明，不把它当成根因修复。'
+                  '入口校验如果就是坏数据第一次产生的地方，空值判断仍然算修复。')
+        tdd = (ROOT / 'skill/matt-pocock/tdd/discipline.md').read_text(encoding='utf-8')
+        rules = (ROOT / 'skill/matt-pocock/code-review/framework-rules.md').read_text(encoding='utf-8')
+        diagnosis = (ROOT / 'skill/matt-pocock/diagnosing-bugs/discipline.md').read_text(encoding='utf-8')
+        self.assertIn(denied, tdd)
+        anchor = '缺陷修复再核对改动是否在坏数据第一次产生的位置。'
+        self.assertIn(anchor, rules)
+        self.assertIn(denied, rules[rules.index(anchor):])
+        self.assertIn('不把评审改回改业务源码。', rules)
+        original = ('A fix that makes the error message go away\n'
+                    'without explaining why the error happened is not a fix; it is a delay.')
+        self.assertIn(original, diagnosis)
+        self.assertIn(denied, diagnosis)
+        self.assertIn('本技能仍不改产品代码。', diagnosis)
+        self.assertIn('NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST', tdd)
+
+    def test_existing_paths_are_checked_before_design_is_written(self):
+        """Seam: the flow-02 sentences that name propose and update.
+
+        Catches a design that cites a path the repository does not have,
+        when the only copy of the check sits in a generated skill. Misses
+        whether the human later accepts the Requirement.
+        """
+        text = (ROOT / 'skill/flows/flow-02/SKILL.md').read_text(encoding='utf-8')
+        check = ('写 design 时，proposal 或 design 里写成已经有的文件路径、可复用符号和测试命令，'
+                 '落盘前在仓库里核对。对不上就改这句或标成待确认。'
+                 '将要新建的文件不要求事先存在。不另写 docs/ 规格，不另建任务契约。'
+                 '核对通过不等于 Requirement 已被认可。')
+        repair = text.split('## 既有规格修复', 1)[1].split('## 新行为', 1)[0]
+        fresh = text.split('## 新行为', 1)[1].split('## 下一项', 1)[0]
+        nxt = text.split('## 下一项', 1)[1].split('## 暂停的收尾', 1)[0]
+        self.assertIn(check, repair)
+        self.assertIn(check, fresh)
+        self.assertIn(check, nxt)
+        self.assertIn('不创建 tasks.md', repair)
+        self.assertIn('不创建 tasks.md', fresh)
+        for rel in (
+            'skill/openspec/openspec-propose/SKILL.md',
+            'skill/openspec/openspec-update-change/SKILL.md',
+        ):
+            current = (ROOT / rel).read_text(encoding='utf-8')
+            previous = subprocess.check_output(['git', 'show', 'HEAD:' + rel], cwd=ROOT, text=True)
+            self.assertEqual(current, previous)
+            self.assertIn('generatedBy:', current)
+
+    def test_unmatched_conclusions_are_not_forwarded(self):
+        """Seam: verification claims and review findings taken from someone else.
+
+        Catches a skipped test counted as a pass, or a finding handed to tdd
+        before the code was re-read. Misses whether the trunk command was the
+        same command.
+        """
+        verify = (ROOT / 'skill/superpowers/verification-before-completion/SKILL.md').read_text(encoding='utf-8')
+        self.assertEqual(verify.count('Trusting agent success reports'), 1)
+        self.assertIn('测试被删除、skip 或放宽不能当成通过。', verify)
+        self.assertIn('对方说基线本来就失败时，在主干上跑同一条命令，不要为了证明无关而 stash 或 reset 当前改动。', verify)
+        self.assertIn('主干对照不能用来声称全量验证已过。', verify)
+        rules = (ROOT / 'skill/matt-pocock/code-review/framework-rules.md').read_text(encoding='utf-8')
+        self.assertIn('独立只读上下文返回的每条问题，回读对应代码后才写入交付报告；读不出依据的标待确认或剔除，不交给 tdd。', rules)
+        self.assertIn('审完看 git status 没有变化。', rules)
+        self.assertIn('只 mock 自证、没有业务断言、靠固定长 sleep 的测试，同样只记进报告。', rules)
+        self.assertIn('自审必须标明自审。', rules)
+        self.assertIn('flow-04 与 flow-09 只把这些问题写入交付报告，不把修改交回 tdd。', rules)
+        for rel in ('skill/flows/flow-04/SKILL.md', 'skill/flows/flow-09/SKILL.md'):
+            body = (ROOT / rel).read_text(encoding='utf-8')
+            previous = subprocess.check_output(['git', 'show', 'HEAD:' + rel], cwd=ROOT, text=True)
+            self.assertEqual(body, previous)
+            self.assertNotIn('要改源码回到 tdd', body)
+
+    def test_branch_facts_add_a_judgment_before_finishing(self):
+        """Seam: the read-only facts immediately before finishing the branch.
+
+        Catches a deleted remote branch treated as cleanable on its own, or
+        an ancestor check that misses a squash. Misses the menu the finishing
+        skill shows after the user chooses.
+        """
+        text = (ROOT / 'skill/flows/flow-02/SKILL.md').read_text(encoding='utf-8')
+        fresh = text.split('## 新行为', 1)[1].split('## 下一项', 1)[0]
+        nxt = text.split('## 下一项', 1)[1].split('## 暂停的收尾', 1)[0]
+        facts = ('先用只读事实说明每条分支和工作树在哪、相对主干推没推、进没进主干、有没有未提交改动。'
+                 '没有独立提交或工作区不干净的，不标成可清理。')
+        judgment = ('对还没进主干、且要用户决定或仍在进行的分支，读改动最多的一两个文件，'
+                    '用一句人话写改了什么，并给一条建议和理由。'
+                    '建议合并前用 git merge-tree --write-tree --name-only 看冲突文件，'
+                    '这条命令不改分支、不改工作目录。'
+                    '云端分支已删除不能单独当成可清理。'
+                    '只看是不是主干祖先会漏掉 squash，也会把还没提交的新分支误判成已合入。'
+                    'squash 或 rebase 之后整体补丁已在主干且工作区干净，可以标成可清理候选。'
+                    '推送、合并、删除仍等用户当次选择。读不到 PR 就不要猜。不新做看板脚本。'
+                    '仍不执行 git worktree remove。')
+        self.assertIn('进入 finishing-a-development-branch 之前，' + facts + judgment, fresh)
+        self.assertIn('验证通过后、进入 finishing-a-development-branch 之前：' + facts + judgment, nxt)
+        self.assertNotIn('oil-dev', text)
+        rendered = render_skill(next(item for item in load_combinations()['flows'] if item['id'] == 'flow-02'))
+        self.assertEqual(text, rendered)
+        agents = (ROOT / 'AGENTS.md').read_text(encoding='utf-8')
+        previous = subprocess.check_output(['git', 'show', 'HEAD:AGENTS.md'], cwd=ROOT, text=True)
+        self.assertEqual(agents, previous)
+        finishing = (ROOT / 'skill/superpowers/finishing-a-development-branch/SKILL.md').read_text(encoding='utf-8')
+        old_finishing = subprocess.check_output(
+            ['git', 'show', 'HEAD:skill/superpowers/finishing-a-development-branch/SKILL.md'],
+            cwd=ROOT, text=True)
+        self.assertEqual(finishing, old_finishing)
+        for change in (
+            'openspec/changes/bind-skill-endings-to-active-flow',
+            'openspec/changes/absorb-five-flow-02-practices',
+        ):
+            diff = subprocess.check_output(
+                ['git', 'diff', '--name-only', 'HEAD', '--', change], cwd=ROOT, text=True)
+            self.assertEqual(diff, '')
+
 
 class RouterFalsificationTests(unittest.TestCase):
     def setUp(self):

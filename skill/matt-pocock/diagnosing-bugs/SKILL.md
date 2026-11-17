@@ -30,7 +30,7 @@ Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to give
 5. **Replay a captured trace.** Save a real network request / payload / event log to disk; replay it through the code path in isolation.
 6. **Throwaway harness.** Spin up a minimal subset of the system (one service, mocked deps) that exercises the bug code path with a single function call.
 7. **Property / fuzz loop.** If the bug is "sometimes wrong output", run 1000 random inputs and look for the failure mode.
-8. **Bisection harness.** If the bug appeared between two known states (commit, dataset, version), automate "boot at state X, check, repeat" so you can `git bisect run` it.
+8. **Bisection harness.** If the bug appeared between two known states (commit, dataset, version), automate "boot at state X, check, repeat" so you can `git bisect run` it. 提交多、范围看不出时，用 git worktree add --detach 在临时目录里 git bisect run。复现材料还没提交的，用新文件名拷进去。结束只 git worktree remove 这个临时目录。当前分支、工作区和暂存区不动。构建失败的版本用退出码 125 跳过。新 worktree 要装依赖或联网时先问。本技能仍不改生产代码。
 9. **Differential loop.** Run the same input through old-version vs new-version (or two configs) and diff outputs.
 10. **HITL bash script.** Last resort. If a human must click, drive _them_ with `scripts/hitl-loop.template.sh` so the loop is still structured. Captured output feeds back to you.
 
@@ -116,6 +116,8 @@ Tool preference:
 本阶段不是实现器。不应用修复，也不写生产代码。
 
 State the root cause, the minimised repro, and the evidence that supports them. Then stop. Do not write a regression test in this phase, and do not change production code to make the loop go green.
+
+根因陈述除了因果链和代码位置，还要能解释全部现象，包括为什么以前不出现、为什么只在某些输入或环境下出现。查过历史就写引入提交的短哈希；没查就写未验证，不凭提交说明下结论。
 
 回归测试和修复只在活动路由把 tdd 写成下一项时由 tdd 做。flow-01 与 flow-14 不把 tdd 写成下一项，所以这两条读完诊断就停。
 

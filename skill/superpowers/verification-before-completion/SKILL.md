@@ -58,6 +58,10 @@ Skip any step = lying, not verifying
 - Tired and wanting work over
 - **ANY wording implying success without having run verification**
 
+## 不能当成通过
+
+测试被删除、skip 或放宽不能当成通过。对方说基线本来就失败时，在主干上跑同一条命令，不要为了证明无关而 stash 或 reset 当前改动。主干对照不能用来声称全量验证已过。
+
 ## Rationalization Prevention
 
 | Excuse | Reality |
